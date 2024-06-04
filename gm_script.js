@@ -95,6 +95,13 @@ GM_addStyle(`
     width: 200px;
     height: 200px;
 }
+
+.image-skeleton {
+    width: 200px;
+    height: 200px;
+    background-color: #6666;
+    opacity: 0;
+}
 `);
 const parser = new DOMParser();
 
@@ -406,12 +413,25 @@ async function customPageMain() {
     async function renderImages() {
         const imageContainer = document.querySelector('.images-container');
         imageContainer.innerHTML = '';
+
+        // Render skeleton
+        for (let i = 0; i < 9; i++) {
+            imageContainer.innerHTML += `
+                <div
+                    class="image-skeleton"
+                    style="transition: opacity 0.1s ease ${i * 0.05}s;"
+                />`;
+        }
+        setTimeout(() => {
+            imageContainer.querySelectorAll('.image-skeleton').forEach((skeleton) => {
+                skeleton.style.opacity = 1;
+            });
+        }, 1);
+
+        /** @type {[Tags, Tweets]} */
+        const [tags, tweets] = await Promise.all([GM.getValue(KEY_TAGS, {}), GM.getValue(KEY_TWEETS, {})]);
         const tagName = document.querySelector('#tagSelect').value;
-        /** @type {Tags} */
-        const tags = await GM.getValue(KEY_TAGS, {});
         const tagData = tags[tagName] || { tweets: [] };
-        /** @type {Tweets} */
-        const tweets = await GM.getValue(KEY_TWEETS, {});
 
         const imageLinks = [...tagData.tweets]
             .reverse()
@@ -435,6 +455,11 @@ async function customPageMain() {
             )
             .join('');
 
+        if (imageLinks.length === 0) {
+            imageContainer.innerHTML = '<h3>No tags yet</h3>';
+            tagSelect.innerHTML = `<option disabled selected value=""> --- </option>`;
+        }
+
         imageLinks.forEach((link) => {
             new VanillaContextMenu({
                 scope: document.querySelector(`#${ID_IMAGE}__${link.tweetId}__${link.index}`),
@@ -452,7 +477,7 @@ async function customPageMain() {
                         nestedMenu: Object.keys(tags)
                             .filter((tag) => tags[tag].tweets.includes(link.tweetId))
                             .map((tag) => ({
-                                label: formatTagName(tag),
+                                label: ' → ' + formatTagName(tag),
                                 callback: () => {
                                     document.querySelector('#tagSelect').value = tag;
                                     renderImages();
@@ -466,7 +491,7 @@ async function customPageMain() {
                         nestedMenu: Object.keys(tags)
                             .filter((tag) => !tags[tag].tweets.includes(link.tweetId))
                             .map((tag) => ({
-                                label: formatTagName(tag),
+                                label: ' + ' + formatTagName(tag),
                                 callback: async () => {
                                     const tags = await GM.getValue(KEY_TAGS, {});
                                     tags[tag].tweets.push(link.tweetId);
@@ -482,7 +507,7 @@ async function customPageMain() {
                         nestedMenu: Object.keys(tags)
                             .filter((tag) => tags[tag].tweets.includes(link.tweetId))
                             .map((tag) => ({
-                                label: formatTagName(tag),
+                                label: ' - ' + formatTagName(tag),
                                 callback: async () => {
                                     const tags = await GM.getValue(KEY_TAGS, {});
                                     tags[tag].tweets = tags[tag].tweets.filter((tweetId) => tweetId !== link.tweetId);
