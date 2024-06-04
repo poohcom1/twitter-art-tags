@@ -15,7 +15,12 @@
 
 // Commands
 GM.registerMenuCommand('View tags', () => (window.location = window.location.origin + CUSTOM_PAGE_PATH));
-GM.registerMenuCommand('Clear all tags', async () => await GM.deleteValue(KEY_TAGS));
+GM.registerMenuCommand('Clear all tags', async () => {
+    if (!confirm('Are you sure you want to delete all tags?')) {
+        return;
+    }
+    await GM.deleteValue(KEY_TAGS);
+});
 
 // Assets
 const TAG_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true" class="r-4qtqp9 r-yyyyoo r-dnmrzs r-bnwqim r-lrvibr r-m6rgpd r-1xvli5t r-1hdv0qi"><g><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></g></svg>`;
@@ -28,7 +33,7 @@ const KEY_SELECTED_TAG = 'selectedTag';
 const CUSTOM_PAGE_PATH = '/home/tags';
 const CUSTOM_PAGE_TITLE = 'Tags / X';
 
-const CLASS_IMAGE = 'tag-image';
+const ID_IMAGE = 'tagImage';
 
 // HTML
 GM_addStyle(`
@@ -70,21 +75,28 @@ GM_addStyle(`
 
 /* Drop down */
 .root {
-    padding-top: 40px;
+    padding: 40px 0;
     font-family: TwitterChirp;
 }
 
-.image-container {
+.images-container {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
 
-.image-container img {
+.image-container {
     max-width: 200px;
+    overflow: hidden;
+}
+
+.image-container img {
     object-fit: cover;
+    width: 200px;
+    height: 200px;
 }
 `);
+const parser = new DOMParser();
 
 //#region Debug
 Promise.all([GM.getValue(KEY_TWEETS), GM.getValue(KEY_TAGS)]).then(([tweets, tags]) => {
@@ -93,23 +105,6 @@ Promise.all([GM.getValue(KEY_TWEETS), GM.getValue(KEY_TAGS)]).then(([tweets, tag
     console.log('Twitter Art Collection - Tags');
     console.table(tags);
 });
-//#endregion
-
-//#region Render
-const parser = new DOMParser();
-
-/**
- * @param {Tag} tag
- * @param {boolean} active
- */
-const renderTag = (tag, active) =>
-    parser.parseFromString(
-        `<button id="${tag}" class="tag ${!active && 'tag__inactive'}">${active ? '✔ ' : ''}${formatTagName(
-            tag
-        )}</button>`,
-        'text/html'
-    ).body.firstChild;
-
 //#endregion
 
 // Main
@@ -232,6 +227,18 @@ async function twitterMain() {
         });
         return tagArray;
     }
+
+    /**
+     * @param {Tag} tag
+     * @param {boolean} active
+     */
+    const renderTag = (tag, active) =>
+        parser.parseFromString(
+            `<button id="${tag}" class="tag ${!active && 'tag__inactive'}">${active ? '✔ ' : ''}${formatTagName(
+                tag
+            )}</button>`,
+            'text/html'
+        ).body.firstChild;
     //#endregion
 
     //#region Create the tag modal
@@ -371,10 +378,14 @@ async function customPageMain() {
     main.innerHTML = `
     <div class="root">
     <h2>Tags</h2>
-    <select id="tagSelect"></select>
-    <button id="tagDelete">Delete Tag</button>
+    <div style="display: flex; gap: 10px">
+        <select id="tagSelect"></select>
+
+        <button id="tagExport" style="margin-left: auto">Export Tags</button>
+        <button id="tagImport">Import Tags</button>
+    </div>
     <hr />
-    <div class="image-container"></div>
+    <div class="images-container"></div>
 </div>
     `;
     // Render title
@@ -393,10 +404,12 @@ async function customPageMain() {
 
     // Render images
     async function renderImages() {
-        const imageContainer = document.querySelector('.image-container');
+        const imageContainer = document.querySelector('.images-container');
+        imageContainer.innerHTML = '';
         const tagName = document.querySelector('#tagSelect').value;
         /** @type {Tags} */
-        const tagData = (await GM.getValue(KEY_TAGS, {}))[tagName] || { tweets: [] };
+        const tags = await GM.getValue(KEY_TAGS, {});
+        const tagData = tags[tagName] || { tweets: [] };
         /** @type {Tweets} */
         const tweets = await GM.getValue(KEY_TWEETS, {});
 
@@ -404,33 +417,80 @@ async function customPageMain() {
             .reverse()
             .filter((tweetId) => tweetId in tweets)
             .flatMap((tweetId) =>
-                tweets[tweetId].images.map((image) => ({
+                tweets[tweetId].images.map((image, index) => ({
                     tweetId,
                     image,
+                    index,
                 }))
             );
 
         imageContainer.innerHTML = imageLinks
             .map(
                 (link) =>
-                    `<a class="${CLASS_IMAGE}" href="/poohcom1/status/${link.tweetId}" target="_blank"><img src="${link.image}" /></a>`
+                    `
+                    <a id="${ID_IMAGE}__${link.tweetId}__${link.index}" class="image-container" href="/poohcom1/status/${link.tweetId}" target="_blank">
+                        <img src="${link.image}" />
+                    </a>
+                    `
             )
             .join('');
 
         imageLinks.forEach((link) => {
             new VanillaContextMenu({
-                scope: document.querySelector(`a[href="/poohcom1/status/${link.tweetId}"]`),
+                scope: document.querySelector(`#${ID_IMAGE}__${link.tweetId}__${link.index}`),
                 menuItems: [
                     {
-                        label: 'Remove from tag',
-                        callback: async (ev) => {
-                            if (!confirm(`Remove this tweet from "${tagName}"?`)) return;
-
-                            const tags = await GM.getValue(KEY_TAGS, {});
-                            tags[tagName].tweets = tags[tagName].tweets.filter((tweetId) => tweetId !== link.tweetId);
-                            await GM.setValue(KEY_TAGS, tags);
-                            renderImages();
+                        label: 'View',
+                        callback: () => {
+                            window.open(`/poohcom1/status/${link.tweetId}`, '_blank');
                         },
+                    },
+                    'hr',
+                    {
+                        label: 'Tags',
+                        preventCloseOnClick: true,
+                        nestedMenu: Object.keys(tags)
+                            .filter((tag) => tags[tag].tweets.includes(link.tweetId))
+                            .map((tag) => ({
+                                label: formatTagName(tag),
+                                callback: () => {
+                                    document.querySelector('#tagSelect').value = tag;
+                                    renderImages();
+                                },
+                            })),
+                    },
+                    'hr',
+                    {
+                        label: 'Add to',
+                        preventCloseOnClick: true,
+                        nestedMenu: Object.keys(tags)
+                            .filter((tag) => !tags[tag].tweets.includes(link.tweetId))
+                            .map((tag) => ({
+                                label: formatTagName(tag),
+                                callback: async () => {
+                                    const tags = await GM.getValue(KEY_TAGS, {});
+                                    tags[tag].tweets.push(link.tweetId);
+                                    GM.setValue(KEY_TAGS, tags);
+
+                                    renderImages();
+                                },
+                            })),
+                    },
+                    {
+                        label: 'Remove from',
+                        preventCloseOnClick: true,
+                        nestedMenu: Object.keys(tags)
+                            .filter((tag) => tags[tag].tweets.includes(link.tweetId))
+                            .map((tag) => ({
+                                label: formatTagName(tag),
+                                callback: async () => {
+                                    const tags = await GM.getValue(KEY_TAGS, {});
+                                    tags[tag].tweets = tags[tag].tweets.filter((tweetId) => tweetId !== link.tweetId);
+                                    GM.setValue(KEY_TAGS, tags);
+
+                                    renderImages();
+                                },
+                            })),
                     },
                 ],
                 transitionDuration: 0,
@@ -456,20 +516,55 @@ async function customPageMain() {
     }
     renderTagSelect();
 
-    // Tag delete
-    const tagDelete = document.querySelector('#tagDelete');
-    tagDelete.addEventListener('click', async () => {
-        const tagName = tagSelect.value;
-        if (tagName === '') {
-            return;
-        }
-        if (!confirm(`Are you sure you want to delete the tag "${formatTagName(tagName)}"?`)) {
-            return;
-        }
+    // Tag export
+    const tagExport = document.querySelector('#tagExport');
+    tagExport.addEventListener('click', async () => {
         const tags = await GM.getValue(KEY_TAGS, {});
-        delete tags[tagName];
-        await GM.setValue(KEY_TAGS, tags);
-        await renderTagSelect();
+        const blob = new Blob([JSON.stringify(tags, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+
+        const date = new Date().toISOString().split('T')[0];
+        a.download = `tags_${date}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    // Tag import
+    const tagImport = document.querySelector('#tagImport');
+    tagImport.addEventListener('click', async () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+        input.style.display = 'none';
+        input.addEventListener('change', async () => {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const tags = JSON.parse(reader.result);
+                if (!confirm('Are you sure you want to overwrite all tags?')) {
+                    return;
+                }
+                // Validate tags
+                if (typeof tags !== 'object') {
+                    alert('Invalid tag file');
+                    return;
+                }
+
+                for (const [key, value] of Object.entries(tags)) {
+                    if (typeof key !== 'string' || !Array.isArray(value.tweets)) {
+                        alert('Invalid tag file');
+                        return;
+                    }
+                }
+
+                await GM.setValue(KEY_TAGS, tags);
+                renderTagSelect();
+            };
+            reader.readAsText(file);
+        });
+        input.click();
     });
 }
 
