@@ -10,7 +10,7 @@
 // @grant    GM.listValues
 // @grant    GM.registerMenuCommand
 // @require  https://gist.githubusercontent.com/arantius/eec890c9ce4ff2f7abee896c0bba664d/raw/14bb06f60ba6dc12c0bc72fe4c69443f67ff26de/gm-addstyle.js
-// @require  https://unpkg.com/vanilla-context-menu@1.4.1/dist/vanilla-context-menu.js
+// @require  https://unpkg.com/vanilla-context-menu@1.6.0/dist/vanilla-context-menu.js
 // ==/UserScript==
 
 // Commands
@@ -463,26 +463,14 @@ async function customPageMain() {
         imageLinks.forEach((link) => {
             new VanillaContextMenu({
                 scope: document.querySelector(`#${ID_IMAGE}__${link.tweetId}__${link.index}`),
+                normalizePosition: false,
+                transitionDuration: 0,
                 menuItems: [
                     {
                         label: 'View',
                         callback: () => {
                             window.open(`/poohcom1/status/${link.tweetId}`, '_blank');
                         },
-                    },
-                    'hr',
-                    {
-                        label: 'Tags',
-                        preventCloseOnClick: true,
-                        nestedMenu: Object.keys(tags)
-                            .filter((tag) => tags[tag].tweets.includes(link.tweetId))
-                            .map((tag) => ({
-                                label: ' → ' + formatTagName(tag),
-                                callback: () => {
-                                    document.querySelector('#tagSelect').value = tag;
-                                    renderImages();
-                                },
-                            })),
                     },
                     'hr',
                     {
@@ -517,8 +505,17 @@ async function customPageMain() {
                                 },
                             })),
                     },
+                    'hr',
+                    ...Object.keys(tags)
+                        .filter((tag) => tags[tag].tweets.includes(link.tweetId))
+                        .map((tag) => ({
+                            label: formatTagName(tag),
+                            callback: () => {
+                                document.querySelector('#tagSelect').value = tag;
+                                renderImages();
+                            },
+                        })),
                 ],
-                transitionDuration: 0,
             });
         });
     }
