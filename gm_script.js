@@ -10,9 +10,11 @@
 // @grant    GM.listValues
 // @grant    GM.registerMenuCommand
 // @require  https://gist.githubusercontent.com/arantius/eec890c9ce4ff2f7abee896c0bba664d/raw/14bb06f60ba6dc12c0bc72fe4c69443f67ff26de/gm-addstyle.js
+// @require  https://unpkg.com/vanilla-context-menu@1.4.1/dist/vanilla-context-menu.js
 // ==/UserScript==
 
 // Commands
+GM.registerMenuCommand('View tags', () => (window.location = window.location.origin + CUSTOM_PAGE_PATH));
 GM.registerMenuCommand('Clear all tags', async () => await GM.deleteValue(KEY_TAGS));
 
 // Assets
@@ -20,9 +22,17 @@ const TAG_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true" class="r-4qtqp9 r-y
 
 // Constants
 const KEY_TAGS = 'tags';
+const KEY_TWEETS = 'tweets';
+const KEY_SELECTED_TAG = 'selectedTag';
+
+const CUSTOM_PAGE_PATH = '/home/tags';
+const CUSTOM_PAGE_TITLE = 'Tags / X';
+
+const CLASS_IMAGE = 'tag-image';
 
 // HTML
 GM_addStyle(`
+/* Drop down */
 #tagInput {
     width: 100%;
     height: 20px;
@@ -57,15 +67,35 @@ GM_addStyle(`
     flex-wrap: wrap;
     gap: 8px;
 }
+
+/* Drop down */
+.root {
+    padding-top: 40px;
+    font-family: TwitterChirp;
+}
+
+.image-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.image-container img {
+    max-width: 200px;
+    object-fit: cover;
+}
 `);
 
-// Debug
-GM.getValue(KEY_TAGS).then((tags) => {
+//#region Debug
+Promise.all([GM.getValue(KEY_TWEETS), GM.getValue(KEY_TAGS)]).then(([tweets, tags]) => {
+    console.log('Twitter Art Collection - Tweets');
+    console.table(tweets);
     console.log('Twitter Art Collection - Tags');
     console.table(tags);
 });
+//#endregion
 
-// Render
+//#region Render
 const parser = new DOMParser();
 
 /**
@@ -80,16 +110,18 @@ const renderTag = (tag, active) =>
         'text/html'
     ).body.firstChild;
 
-// Main
-(async function () {
-    ('use strict');
+//#endregion
 
-    // Global """states"""
+// Main
+async function twitterMain() {
+    //#region Global """states"""
 
     /** @type {string} */
     let currentTweetId = null;
     /** @type {(() => void) | null} */
     let onNewTag = null;
+
+    //#endregion
 
     //#region Global functions
 
@@ -128,6 +160,25 @@ const renderTag = (tag, active) =>
         }
 
         await GM.setValue(KEY_TAGS, tags);
+
+        /** @type {Tweets} */
+        const tweets = await GM.getValue(KEY_TWEETS, {});
+
+        const images = Array.from(document.querySelectorAll('a'))
+            .filter((a) => a.href.includes(currentTweetId))
+            .flatMap((a) => Array.from(a.querySelectorAll('img')))
+            .map((img) => img.src);
+        console.log(images);
+
+        if (images.length === 0) {
+            return;
+        }
+
+        tweets[currentTweetId] = {
+            images,
+        };
+
+        await GM.setValue(KEY_TWEETS, tweets);
     }
 
     async function removeTag(tagName) {
@@ -210,7 +261,7 @@ const renderTag = (tag, active) =>
 
     //#endregion
 
-    // Observer the dropdown appearing
+    //#region Tags Menu
     await waitForElement('#layers');
 
     const dropdownObserver = new MutationObserver((mutationsList, observer) => {
@@ -251,14 +302,14 @@ const renderTag = (tag, active) =>
                     return;
                 }
 
-                // Clone a menu item
-                const tagContainer = dropdown.childNodes[0].cloneNode(true);
+                // Create tag button
+                const tagButton = dropdown.childNodes[0].cloneNode(true);
 
-                tagContainer.querySelector('span').innerText = 'Tag';
-                tagContainer.querySelector('svg').outerHTML = TAG_SVG;
-                tagContainer.id = tagId;
-                tagContainer.addEventListener('click', async () => {
-                    const rect = tagContainer.getBoundingClientRect();
+                tagButton.querySelector('span').innerText = 'Tag';
+                tagButton.querySelector('svg').outerHTML = TAG_SVG;
+                tagButton.id = tagId;
+                tagButton.addEventListener('click', async () => {
+                    const rect = tagButton.getBoundingClientRect();
 
                     tagModal.style.top = `${rect.top + window.scrollY}px`;
                     tagModal.style.left = `${rect.right + 10}px`;
@@ -290,7 +341,16 @@ const renderTag = (tag, active) =>
                     renderTagList();
                     onNewTag = renderTagList;
                 });
-                dropdown.prepend(tagContainer);
+
+                const viewTagsButton = tagButton.cloneNode(true);
+                viewTagsButton.querySelector('span').innerText = 'View Tags';
+                viewTagsButton.querySelector('svg').outerHTML = TAG_SVG;
+                viewTagsButton.addEventListener('click', async () => {
+                    window.location.href = window.location.origin + CUSTOM_PAGE_PATH;
+                });
+
+                dropdown.prepend(viewTagsButton);
+                dropdown.prepend(tagButton);
             } else if (mutation.removedNodes.length > 0) {
                 tagModal.style.display = 'none';
                 clearTagsContainer();
@@ -302,6 +362,125 @@ const renderTag = (tag, active) =>
     dropdownObserver.observe(document.getElementById('layers'), {
         childList: true,
     });
+    //#endregion
+}
+
+async function customPageMain() {
+    const main = (await waitForElement('div[data-testid="error-detail"]')).parentElement;
+    main.style.maxWidth = '100%';
+    main.innerHTML = `
+    <div class="root">
+    <h2>Tags</h2>
+    <select id="tagSelect"></select>
+    <button id="tagDelete">Delete Tag</button>
+    <hr />
+    <div class="image-container"></div>
+</div>
+    `;
+    // Render title
+    document.title = CUSTOM_PAGE_TITLE;
+
+    const titleObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+                if (document.title !== CUSTOM_PAGE_TITLE) {
+                    document.title = CUSTOM_PAGE_TITLE;
+                }
+            }
+        });
+    });
+    titleObserver.observe(document.querySelector('title'), { childList: true });
+
+    // Render images
+    async function renderImages() {
+        const imageContainer = document.querySelector('.image-container');
+        const tagName = document.querySelector('#tagSelect').value;
+        /** @type {Tags} */
+        const tagData = (await GM.getValue(KEY_TAGS, {}))[tagName] || { tweets: [] };
+        /** @type {Tweets} */
+        const tweets = await GM.getValue(KEY_TWEETS, {});
+
+        const imageLinks = [...tagData.tweets]
+            .reverse()
+            .filter((tweetId) => tweetId in tweets)
+            .flatMap((tweetId) =>
+                tweets[tweetId].images.map((image) => ({
+                    tweetId,
+                    image,
+                }))
+            );
+
+        imageContainer.innerHTML = imageLinks
+            .map(
+                (link) =>
+                    `<a class="${CLASS_IMAGE}" href="/poohcom1/status/${link.tweetId}" target="_blank"><img src="${link.image}" /></a>`
+            )
+            .join('');
+
+        imageLinks.forEach((link) => {
+            new VanillaContextMenu({
+                scope: document.querySelector(`a[href="/poohcom1/status/${link.tweetId}"]`),
+                menuItems: [
+                    {
+                        label: 'Remove from tag',
+                        callback: async (ev) => {
+                            if (!confirm(`Remove this tweet from "${tagName}"?`)) return;
+
+                            const tags = await GM.getValue(KEY_TAGS, {});
+                            tags[tagName].tweets = tags[tagName].tweets.filter((tweetId) => tweetId !== link.tweetId);
+                            await GM.setValue(KEY_TAGS, tags);
+                            renderImages();
+                        },
+                    },
+                ],
+                transitionDuration: 0,
+            });
+        });
+    }
+
+    // Tag select
+    const tagSelect = document.querySelector('#tagSelect');
+
+    async function renderTagSelect() {
+        const tags = await GM.getValue(KEY_TAGS, {});
+        const selectedTag = await GM.getValue(KEY_SELECTED_TAG, '');
+        const tagList = Object.keys(tags);
+        tagList.sort((a, b) => a.localeCompare(b));
+        tagSelect.innerHTML = tagList.map((tag) => `<option value="${tag}">${formatTagName(tag)}</option>`).join('');
+        tagSelect.value = selectedTag || tagList[0] || '';
+        tagSelect.addEventListener('change', (event) => {
+            renderImages();
+            GM.setValue(KEY_SELECTED_TAG, event.target.value);
+        });
+        renderImages();
+    }
+    renderTagSelect();
+
+    // Tag delete
+    const tagDelete = document.querySelector('#tagDelete');
+    tagDelete.addEventListener('click', async () => {
+        const tagName = tagSelect.value;
+        if (tagName === '') {
+            return;
+        }
+        if (!confirm(`Are you sure you want to delete the tag "${formatTagName(tagName)}"?`)) {
+            return;
+        }
+        const tags = await GM.getValue(KEY_TAGS, {});
+        delete tags[tagName];
+        await GM.setValue(KEY_TAGS, tags);
+        await renderTagSelect();
+    });
+}
+
+(function () {
+    ('use strict');
+
+    twitterMain();
+
+    if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
+        customPageMain();
+    }
 })();
 
 // Utils

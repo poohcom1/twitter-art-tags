@@ -3,18 +3,20 @@ type GMGlobal = {
     getValue: (key: string, defaultValue: any) => Promise<any>;
     deleteValue: (key: string) => Promise<void>;
     listValues: () => Promise<string[]>;
-    registerMenuCommand(
-        caption: string,
-        commandFunc: () => void,
-        accessKey?: string
-    ): void;
+    registerMenuCommand(caption: string, commandFunc: () => void, accessKey?: string): void;
 };
 
 declare var GM: GMGlobal;
 
 type Tag = {
-    tweets: number[];
+    tweets: string[];
     lastUpdated: number;
 };
 
 type Tags = Record<string, Tag | undefined>;
+
+type Tweet = {
+    images: string[];
+};
+
+type Tweets = Record<string, Tweet | undefined>;
