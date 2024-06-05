@@ -61,7 +61,7 @@ export async function renameTag(oldTagName: string, newTagName: string) {
 }
 
 // Tweet
-export async function addTag(tweetId: string, tagName: string) {
+export async function addTag(tweetId: string, tagName: string, imagesCache: string[]) {
     if (tweetId === null) {
         console.error('No tweet selected');
         return;
@@ -95,19 +95,11 @@ export async function addTag(tweetId: string, tagName: string) {
 
     const tweets = await GM.getValue<Tweets>(KEY_TWEETS, {});
 
-    const images = Array.from(document.querySelectorAll('a'))
-        .filter((a) => a.href.includes(tweetId))
-        .flatMap((a) => Array.from(a.querySelectorAll('img')))
-        .map((img) => img.src);
-    console.log(images);
-
-    if (images.length === 0) {
-        return;
+    if (imagesCache.length > 0) {
+        tweets[tweetId] = {
+            images: imagesCache,
+        };
     }
-
-    tweets[tweetId] = {
-        images,
-    };
 
     await GM.setValue(KEY_TWEETS, tweets);
 }

@@ -105,7 +105,7 @@ export async function renderTagsGallery() {
                             .map((tag) => ({
                                 label: ' + ' + formatTagName(tag),
                                 callback: async () => {
-                                    await addTag(link.tweetId, tag);
+                                    await addTag(link.tweetId, tag, []); // No need to fetch image, if a tweet is here, it's already in cache
                                     renderImages();
                                 },
                             })),

@@ -11,7 +11,7 @@ async function listTags(tweetId: string): Promise<string[]> {
 
     const tags = await getTags();
     const tagArray = Object.keys(tags);
-    tagArray.sort((a, b) => tags[b].lastUpdated - tags[a].lastUpdated);
+    tagArray.sort((a, b) => a.localeCompare(b));
     return tagArray;
 }
 
@@ -24,6 +24,13 @@ function renderTag(tag: string, active: boolean): HTMLButtonElement {
         }${formatTagName(tag)}</button>`,
         'text/html'
     ).body.firstChild as HTMLButtonElement;
+}
+
+function getTweetImages(tweetId: string): string[] {
+    return Array.from(document.querySelectorAll('a'))
+        .filter((a) => a.href.includes(tweetId))
+        .flatMap((a) => Array.from(a.querySelectorAll('img')))
+        .map((img) => img.src);
 }
 
 export async function renderTweetDropdown() {
@@ -50,7 +57,7 @@ export async function renderTweetDropdown() {
 
                     const tagInput = event.target as HTMLInputElement;
 
-                    await addTag(currentTweetId, tagInput.value);
+                    await addTag(currentTweetId, tagInput.value, getTweetImages(currentTweetId));
                     tagInput.value = '';
                     onNewTag?.();
                 }
@@ -109,6 +116,15 @@ export async function renderTweetDropdown() {
                 const tagId = id + '_tagButton';
 
                 if (document.getElementById(tagId)) {
+                    // Already added
+                    return;
+                }
+
+                // Find images
+
+                const images = getTweetImages(id);
+
+                if (images.length === 0) {
                     return;
                 }
 
@@ -157,7 +173,7 @@ export async function renderTweetDropdown() {
                                 ) {
                                     await removeTag(currentTweetId, tagName);
                                 } else {
-                                    await addTag(currentTweetId, tagName);
+                                    await addTag(currentTweetId, tagName, images);
                                 }
 
                                 renderTagList();
