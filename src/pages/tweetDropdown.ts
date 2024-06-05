@@ -1,6 +1,7 @@
 import { addTag, getTags, removeTag } from '../storage';
 import { formatTagName, waitForElement } from '../utils';
-import tagIcon from '../assets/tagIcon.svg';
+import tagIcon from '../assets/tag-01-svgrepo-com.svg';
+import tagGalleryIcon from '../assets/tag-03-svgrepo-com.svg';
 import { CUSTOM_PAGE_PATH } from '../constants';
 
 async function listTags(tweetId: string): Promise<string[]> {
@@ -135,8 +136,13 @@ export async function renderTweetDropdown() {
                 dropdown.prepend(viewTagsButton);
                 dropdown.prepend(tagButton);
 
+                const svgClasslist = tagButton.querySelector('svg')!.classList;
                 tagButton.querySelector('span')!.innerText = 'Tag Tweet';
                 tagButton.querySelector('svg')!.outerHTML = tagIcon;
+                tagButton.querySelector('svg')!.classList.add(...svgClasslist);
+                tagButton.querySelector('svg')!.style.stroke = 'currentColor';
+                tagButton.querySelector('svg')!.style.fill = 'transparent';
+
                 tagButton.id = tagId;
                 tagButton.addEventListener('click', async () => {
                     const rect = tagButton.getBoundingClientRect();
@@ -185,7 +191,12 @@ export async function renderTweetDropdown() {
                 });
 
                 viewTagsButton.querySelector('span')!.innerText = 'View Tags';
-                viewTagsButton.querySelector('svg')!.outerHTML = tagIcon;
+                viewTagsButton.querySelector('svg')!.outerHTML = tagGalleryIcon;
+                viewTagsButton.querySelector('svg')!.classList.add(...svgClasslist);
+                viewTagsButton.querySelector('svg')!.style.stroke = 'currentColor';
+                viewTagsButton.querySelector('svg')!.style.fill = 'transparent';
+                viewTagsButton.querySelector('svg')!.style.height = '20px';
+                viewTagsButton.querySelector('svg')!.style.width = '20px';
                 viewTagsButton.addEventListener('click', async () => {
                     window.location.href = window.location.origin + CUSTOM_PAGE_PATH;
                 });

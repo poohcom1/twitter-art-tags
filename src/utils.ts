@@ -3,7 +3,8 @@ export function sanitizeTagName(tagName: string) {
 }
 
 export function verifyTagName(tagName: string) {
-    return sanitizeTagName(tagName) === tagName;
+    const allowedChars = /^[a-zA-Z0-9 ]+$/;
+    return allowedChars.test(tagName);
 }
 
 export function formatTagName(tagName: string) {

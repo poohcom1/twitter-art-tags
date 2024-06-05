@@ -66,7 +66,7 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
-        filename: 'twitterArtCollection.js',
+        filename: 'twitterArtTags.js',
         path: path.resolve(__dirname, 'dist'),
     },
 };

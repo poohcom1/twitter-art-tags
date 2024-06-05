@@ -1,5 +1,5 @@
 import { CUSTOM_PAGE_TITLE } from '../constants';
-import { waitForElement, formatTagName, parseHTML } from '../utils';
+import { waitForElement, formatTagName, parseHTML, verifyTagName } from '../utils';
 import {
     addTag,
     createTag,
@@ -198,6 +198,12 @@ export async function renderTagsGallery() {
                         callback: async () => {
                             const newTagName = prompt('Enter new tag name:', tag);
                             if (!newTagName) {
+                                return;
+                            }
+                            if (!verifyTagName(newTagName)) {
+                                alert(
+                                    'Invalid tag name! Tag names can only contain letters, numbers, and spaces.'
+                                );
                                 return;
                             }
                             await renameTag(tag, newTagName);
