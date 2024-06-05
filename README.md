@@ -10,8 +10,7 @@ Reinterpretation of the [Twitter Art Collection](https://github.com/poohcom1/twi
 2. Download and copy the contents of `twitterArtCollection.gm.js` to grease monkey.
 
 ## Usage
-Click on the "..." button of a tweet with images to access the tags menu
-
+Click on a tweet's "..." button to access the tags menu.
 - Click on `Tags` to tag the tweet
 
 ![image](https://github.com/poohcom1/twitter-art-collection-v2/assets/74857873/0d5d338d-f907-484a-807d-ece9da6ca512)
