@@ -7,10 +7,10 @@ import styles from './assets/styles.css';
 
 // Commands
 GM.registerMenuCommand(
-    'View tags',
+    'Twitter Art Col - View tags',
     () => (window.location.href = window.location.origin + CUSTOM_PAGE_PATH)
 );
-GM.registerMenuCommand('Clear all tags', clearAllTags);
+GM.registerMenuCommand('Twitter Art Col - Clear all tags', clearAllTags);
 
 // HTML
 GM_addStyle(styles);

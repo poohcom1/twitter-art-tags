@@ -42,7 +42,7 @@ module.exports = {
     plugins: [
         new UserscriptPlugin({
             headers: {
-                name: 'Twitter Art Collection',
+                name: 'Twitter Art Tags',
                 description: 'Tag artwork on twitter and view it in a gallery',
                 version,
                 author,

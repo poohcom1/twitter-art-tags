@@ -135,7 +135,7 @@ export async function renderTweetDropdown() {
                 dropdown.prepend(viewTagsButton);
                 dropdown.prepend(tagButton);
 
-                tagButton.querySelector('span')!.innerText = 'Tag';
+                tagButton.querySelector('span')!.innerText = 'Tag Tweet';
                 tagButton.querySelector('svg')!.outerHTML = tagIcon;
                 tagButton.id = tagId;
                 tagButton.addEventListener('click', async () => {

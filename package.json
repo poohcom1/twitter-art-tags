@@ -1,7 +1,8 @@
 {
-    "name": "twitter-art-collection-v2",
+    "name": "twitter-art-tags",
     "description": "",
     "version": "0.1.0",
+    "private": true,
     "scripts": {
         "dev": "webpack --watch",
         "build": "webpack"
