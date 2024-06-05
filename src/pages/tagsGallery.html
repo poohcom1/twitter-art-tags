@@ -1,0 +1,61 @@
+<div>
+    <style>
+        .root {
+            padding: 40px 0;
+            font-family: TwitterChirp;
+        }
+
+        .images-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .image-container {
+            max-width: 200px;
+            overflow: hidden;
+        }
+
+        .image-container img {
+            object-fit: cover;
+            width: 200px;
+            height: 200px;
+        }
+
+        .image-skeleton {
+            width: 200px;
+            height: 200px;
+            background-color: #6666;
+            opacity: 0;
+        }
+
+        #tagSelect {
+            width: 200px;
+        }
+
+        #tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .tag {
+        }
+
+        #addTag {
+            width: 200px;
+        }
+    </style>
+    <div class="root">
+        <h2>Tags</h2>
+        <div style="display: flex; gap: 10px">
+            <input id="addTag" type="text" placeholder="Add a tag..." />
+            <button id="tagExport" style="margin-left: auto">Export Tags</button>
+            <button id="tagImport">Import Tags</button>
+        </div>
+        <div id="tags"></div>
+        <hr />
+        <div class="images-container"></div>
+    </div>
+</div>

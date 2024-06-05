@@ -2,6 +2,10 @@ export function sanitizeTagName(tagName: string) {
     return tagName.trim().toLowerCase();
 }
 
+export function verifyTagName(tagName: string) {
+    return sanitizeTagName(tagName) === tagName;
+}
+
 export function formatTagName(tagName: string) {
     return tagName
         .split(' ')
@@ -38,4 +42,10 @@ export function GM_addStyle(aCss: string) {
         return style;
     }
     return null;
+}
+
+const parser = new DOMParser();
+
+export function parseHTML<T extends HTMLElement>(html: string): T {
+    return parser.parseFromString(html, 'text/html').body.firstChild as T;
 }

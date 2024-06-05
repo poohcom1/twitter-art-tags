@@ -25,42 +25,12 @@
     max-width: 300px;
 }
 
+.tag__inactive {
+    opacity: 0.75;
+}
+
 #tagsContainer {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-}
-
-/* Drop down */
-.root {
-    padding: 40px 0;
-    font-family: TwitterChirp;
-}
-
-.images-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.image-container {
-    max-width: 200px;
-    overflow: hidden;
-}
-
-.image-container img {
-    object-fit: cover;
-    width: 200px;
-    height: 200px;
-}
-
-.image-skeleton {
-    width: 200px;
-    height: 200px;
-    background-color: #6666;
-    opacity: 0;
-}
-
-#tagSelect {
-    width: 200px;
 }

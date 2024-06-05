@@ -1,26 +1,34 @@
 import { CUSTOM_PAGE_TITLE } from '../constants';
-import { waitForElement, formatTagName } from '../utils';
-import { addTag, exportData, getTags, getTweets, importData, removeTag, setTags } from '../storage';
+import { waitForElement, formatTagName, parseHTML } from '../utils';
+import {
+    addTag,
+    createTag,
+    deleteTag,
+    exportData,
+    getTags,
+    getTweets,
+    importData,
+    removeTag,
+    renameTag,
+} from '../storage';
+import htmlHtml from './tagsGallery.html';
 
 const ID_IMAGE = 'tagImage';
-const KEY_SELECTED_TAG = 'selectedTag';
+const ID_IMPORT = 'tagImport';
+const ID_EXPORT = 'tagExport';
+const ID_TAGS = 'tags';
+const ID_ADD_TAG = 'addTag';
 
 export async function renderTagsGallery() {
+    // Global states
+    let selectedTags: string[] = [];
+
+    // Render page
     const main = (await waitForElement('div[data-testid="error-detail"]')).parentElement!;
     main.style.maxWidth = '100%';
-    main.innerHTML = `
-    <div class="root">
-        <h2>Tags</h2>
-        <div style="display: flex; gap: 10px">
-            <select id="tagSelect"></select>
+    main.innerHTML = htmlHtml;
 
-            <button id="tagExport" style="margin-left: auto">Export Tags</button>
-            <button id="tagImport">Import Tags</button>
-        </div>
-        <hr />
-        <div class="images-container"></div>
-    </div>
-    `;
+    // Render title
     document.title = CUSTOM_PAGE_TITLE;
     const titleObserver = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
@@ -39,36 +47,35 @@ export async function renderTagsGallery() {
         imageContainer.innerHTML = '';
 
         const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
-        const tagName = document.querySelector<HTMLSelectElement>('#tagSelect')!.value;
-        const tagData = tags[tagName] || { tweets: [] };
 
-        const imageLinks = [...tagData.tweets]
+        // Images that have all selected tags
+        const imageLinks = Object.keys(tags)
+            .filter((tag) => selectedTags.includes(tag))
+            .reduce(
+                (acc, tag) => acc.filter((tweetId) => tags[tag].tweets.includes(tweetId)),
+                Object.keys(tweets)
+            )
             .reverse()
             .filter((tweetId) => tweetId in tweets)
             .flatMap((tweetId) =>
-                tweets[tweetId].images.map((image, index) => ({
-                    tweetId,
-                    image,
-                    index,
-                }))
+                tweets[tweetId].images.map((image, index) => ({ tweetId, image, index }))
             );
 
         imageContainer.innerHTML = imageLinks
             .map(
                 (link) =>
                     `
-                    <a id="${ID_IMAGE}__${link.tweetId}__${link.index}" class="image-container" href="/poohcom1/status/${link.tweetId}" target="_blank">
+                    <a id="${ID_IMAGE}__${link.tweetId}__${link.index}" class="image-container" href="${link.image}" target="_blank">
                         <img src="${link.image}" />
                     </a>
                     `
             )
             .join('');
 
-        if (tagSelect.innerHTML === '') {
-            tagSelect.innerHTML = `<option disabled selected value=""> --- </option>`;
-            imageContainer.innerHTML = '<h3>No tags yet</h3>';
+        if (Object.keys(tags).length === 0) {
+            imageContainer.innerHTML = '<h3>No tweets yet!</h3>';
         } else if (imageLinks.length === 0) {
-            imageContainer.innerHTML = '<h3>No tweets yet</h3>';
+            imageContainer.innerHTML = '<h3>Nothing to see here!</h3>';
         }
 
         imageLinks.forEach((link) => {
@@ -78,7 +85,13 @@ export async function renderTagsGallery() {
                 transitionDuration: 0,
                 menuItems: [
                     {
-                        label: 'View',
+                        label: 'Open image',
+                        callback: () => {
+                            window.open(link.image, '_blank');
+                        },
+                    },
+                    {
+                        label: 'Open tweet',
                         callback: () => {
                             window.open(`/poohcom1/status/${link.tweetId}`, '_blank');
                         },
@@ -125,33 +138,97 @@ export async function renderTagsGallery() {
             });
         });
     }
+    renderImages();
+
+    // Tag input
+    const tagInput = document.querySelector<HTMLInputElement>('#' + ID_ADD_TAG)!;
+    tagInput.addEventListener('keydown', async (event) => {
+        const allowedChars = /^[a-zA-Z0-9 ]+$/;
+
+        if (allowedChars.test(event.key) || event.key === 'Enter') {
+            if (event.key === 'Enter') {
+                const tagInput = event.target as HTMLInputElement;
+                console.log(tagInput.value);
+
+                await createTag(tagInput.value);
+                tagInput.value = '';
+                renderTags();
+            }
+        } else {
+            event.preventDefault();
+        }
+    });
 
     // Tag select
-    const tagSelect = document.querySelector<HTMLSelectElement>('#tagSelect')!;
 
-    async function renderTagSelect() {
+    async function renderTags() {
         const tags = await getTags();
-        let selectedTag = await GM.getValue(KEY_SELECTED_TAG, '');
         const tagList = Object.keys(tags);
-        if (!tagList.includes(selectedTag)) {
-            selectedTag = '';
-            GM.setValue(KEY_SELECTED_TAG, '');
-        }
+
+        const tagsContainer = document.querySelector('#' + ID_TAGS)!;
+
         tagList.sort((a, b) => a.localeCompare(b));
-        tagSelect.innerHTML = tagList
-            .map((tag) => `<option value="${tag}">${formatTagName(tag)}</option>`)
-            .join('');
-        tagSelect.value = selectedTag || tagList[0] || '';
-        tagSelect.addEventListener('change', (event) => {
-            renderImages();
-            GM.setValue(KEY_SELECTED_TAG, (event.target as HTMLSelectElement).value);
+
+        const tagElements = tagList.map((tag) => {
+            const active = selectedTags.includes(tag);
+
+            const button = parseHTML<HTMLButtonElement>(
+                `<button class="tag">${active ? '✔ ' : ''}${formatTagName(tag)} (${
+                    tags[tag].tweets.length
+                })</button>`
+            );
+
+            button.addEventListener('click', () => {
+                if (active) {
+                    selectedTags = selectedTags.filter((t) => t !== tag);
+                } else {
+                    selectedTags.push(tag);
+                }
+                renderTags();
+                renderImages();
+            });
+
+            new VanillaContextMenu({
+                scope: button,
+                normalizePosition: false,
+                transitionDuration: 0,
+                menuItems: [
+                    {
+                        label: 'Rename',
+                        callback: async () => {
+                            const newTagName = prompt('Enter new tag name:', tag);
+                            if (!newTagName) {
+                                return;
+                            }
+                            await renameTag(tag, newTagName);
+                            renderTags();
+                            renderImages();
+                        },
+                    },
+                    {
+                        label: 'Delete',
+                        callback: async () => {
+                            if (!confirm('Are you sure you want to delete this tag?')) {
+                                return;
+                            }
+                            await deleteTag(tag);
+                            renderTags();
+                            renderImages();
+                        },
+                    },
+                ],
+            });
+
+            return button;
         });
-        renderImages();
+
+        tagsContainer.innerHTML = '';
+        tagsContainer.append(...tagElements);
     }
-    renderTagSelect();
+    renderTags();
 
     // Tag export
-    const tagExport = document.querySelector('#tagExport');
+    const tagExport = document.querySelector('#' + ID_EXPORT);
     tagExport!.addEventListener('click', async () => {
         const tags = await exportData();
         const blob = new Blob([tags], { type: 'application/json' });
@@ -166,7 +243,7 @@ export async function renderTagsGallery() {
     });
 
     // Tag import
-    const tagImport = document.querySelector('#tagImport');
+    const tagImport = document.querySelector('#' + ID_IMPORT);
     tagImport!.addEventListener('click', async () => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -180,7 +257,8 @@ export async function renderTagsGallery() {
                     return;
                 }
                 await importData(reader.result as string);
-                renderTagSelect();
+                renderTags();
+                renderImages();
             };
             reader.readAsText(file);
         });

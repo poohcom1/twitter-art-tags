@@ -11,14 +11,7 @@ async function listTags(tweetId: string): Promise<string[]> {
 
     const tags = await getTags();
     const tagArray = Object.keys(tags);
-    tagArray.sort((a, b) => {
-        if (tags[a].tweets.includes(tweetId) && !tags[b].tweets.includes(tweetId)) {
-            return -1;
-        } else if (!tags[a].tweets.includes(tweetId) && tags[b].tweets.includes(tweetId)) {
-            return 1;
-        }
-        return tags[b].lastUpdated - tags[a].lastUpdated;
-    });
+    tagArray.sort((a, b) => tags[b].lastUpdated - tags[a].lastUpdated);
     return tagArray;
 }
 

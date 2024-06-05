@@ -23,10 +23,14 @@ module.exports = {
                 test: /\.svg/,
                 type: 'asset/source',
             },
-            // css
+            // html/css
             {
                 test: /\.css$/,
-                use: ['css-loader'],
+                use: 'css-loader',
+            },
+            {
+                test: /\.html$/,
+                use: 'html-loader',
             },
             // Tree shaking
             {
@@ -51,7 +55,7 @@ module.exports = {
                     'GM.registerMenuCommand',
                 ],
                 require: [
-                    'https://unpkg.com/vanilla-context-menu@1.4.1/dist/vanilla-context-menu.js',
+                    'https://unpkg.com/vanilla-context-menu@1.6.0/dist/vanilla-context-menu.js',
                 ],
             },
             pretty: true,

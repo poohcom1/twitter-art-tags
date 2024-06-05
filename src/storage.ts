@@ -5,6 +5,62 @@ import { safeParse } from 'valibot';
 const KEY_TAGS = 'tags';
 const KEY_TWEETS = 'tweets';
 
+// Tag
+export async function createTag(tagName: string) {
+    tagName = sanitizeTagName(tagName);
+    if (tagName === '') {
+        console.error('Invalid tag name');
+        return;
+    }
+
+    const tags = await GM.getValue<Tags>(KEY_TAGS, {});
+
+    if (tagName in tags) {
+        alert('Tag already exists');
+        return;
+    }
+
+    tags[tagName] = {
+        tweets: [],
+        lastUpdated: Date.now(),
+    };
+
+    await GM.setValue(KEY_TAGS, tags);
+}
+
+export async function deleteTag(tagName: string) {
+    const tags = await GM.getValue<Tags>(KEY_TAGS, {});
+
+    if (!(tagName in tags)) {
+        return;
+    }
+
+    delete tags[tagName];
+
+    await GM.setValue(KEY_TAGS, tags);
+}
+
+export async function renameTag(oldTagName: string, newTagName: string) {
+    oldTagName = sanitizeTagName(oldTagName);
+    newTagName = sanitizeTagName(newTagName);
+    if (oldTagName === '' || newTagName === '') {
+        console.error('Invalid tag name');
+        return;
+    }
+
+    const tags = await GM.getValue<Tags>(KEY_TAGS, {});
+
+    if (!(oldTagName in tags)) {
+        return;
+    }
+
+    tags[newTagName] = tags[oldTagName];
+    delete tags[oldTagName];
+
+    await GM.setValue(KEY_TAGS, tags);
+}
+
+// Tweet
 export async function addTag(tweetId: string, tagName: string) {
     if (tweetId === null) {
         console.error('No tweet selected');
@@ -74,10 +130,6 @@ export async function removeTag(tweetId: string, tagName: string) {
     }
 
     tags[tagName].tweets = tags[tagName].tweets.filter((tweetId) => tweetId !== tweetId);
-
-    if (tags[tagName].tweets.length === 0) {
-        delete tags[tagName];
-    }
 
     await GM.setValue(KEY_TAGS, tags);
 }
