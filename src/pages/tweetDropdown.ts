@@ -3,10 +3,10 @@ import { formatTagName, waitForElement } from '../utils';
 import tagIcon from '../assets/tagIcon.svg';
 import { CUSTOM_PAGE_PATH } from '../constants';
 
-async function listTags(tweetId: string) {
+async function listTags(tweetId: string): Promise<string[]> {
     if (tweetId === null) {
         console.error('No tweet selected');
-        return;
+        return [];
     }
 
     const tags = await getTags();
@@ -24,17 +24,17 @@ async function listTags(tweetId: string) {
 
 const parser = new DOMParser();
 
-function renderTag(tag: string, active: boolean) {
+function renderTag(tag: string, active: boolean): HTMLButtonElement {
     return parser.parseFromString(
         `<button id="${tag}" class="tag ${!active && 'tag__inactive'}">${
             active ? '✔ ' : ''
         }${formatTagName(tag)}</button>`,
         'text/html'
-    ).body.firstChild;
+    ).body.firstChild as HTMLButtonElement;
 }
 
 export async function renderTweetDropdown() {
-    let currentTweetId: string = null;
+    let currentTweetId: string | null = null;
     let onNewTag: (() => void) | null = null;
 
     //#region Create the tag modal
@@ -44,12 +44,17 @@ export async function renderTweetDropdown() {
     document.body.appendChild(tagModal);
 
     tagModal
-        .querySelector('#tagInput')
-        .addEventListener('keydown', async (event: KeyboardEvent) => {
+        .querySelector<HTMLInputElement>('#tagInput')!
+        .addEventListener('keydown', async (event) => {
             const allowedChars = /^[a-zA-Z0-9 ]+$/;
 
             if (allowedChars.test(event.key) || event.key === 'Enter') {
                 if (event.key === 'Enter') {
+                    if (currentTweetId === null) {
+                        console.error('No tweet selected');
+                        return;
+                    }
+
                     const tagInput = event.target as HTMLInputElement;
 
                     await addTag(currentTweetId, tagInput.value);
@@ -61,7 +66,7 @@ export async function renderTweetDropdown() {
             }
         });
 
-    const tagsContainer = tagModal.querySelector('#tagsContainer');
+    const tagsContainer = tagModal.querySelector('#tagsContainer')!;
     function clearTagsContainer() {
         tagsContainer.innerHTML = '';
     }
@@ -121,8 +126,8 @@ export async function renderTweetDropdown() {
                 dropdown.prepend(viewTagsButton);
                 dropdown.prepend(tagButton);
 
-                tagButton.querySelector('span').innerText = 'Tag';
-                tagButton.querySelector('svg').outerHTML = tagIcon;
+                tagButton.querySelector('span')!.innerText = 'Tag';
+                tagButton.querySelector('svg')!.outerHTML = tagIcon;
                 tagButton.id = tagId;
                 tagButton.addEventListener('click', async () => {
                     const rect = tagButton.getBoundingClientRect();
@@ -132,17 +137,26 @@ export async function renderTweetDropdown() {
                     tagModal.style.display = 'block';
 
                     async function renderTagList() {
+                        if (currentTweetId === null) {
+                            return;
+                        }
+
                         const tags = await getTags();
                         const tagList = await listTags(currentTweetId);
 
                         clearTagsContainer();
                         const tagElements = tagList.map((tag) =>
-                            renderTag(tag, tags[tag].tweets.includes(currentTweetId))
+                            renderTag(tag, tags[tag].tweets.includes(currentTweetId ?? ''))
                         );
                         tagsContainer.append(...tagElements);
 
                         for (const tag of tagModal.querySelectorAll('.tag')) {
                             tag.addEventListener('click', async () => {
+                                if (currentTweetId === null) {
+                                    console.error('No tweet selected');
+                                    return;
+                                }
+
                                 const tagName = tag.id;
                                 if (
                                     tagName in tags &&
@@ -161,8 +175,8 @@ export async function renderTweetDropdown() {
                     onNewTag = renderTagList;
                 });
 
-                viewTagsButton.querySelector('span').innerText = 'View Tags';
-                viewTagsButton.querySelector('svg').outerHTML = tagIcon;
+                viewTagsButton.querySelector('span')!.innerText = 'View Tags';
+                viewTagsButton.querySelector('svg')!.outerHTML = tagIcon;
                 viewTagsButton.addEventListener('click', async () => {
                     window.location.href = window.location.origin + CUSTOM_PAGE_PATH;
                 });
@@ -174,7 +188,7 @@ export async function renderTweetDropdown() {
         });
     });
 
-    dropdownObserver.observe(document.getElementById('layers'), {
+    dropdownObserver.observe(document.getElementById('layers')!, {
         childList: true,
     });
     //#endregion

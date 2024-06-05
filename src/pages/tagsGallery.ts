@@ -1,8 +1,6 @@
-import VanillaContextMenu from 'vanilla-context-menu';
 import { CUSTOM_PAGE_TITLE } from '../constants';
 import { waitForElement, formatTagName } from '../utils';
 import { addTag, exportData, getTags, getTweets, importData, removeTag, setTags } from '../storage';
-import { Tags } from '../models';
 
 const ID_IMAGE = 'tagImage';
 const KEY_SELECTED_TAG = 'selectedTag';

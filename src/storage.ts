@@ -1,6 +1,6 @@
 import { Tags, Tag, Tweets, DataExport } from './models';
 import { sanitizeTagName } from './utils';
-import { z } from 'zod';
+import { safeParse } from 'valibot';
 
 const KEY_TAGS = 'tags';
 const KEY_TWEETS = 'tweets';
@@ -108,15 +108,22 @@ export async function exportData(): Promise<string> {
 
 export async function importData(jsonString: string) {
     const data: unknown = JSON.parse(jsonString);
-    const result = DataExport.safeParse(data);
+    const result = safeParse(DataExport, data);
 
     if (result.success) {
-        await GM.setValue(KEY_TAGS, result.data.tags);
-        await GM.setValue(KEY_TWEETS, result.data.tweets);
+        await GM.setValue(KEY_TAGS, result.output.tags);
+        await GM.setValue(KEY_TWEETS, result.output.tweets);
     } else {
+        console.error(result.issues);
         alert(
             'Failed to import data due to potentially corrupted file. Check the console for more information.'
         );
-        console.error(result.error);
     }
+}
+
+export async function clearAllTags() {
+    if (!confirm('Are you sure you want to delete all tags?')) {
+        return;
+    }
+    await GM.deleteValue(KEY_TAGS);
 }

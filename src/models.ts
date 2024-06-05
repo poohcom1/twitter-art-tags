@@ -1,26 +1,26 @@
-import { z } from 'zod';
+import { object, array, record, number, string, InferOutput } from 'valibot';
 
-const Tweet = z.object({
-    images: z.array(z.string()),
+const Tweet = object({
+    images: array(string()),
 });
 
-const Tweets = z.record(Tweet);
+const Tweets = record(string(), Tweet);
 
-export const Tag = z.object({
-    tweets: z.array(z.string()),
-    lastUpdated: z.number(),
+export const Tag = object({
+    tweets: array(string()),
+    lastUpdated: number(),
 });
 
-const Tags = z.record(Tag);
+const Tags = record(string(), Tag);
 
-export const DataExport = z.object({
+export const DataExport = object({
     tweets: Tweets,
     tags: Tags,
 });
 
 // Type definitions
-export type Tweet = z.infer<typeof Tweet>;
-export type Tweets = z.infer<typeof Tweets>;
-export type Tag = z.infer<typeof Tag>;
-export type Tags = z.infer<typeof Tags>;
-export type DataExport = z.infer<typeof DataExport>;
+export type Tweet = InferOutput<typeof Tweet>;
+export type Tweets = InferOutput<typeof Tweets>;
+export type Tag = InferOutput<typeof Tag>;
+export type Tags = InferOutput<typeof Tags>;
+export type DataExport = InferOutput<typeof DataExport>;
