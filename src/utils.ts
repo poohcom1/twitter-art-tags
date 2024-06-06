@@ -29,7 +29,7 @@ export function formatTagName(tagName: string) {
 }
 
 export async function waitForElement(selector: string, root: ParentNode = document) {
-    return new Promise<HTMLElement>((resolve) => {
+    return new Promise<HTMLElement | null>((resolve) => {
         {
             const element = root.querySelector(selector);
             if (element) {
@@ -42,7 +42,12 @@ export async function waitForElement(selector: string, root: ParentNode = docume
                 clearInterval(interval);
                 resolve(element as HTMLElement);
             }
-        }, 100);
+        }, 10);
+
+        setTimeout(() => {
+            clearInterval(interval);
+            resolve(null);
+        }, 5000);
     });
 }
 

@@ -168,6 +168,9 @@ export async function renderTweetDropdown() {
             if (mutation.addedNodes.length > 0) {
                 waitForElement('div[role="menu"]', mutation.addedNodes[0] as ParentNode).then(
                     (menu) => {
+                        if (!menu) {
+                            return;
+                        }
                         const menuStyles = window.getComputedStyle(menu);
                         tagModal.style.border = menuStyles.border;
                         tagModal.style.borderRadius = menuStyles.borderRadius;
@@ -226,5 +229,4 @@ export async function renderTweetDropdown() {
     dropdownObserver.observe(document.getElementById('layers')!, {
         childList: true,
     });
-    //#endregion
 }

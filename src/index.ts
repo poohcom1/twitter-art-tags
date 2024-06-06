@@ -4,6 +4,7 @@ import { renderTagsGallery } from './pages/tagsGallery';
 import { CUSTOM_PAGE_PATH } from './constants';
 import { clearAllTags } from './storage';
 import styles from './assets/global.css';
+import { renderNavButton } from './pages/navButton';
 
 // Commands
 GM.registerMenuCommand(
@@ -16,8 +17,15 @@ GM.registerMenuCommand('Twitter Art Tags - Clear all tags', clearAllTags);
 GM_addStyle(styles);
 
 // Main
+renderNavButton();
 renderTweetDropdown();
 
 if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
     renderTagsGallery();
 }
+
+window.addEventListener('popstate', (e) => {
+    if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
+        renderTagsGallery();
+    }
+});

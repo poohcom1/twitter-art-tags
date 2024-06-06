@@ -321,7 +321,7 @@ function rerender(showLoading = false) {
 
 export async function renderTagsGallery() {
     // Render page
-    const main = (await waitForElement('div[data-testid="error-detail"]')).parentElement!;
+    const main = (await waitForElement('div[data-testid="error-detail"]'))!.parentElement!;
     main.style.maxWidth = '100%';
     main.innerHTML = htmlHtml;
 
