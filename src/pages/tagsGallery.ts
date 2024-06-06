@@ -209,6 +209,12 @@ async function renderImages(showLoading = false) {
                 label: formatTagName(tag),
                 iconHTML: createContextMenuIcon(tagIcon),
                 callback: () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    if (selectedTags.length === 1 && selectedTags[0] === tag) {
+                        return;
+                    }
+
                     selectedTags = [tag];
                     rerender();
                 },
