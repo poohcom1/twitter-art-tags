@@ -1,7 +1,9 @@
 import { addTag, getTags, removeTag } from '../storage';
-import { formatTagName, waitForElement } from '../utils';
+import { formatTagName, parseHTML, waitForElement } from '../utils';
 import tagIcon from '../assets/tag.svg';
 import tagGalleryIcon from '../assets/tags.svg';
+import squareIcon from '../assets/square.svg';
+import checkSquareIcon from '../assets/check-square.svg';
 import { CUSTOM_PAGE_PATH } from '../constants';
 
 async function listTags(tweetId: string): Promise<string[]> {
@@ -16,15 +18,13 @@ async function listTags(tweetId: string): Promise<string[]> {
     return tagArray;
 }
 
-const parser = new DOMParser();
-
 function renderTag(tag: string, active: boolean): HTMLButtonElement {
-    return parser.parseFromString(
-        `<button id="${tag}" class="tag ${!active && 'tag__inactive'}">${
-            active ? '✔ ' : ''
-        }${formatTagName(tag)}</button>`,
-        'text/html'
-    ).body.firstChild as HTMLButtonElement;
+    return parseHTML(
+        `<button id="${tag}" class="tag ${!active && 'tag__inactive'}">
+            ${active ? checkSquareIcon : squareIcon}
+            <div class="text">${formatTagName(tag)}</div>
+        </button>`
+    );
 }
 
 function getTweetImages(tweetId: string): string[] {

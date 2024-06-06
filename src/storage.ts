@@ -134,6 +134,22 @@ export async function removeTag(tweetId: string, tagName: string) {
     await GM.setValue(KEY_TAGS, tags);
 }
 
+export async function removeTweet(tweetId: string) {
+    const tags = await GM.getValue<Tags>(KEY_TAGS, {});
+
+    for (const tag of Object.values(tags)) {
+        tag.tweets = tag.tweets.filter((id) => id !== tweetId);
+    }
+
+    await GM.setValue(KEY_TAGS, tags);
+
+    const tweets = await GM.getValue<Tweets>(KEY_TWEETS, {});
+
+    delete tweets[tweetId];
+
+    await GM.setValue(KEY_TWEETS, tweets);
+}
+
 export async function getTags(): Promise<Tags> {
     return GM.getValue(KEY_TAGS, {});
 }

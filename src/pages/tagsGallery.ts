@@ -10,6 +10,7 @@ import {
     getTweets,
     importData,
     removeTag,
+    removeTweet,
     renameTag,
 } from '../storage';
 import htmlHtml from '../assets/tagsGallery.html';
@@ -20,6 +21,8 @@ import tagMinusIcon from '../assets/file-minus.svg';
 import externalLinkIcon from '../assets/link-external.svg';
 import pencilIcon from '../assets/pencil.svg';
 import trashIcon from '../assets/trash.svg';
+import squareIcon from '../assets/square.svg';
+import checkSquareIcon from '../assets/check-square.svg';
 import type { MenuItem } from 'vanilla-context-menu/dist/@types/interface';
 
 const ID_IMAGE = 'tagImage';
@@ -182,6 +185,16 @@ async function renderImages(showLoading = false) {
                 })),
             });
         }
+        tagEditMenu.push({
+            label: 'Remove tweet',
+            iconHTML: createContextMenuIcon(trashIcon),
+            callback: async () => {
+                if (confirm('Are you sure you want to remove this tweet from all tags?')) {
+                    await removeTweet(image.tweetId);
+                    rerender();
+                }
+            },
+        });
 
         const tagsMenu: MenuItem[] = Object.keys(tags)
             .filter((tag) => tags[tag].tweets.includes(image.tweetId))
@@ -194,11 +207,7 @@ async function renderImages(showLoading = false) {
                 },
             }));
 
-        const menuItems: MenuItem[] = [...viewMenu];
-        if (tagEditMenu.length > 0) {
-            menuItems.push('hr');
-            menuItems.push(...tagEditMenu);
-        }
+        const menuItems: MenuItem[] = [...viewMenu, 'hr', ...tagEditMenu];
         if (tagsMenu.length > 0) {
             menuItems.push('hr');
             menuItems.push(...tagsMenu);
@@ -232,9 +241,10 @@ async function renderTags() {
             .reduce((a, b) => a + b, 0);
 
         const button = parseHTML<HTMLButtonElement>(
-            `<button class="tag ${!active && CLASS_TAG_INACTIVE}">${
-                active ? '✔ ' : ''
-            }${formatTagName(tag)} (${tweetCount})</button>`
+            `<button class="tag ${!active && CLASS_TAG_INACTIVE}">
+                ${active ? checkSquareIcon : squareIcon}
+                <div class="text">${formatTagName(tag)} (${tweetCount})</div>
+            </button>`
         );
 
         button.addEventListener('click', () => {
