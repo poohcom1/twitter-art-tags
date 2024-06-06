@@ -1,5 +1,12 @@
 import { CUSTOM_PAGE_TITLE } from '../constants';
-import { waitForElement, formatTagName, parseHTML, verifyTagName } from '../utils';
+import {
+    waitForElement,
+    formatTagName,
+    parseHTML,
+    verifyTagName,
+    SANITIZE_INFO,
+    verifyEvent,
+} from '../utils';
 import {
     addTag,
     createTag,
@@ -333,12 +340,12 @@ export async function renderTagsGallery() {
 
     // Tag input
     const tagInput = document.querySelector<HTMLInputElement>('#' + ID_ADD_TAG)!;
+    tagInput.maxLength = SANITIZE_INFO.maxLength;
     tagInput.addEventListener('keydown', async (event) => {
-        const allowedChars = /^[a-zA-Z0-9 ]+$/;
+        const target = event.target as HTMLInputElement;
 
-        if (allowedChars.test(event.key) || event.key === 'Enter') {
+        if (verifyEvent(event)) {
             if (event.key === 'Enter') {
-                const target = event.target as HTMLInputElement;
                 console.log(target.value);
 
                 await createTag(target.value);

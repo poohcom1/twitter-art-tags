@@ -1,5 +1,5 @@
 import { addTag, getTags, removeTag } from '../storage';
-import { formatTagName, parseHTML, waitForElement } from '../utils';
+import { SANITIZE_INFO, formatTagName, parseHTML, verifyEvent, waitForElement } from '../utils';
 import tagIcon from '../assets/tag.svg';
 import tagGalleryIcon from '../assets/tags.svg';
 import squareIcon from '../assets/square.svg';
@@ -43,22 +43,20 @@ export async function renderTweetDropdown() {
 
     // Tag modal
     const tagModal = document.createElement('div');
-    tagModal.innerHTML = `<input id="tagInput" type="text" placeholder="Press enter to add a tag..." /><hr style="width: 100%" /><div id="tagsContainer"/>`;
+    tagModal.innerHTML = `<input id="tagInput" type="text" placeholder="Add a tag..." /><hr style="width: 100%" /><div id="tagsContainer"/>`;
     tagModal.classList.add('tag-dropdown');
     document.body.appendChild(tagModal);
 
     const tagInput = tagModal.querySelector<HTMLInputElement>('#tagInput')!;
+    tagInput.maxLength = SANITIZE_INFO.maxLength;
     tagInput.addEventListener('keydown', async (event) => {
-        const allowedChars = /^[a-zA-Z0-9 ]+$/;
-
-        if (allowedChars.test(event.key) || event.key === 'Enter') {
+        const target = event.target as HTMLInputElement;
+        if (verifyEvent(event)) {
             if (event.key === 'Enter') {
                 if (currentTweetId === null) {
                     console.error('No tweet selected');
                     return;
                 }
-
-                const target = event.target as HTMLInputElement;
 
                 await addTag(currentTweetId, target.value, getTweetImages(currentTweetId));
                 target.value = '';
@@ -115,7 +113,8 @@ export async function renderTweetDropdown() {
                 }
 
                 const tags = await getTags();
-                const tagList = (await listTags(currentTweetId)).filter((tag) =>
+                const tagList = await listTags(currentTweetId);
+                const filteredTagList = tagList.filter((tag) =>
                     tag.toLowerCase().includes(tagInput.value.toLowerCase())
                 );
 
@@ -124,9 +123,12 @@ export async function renderTweetDropdown() {
                 if (tagList.length === 0) {
                     tagsContainer.innerHTML = 'No tags yet!';
                     return;
+                } else if (filteredTagList.length === 0) {
+                    tagsContainer.innerHTML = `<div style="overflow: hidden; text-overflow: ellipsis; max-width: 200px">Create a new tag: ${tagInput.value}</div>`;
+                    return;
                 }
 
-                const tagElements = tagList.map((tag) =>
+                const tagElements = filteredTagList.map((tag) =>
                     renderTag(tag, tags[tag].tweets.includes(currentTweetId ?? ''))
                 );
                 tagsContainer.append(...tagElements);

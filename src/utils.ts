@@ -1,12 +1,24 @@
+export const SANITIZE_INFO = {
+    allowedChars: /^[a-zA-Z0-9 ]+$/,
+    maxLength: 20,
+};
+
+export function verifyEvent(event: KeyboardEvent) {
+    return (
+        SANITIZE_INFO.allowedChars.test(event.key) ||
+        event.key === 'Enter' ||
+        event.key === 'Backspace' ||
+        event.key === 'Delete'
+    );
+}
+
 export function sanitizeTagName(tagName: string) {
     return tagName.trim().toLowerCase();
 }
 
 export function verifyTagName(tagName: string) {
     if (!tagName) return false;
-
-    const allowedChars = /^[a-zA-Z0-9 ]+$/;
-    return allowedChars.test(tagName);
+    return SANITIZE_INFO.allowedChars.test(tagName);
 }
 
 export function formatTagName(tagName: string) {
