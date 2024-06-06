@@ -2,6 +2,7 @@ const path = require('path');
 const { UserscriptPlugin } = require('webpack-userscript');
 
 const { version, author } = require('./package.json');
+const { webpack } = require('webpack');
 
 /**
  * @type {import('webpack').Configuration}
@@ -17,7 +18,7 @@ module.exports = {
             {
                 test: /\.tsx?$/,
                 use: 'ts-loader',
-                exclude: /node_modules/,
+                exclude: [/node_modules/, /vanilla-context-menu/],
             },
             {
                 test: /\.svg/,
@@ -55,7 +56,7 @@ module.exports = {
                     'GM.registerMenuCommand',
                 ],
                 require: [
-                    'https://unpkg.com/vanilla-context-menu@1.6.0/dist/vanilla-context-menu.js',
+                    'https://github.com/poohcom1/vanilla-context-menu/releases/download/v1.8.1/vanilla-context-menu.js',
                 ],
             },
             pretty: true,

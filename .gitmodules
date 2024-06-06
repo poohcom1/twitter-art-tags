@@ -1,0 +1,3 @@
+[submodule "vanilla-context-menu"]
+	path = vanilla-context-menu
+	url = git@github.com:poohcom1/vanilla-context-menu.git

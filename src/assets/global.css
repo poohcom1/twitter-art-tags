@@ -1,8 +1,10 @@
 /* Drop down */
 #tagInput {
     width: 100%;
-    height: 20px;
+    height: 25px;
     font-family: TwitterChirp;
+    margin-top: 4px;
+    border-radius: 5px;
 }
 
 .tag-dropdown {

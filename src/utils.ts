@@ -54,3 +54,41 @@ const parser = new DOMParser();
 export function parseHTML<T extends HTMLElement>(html: string): T {
     return parser.parseFromString(html, 'text/html').body.firstChild as T;
 }
+
+/** @see https://github.com/GeorgianStan/vanilla-context-menu/blob/master/src/util.functions.ts */
+export function normalizePosition(
+    mouse: {
+        x: number;
+        y: number;
+    },
+    target: HTMLElement,
+    scope: HTMLElement
+): { normalizedX: number; normalizedY: number } {
+    const { x: mouseX, y: mouseY } = mouse;
+
+    // compute what is the mouse position relative to the container element (scope)
+    const { left: scopeOffsetX, top: scopeOffsetY } = scope.getBoundingClientRect();
+
+    const scopeX: number = mouseX - scopeOffsetX;
+    const scopeY: number = mouseY - scopeOffsetY;
+
+    // check if the element will go out of bounds
+    const outOfBoundsOnX: boolean = scopeX + target.clientWidth > scope.clientWidth;
+
+    const outOfBoundsOnY: boolean = scopeY + target.clientHeight > scope.clientHeight;
+
+    let normalizedX: number = mouseX;
+    let normalizedY: number = mouseY;
+
+    // normalzie on X
+    if (outOfBoundsOnX) {
+        normalizedX = scopeOffsetX + scope.clientWidth - target.clientWidth;
+    }
+
+    // normalize on Y
+    if (outOfBoundsOnY) {
+        normalizedY = scopeOffsetY + scope.clientHeight - target.clientHeight;
+    }
+
+    return { normalizedX, normalizedY };
+}

@@ -57,6 +57,11 @@ export async function renameTag(oldTagName: string, newTagName: string) {
         return;
     }
 
+    if (newTagName in tags) {
+        alert('Tag already exists');
+        return;
+    }
+
     tags[newTagName] = tags[oldTagName];
     delete tags[oldTagName];
 

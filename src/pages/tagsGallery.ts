@@ -13,7 +13,6 @@ import {
     renameTag,
 } from '../storage';
 import htmlHtml from '../assets/tagsGallery.html';
-import { MenuItem } from 'vanilla-context-menu/dist/@types/interface';
 import tagIcon from '../assets/tag.svg';
 import eyeIcon from '../assets/eye.svg';
 import tagPlusIcon from '../assets/file-plus.svg';
@@ -21,30 +20,40 @@ import tagMinusIcon from '../assets/file-minus.svg';
 import externalLinkIcon from '../assets/link-external.svg';
 import pencilIcon from '../assets/pencil.svg';
 import trashIcon from '../assets/trash.svg';
+import type { MenuItem } from 'vanilla-context-menu/dist/@types/interface';
 
 const ID_IMAGE = 'tagImage';
 const ID_IMPORT = 'tagImport';
 const ID_EXPORT = 'tagExport';
 const ID_TAGS = 'tags';
 const ID_ADD_TAG = 'addTag';
+const ID_IMAGE_GALLERY = 'imageGallery';
 
 const CLASS_CONTEXT_MENU_ICON = 'context-menu-icon';
 const CLASS_TAG_INACTIVE = 'tag__inactive';
+const CLASS_IMAGE = 'image-container';
+const CLASS_IMAGE_HOVER = 'image-container__hover';
+const CLASS_IMAGE_LOADED = 'image-container__loaded';
+const CLASS_IMAGE_SKELETON = 'image-container__skeleton';
 
 // Global states
+const cleanup: (() => void)[] = [];
+
 let selectedTags: string[] = [];
-let imageCountCache = 10;
+let lockHover = false;
 
 async function renderImages(showLoading = false) {
-    const imageContainer = document.querySelector('.images-container')!;
+    const imageContainer = document.querySelector<HTMLElement>('#' + ID_IMAGE_GALLERY)!;
 
-    if (showLoading)
-        imageContainer.innerHTML = `<div class="image-skeleton"></div>`.repeat(imageCountCache);
+    if (showLoading) {
+        imageContainer.innerHTML =
+            `<div class="${CLASS_IMAGE} ${CLASS_IMAGE_SKELETON}"></div>`.repeat(15);
+    }
 
     const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
 
     // Images that have all selected tags
-    const imageLinks = Object.keys(tags)
+    const imageData = Object.keys(tags)
         .filter((tag) => selectedTags.includes(tag))
         .reduce(
             (acc, tag) => acc.filter((tweetId) => tags[tag].tweets.includes(tweetId)),
@@ -53,54 +62,94 @@ async function renderImages(showLoading = false) {
         .reverse()
         .filter((tweetId) => tweetId in tweets)
         .flatMap((tweetId) =>
-            tweets[tweetId].images.map((image, index) => ({ tweetId, image, index }))
+            tweets[tweetId].images.map((image, index) => ({
+                tweetId,
+                image,
+                index,
+                element: parseHTML(`
+                    <a id="${ID_IMAGE}__${tweetId}__${index}" class="${CLASS_IMAGE} ${CLASS_IMAGE_LOADED}" href="/poohcom1/status/${tweetId}" target="_blank">
+                        <img src="${image}" />
+                    </a>`),
+            }))
         );
 
-    imageContainer.innerHTML = imageLinks
-        .map(
-            (link) =>
-                `
-                    <a id="${ID_IMAGE}__${link.tweetId}__${link.index}" class="image-container" href="${link.image}" target="_blank">
-                        <img src="${link.image}" />
-                    </a>
-                    `
-        )
-        .join('');
+    imageContainer.innerHTML = '';
+    imageContainer.append(...imageData.map((e) => e.element));
 
     if (Object.keys(tags).length === 0) {
         imageContainer.innerHTML =
             '<h3>No tags yet!<br>Add one by clicking on the "..." menu of a tweet with images and selected "Tag Tweet"</h3>';
-    } else if (imageLinks.length === 0) {
+    } else if (imageData.length === 0) {
         imageContainer.innerHTML = '<h3>Nothing to see here!</h3>';
     }
 
-    imageCountCache = imageLinks.length;
+    // Menu item
+    imageData.forEach((image) => {
+        // Hover fx
+        const tweetImages = imageData.filter((img) => img.tweetId === image.tweetId);
 
-    imageLinks.forEach((link) => {
+        const hoverFx = () => {
+            if (lockHover) {
+                return;
+            }
+
+            document
+                .querySelectorAll('.' + CLASS_IMAGE_HOVER)
+                .forEach((img) => img.classList.remove(CLASS_IMAGE_HOVER));
+            tweetImages.forEach((img) => img.element.classList.add(CLASS_IMAGE_HOVER));
+        };
+        const unhoverFx = () => {
+            if (lockHover) {
+                return;
+            }
+
+            tweetImages.forEach((img) => img.element.classList.remove(CLASS_IMAGE_HOVER));
+        };
+
+        const onDocumentClick = () => {
+            lockHover = false;
+            unhoverFx();
+        };
+
+        image.element.addEventListener('mouseover', hoverFx);
+        image.element.addEventListener('mouseout', unhoverFx);
+
+        image.element.addEventListener('contextmenu', () => {
+            lockHover = false;
+            hoverFx();
+            lockHover = true;
+        });
+        document.addEventListener('click', onDocumentClick);
+
+        cleanup.push(() => {
+            document.removeEventListener('click', onDocumentClick);
+        });
+
+        // Menu item
         const viewMenu: MenuItem[] = [
             {
                 label: 'Open image',
                 iconHTML: createContextMenuIcon(eyeIcon),
                 callback: (e) => {
                     console.log(e.target);
-                    window.open(link.image, '_blank');
+                    window.open(image.image, '_blank');
                 },
             },
             {
                 label: 'Open tweet',
                 iconHTML: createContextMenuIcon(externalLinkIcon),
                 callback: () => {
-                    window.open(`/poohcom1/status/${link.tweetId}`, '_blank');
+                    window.open(`/poohcom1/status/${image.tweetId}`, '_blank');
                 },
             },
         ];
 
         const tagEditMenu: MenuItem[] = [];
         const otherTags = Object.keys(tags).filter(
-            (tag) => !tags[tag].tweets.includes(link.tweetId)
+            (tag) => !tags[tag].tweets.includes(image.tweetId)
         );
         const existingTags = Object.keys(tags).filter((tag) =>
-            tags[tag].tweets.includes(link.tweetId)
+            tags[tag].tweets.includes(image.tweetId)
         );
 
         if (otherTags.length > 0) {
@@ -112,7 +161,7 @@ async function renderImages(showLoading = false) {
                     label: formatTagName(tag),
                     iconHTML: createContextMenuIcon(tagPlusIcon),
                     callback: async () => {
-                        await addTag(link.tweetId, tag, []);
+                        await addTag(image.tweetId, tag, []);
                         rerender();
                     },
                 })),
@@ -127,7 +176,7 @@ async function renderImages(showLoading = false) {
                     label: formatTagName(tag),
                     iconHTML: createContextMenuIcon(tagMinusIcon),
                     callback: async () => {
-                        await removeTag(link.tweetId, tag);
+                        await removeTag(image.tweetId, tag);
                         rerender();
                     },
                 })),
@@ -135,7 +184,7 @@ async function renderImages(showLoading = false) {
         }
 
         const tagsMenu: MenuItem[] = Object.keys(tags)
-            .filter((tag) => tags[tag].tweets.includes(link.tweetId))
+            .filter((tag) => tags[tag].tweets.includes(image.tweetId))
             .map((tag) => ({
                 label: formatTagName(tag),
                 iconHTML: createContextMenuIcon(tagIcon),
@@ -155,19 +204,20 @@ async function renderImages(showLoading = false) {
             menuItems.push(...tagsMenu);
         }
 
-        const ctxMenu = new VanillaContextMenu({
-            scope: document.querySelector(`#${ID_IMAGE}__${link.tweetId}__${link.index}`)!,
-            normalizePosition: true,
+        new VanillaContextMenu({
+            scope: image.element,
             transitionDuration: 0,
             menuItems,
+            normalizePosition: true,
+            customNormalizeScope: document.querySelector<HTMLElement>('main')!
+                .firstElementChild as HTMLElement,
+            openSubMenuOnHover: true,
         });
-
-        ctxMenu.applyStyleOnContextMenu;
     });
 }
 
 async function renderTags() {
-    const tags = await getTags();
+    const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
     const tagList = Object.keys(tags);
 
     const tagsContainer = document.querySelector('#' + ID_TAGS)!;
@@ -177,10 +227,14 @@ async function renderTags() {
     const tagElements = tagList.map((tag) => {
         const active = selectedTags.includes(tag);
 
+        const tweetCount = tags[tag].tweets
+            .map((tweetId) => tweets[tweetId].images.length)
+            .reduce((a, b) => a + b, 0);
+
         const button = parseHTML<HTMLButtonElement>(
             `<button class="tag ${!active && CLASS_TAG_INACTIVE}">${
                 active ? '✔ ' : ''
-            }${formatTagName(tag)} (${tags[tag].tweets.length})</button>`
+            }${formatTagName(tag)} (${tweetCount})</button>`
         );
 
         button.addEventListener('click', () => {
@@ -243,6 +297,9 @@ async function renderTags() {
 function rerender(showLoading = false) {
     renderTags();
     renderImages(showLoading);
+
+    cleanup.forEach((fn) => fn());
+    cleanup.length = 0;
 }
 
 export async function renderTagsGallery() {
@@ -319,7 +376,9 @@ export async function renderTagsGallery() {
         input.click();
     });
 
-    rerender(true);
+    // First load
+    await renderTags();
+    renderImages(true);
 }
 
 // Utils
