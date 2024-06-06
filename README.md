@@ -2,13 +2,11 @@
 
 A Greasemonkey script for caching and tagging images on Twitter.
 
-Reinterpretation of the [Twitter Art Collection](https://github.com/poohcom1/twitter-art-collection) web app.
-
 ## Installation
 
 0. Install Greasemonkey extension on Firefox if not already added.
 1. Find the latest [release](https://github.com/poohcom1/twitter-art-tags/releases).
-2. Copy the script from the release to and add it to Greasemonkey.
+2. Copy the script from the release and add it to Greasemonkey.
 
 ## Usage
 
