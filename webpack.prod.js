@@ -44,7 +44,8 @@ module.exports = {
         new UserscriptPlugin({
             headers: {
                 name: 'Twitter Art Tags',
-                description: 'Tag artwork on twitter and view it in a gallery',
+                description:
+                    'Tag artwork on twitter and view it in a gallery. https://github.com/poohcom1/twitter-art-tags',
                 version,
                 author,
                 match: 'https://x.com/*',

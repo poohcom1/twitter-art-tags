@@ -332,6 +332,11 @@ export async function renderTagsGallery() {
             if (mutation.type === 'childList') {
                 if (document.title !== CUSTOM_PAGE_TITLE) {
                     document.title = CUSTOM_PAGE_TITLE;
+                    titleObserver.disconnect();
+                }
+
+                if (!window.location.href.includes(CUSTOM_PAGE_TITLE)) {
+                    titleObserver.disconnect();
                 }
             }
         });

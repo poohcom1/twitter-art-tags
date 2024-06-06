@@ -20,6 +20,8 @@ GM_addStyle(styles);
 renderNavButton();
 renderTweetDropdown();
 
+let tagGalleryCleanup: (() => void) | null = null;
+
 if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
     renderTagsGallery();
 }
