@@ -36,10 +36,45 @@ function getTweetImages(tweetId: string): string[] {
 
 export async function renderTweetDropdown() {
     let currentTweetId: string | null = null;
-    let onNewTag: (() => void) | null = null;
+    let rerenderTagList: (() => void) | null = null;
 
     let tagButton: HTMLElement | null = null;
     let viewTagsButton: HTMLElement | null = null;
+
+    // Tag modal
+    const tagModal = document.createElement('div');
+    tagModal.innerHTML = `<input id="tagInput" type="text" placeholder="Press enter to add a tag..." /><hr style="width: 100%" /><div id="tagsContainer"/>`;
+    tagModal.classList.add('tag-dropdown');
+    document.body.appendChild(tagModal);
+
+    const tagInput = tagModal.querySelector<HTMLInputElement>('#tagInput')!;
+    tagInput.addEventListener('keydown', async (event) => {
+        const allowedChars = /^[a-zA-Z0-9 ]+$/;
+
+        if (allowedChars.test(event.key) || event.key === 'Enter') {
+            if (event.key === 'Enter') {
+                if (currentTweetId === null) {
+                    console.error('No tweet selected');
+                    return;
+                }
+
+                const target = event.target as HTMLInputElement;
+
+                await addTag(currentTweetId, target.value, getTweetImages(currentTweetId));
+                target.value = '';
+                rerenderTagList?.();
+            } else {
+                rerenderTagList?.();
+            }
+        } else {
+            event.preventDefault();
+        }
+    });
+
+    const tagsContainer = tagModal.querySelector('#tagsContainer')!;
+    function clearTagsContainer() {
+        tagsContainer.innerHTML = '';
+    }
 
     // Create tag button
     function renderTagButtons(dropdown: HTMLElement, tagId: string, images: string[]) {
@@ -80,7 +115,9 @@ export async function renderTweetDropdown() {
                 }
 
                 const tags = await getTags();
-                const tagList = await listTags(currentTweetId);
+                const tagList = (await listTags(currentTweetId)).filter((tag) =>
+                    tag.toLowerCase().includes(tagInput.value.toLowerCase())
+                );
 
                 clearTagsContainer();
 
@@ -113,46 +150,13 @@ export async function renderTweetDropdown() {
                 }
             }
             renderTagList();
-            onNewTag = renderTagList;
+            rerenderTagList = renderTagList;
 
             tagInput.focus();
         });
 
         dropdown.prepend(viewTagsButton);
         dropdown.prepend(tagButton);
-    }
-
-    // Tag modal
-    const tagModal = document.createElement('div');
-    tagModal.innerHTML = `<input id="tagInput" type="text" placeholder="Press enter to add a tag..." /><hr style="width: 100%" /><div id="tagsContainer"/>`;
-    tagModal.classList.add('tag-dropdown');
-    document.body.appendChild(tagModal);
-
-    const tagInput = tagModal.querySelector<HTMLInputElement>('#tagInput')!;
-    tagInput.addEventListener('keydown', async (event) => {
-        const allowedChars = /^[a-zA-Z0-9 ]+$/;
-
-        if (allowedChars.test(event.key) || event.key === 'Enter') {
-            if (event.key === 'Enter') {
-                if (currentTweetId === null) {
-                    console.error('No tweet selected');
-                    return;
-                }
-
-                const target = event.target as HTMLInputElement;
-
-                await addTag(currentTweetId, target.value, getTweetImages(currentTweetId));
-                target.value = '';
-                onNewTag?.();
-            }
-        } else {
-            event.preventDefault();
-        }
-    });
-
-    const tagsContainer = tagModal.querySelector('#tagsContainer')!;
-    function clearTagsContainer() {
-        tagsContainer.innerHTML = '';
     }
 
     await waitForElement('#layers');
@@ -212,7 +216,7 @@ export async function renderTweetDropdown() {
             } else if (mutation.removedNodes.length > 0) {
                 tagModal.style.display = 'none';
                 clearTagsContainer();
-                onNewTag = null;
+                rerenderTagList = null;
             }
         });
     });
