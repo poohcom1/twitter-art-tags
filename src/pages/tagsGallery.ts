@@ -30,7 +30,6 @@ import pencilIcon from '../assets/pencil.svg';
 import trashIcon from '../assets/trash.svg';
 import squareIcon from '../assets/square.svg';
 import checkSquareIcon from '../assets/check-square.svg';
-import type { MenuItem } from 'vanilla-context-menu/dist/@types/interface';
 
 const ID_IMAGE = 'tagImage';
 const ID_IMPORT = 'tagImport';
