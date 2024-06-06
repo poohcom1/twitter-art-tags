@@ -41,7 +41,7 @@
 
 .tag__inactive {
     opacity: 0.75;
-    border: 1px solid transparent;
+    border: 2px solid transparent;
 }
 
 #tagsContainer {
