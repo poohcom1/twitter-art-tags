@@ -43,7 +43,6 @@ jobs:
           tag: ${{ github.ref_name }}
           writeToFile: false
           useGitmojis: false
-          includeInvalidCommits: true
 
       - name: Create GitHub release
         id: create_release
