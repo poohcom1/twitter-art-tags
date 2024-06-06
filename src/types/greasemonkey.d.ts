@@ -1,3 +1,4 @@
+/* eslint-disable */
 // This definition is based on the API reference of Greasemonkey
 // https://wiki.greasespot.net/Greasemonkey_Manual:API
 // TypeScript Version: 3.2
@@ -153,7 +154,7 @@ declare namespace GM {
  * Window object of the content page where the user script is running on.
  * @see {@link http://wiki.greasespot.net/UnsafeWindow}
  */
-declare var unsafeWindow: Window;
+declare let unsafeWindow: Window;
 
 declare var GM: {
     // Headers

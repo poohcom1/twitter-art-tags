@@ -3,6 +3,7 @@
         .root {
             padding: 40px 0;
             font-family: TwitterChirp;
+            stroke: currentcolor;
         }
 
         .title {
@@ -12,7 +13,17 @@
 
         .title div {
             margin-left: auto;
-            padding: 5px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .title div svg {
+            width: 20px;
+            height: 20px;
+            opacity: 0.5;
         }
 
         .images-container {
@@ -32,11 +43,27 @@
             height: 200px;
         }
 
+        @keyframes loading {
+            to {
+                background-position-x: -20%;
+            }
+        }
+
         .image-skeleton {
             width: 200px;
             height: 200px;
-            background-color: #6666;
-            opacity: 0;
+            background-color: #aaaaaa;
+            background: linear-gradient(
+                    100deg,
+                    rgba(255, 255, 255, 0) 30%,
+                    rgba(255, 255, 255, 0.3) 50%,
+                    rgba(255, 255, 255, 0) 70%
+                )
+                #aaaaaa;
+            background-size: 200% 100%;
+            background-position-x: 180%;
+            animation: 1s loading ease-in-out infinite;
+            opacity: 0.1;
         }
 
         #tagSelect {
@@ -51,6 +78,10 @@
         }
 
         .tag {
+        }
+
+        .tag__inactive {
+            opacity: 0.75;
         }
 
         #addTag {
@@ -70,11 +101,19 @@
             height: 20px;
             margin-right: 5px;
         }
+
+        .context-menu-icon {
+            width: 14px;
+            height: 14px;
+            stroke: currentcolor;
+            opacity: 0.8;
+            margin-right: 2px;
+        }
     </style>
     <div class="root">
         <div class="title">
             <h1>Tags</h1>
-            <div title="Right click to edit tags!">
+            <div title="Right click to view more options for tags and images">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                         d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15849 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13M12 17H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
@@ -99,7 +138,7 @@
                     stroke-linejoin="round"
                 />
             </svg>
-            <input id="addTag" type="text" placeholder="Add a tag..." />
+            <input id="addTag" type="text" placeholder="Press enter to add a tag..." />
             <button id="tagExport" style="margin-left: auto">
                 <svg
                     class="button-icon"
@@ -135,7 +174,6 @@
         </div>
         <hr />
         <div id="tags"></div>
-        <hr />
         <div class="images-container"></div>
     </div>
 </div>

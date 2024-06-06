@@ -3,6 +3,8 @@ export function sanitizeTagName(tagName: string) {
 }
 
 export function verifyTagName(tagName: string) {
+    if (!tagName) return false;
+
     const allowedChars = /^[a-zA-Z0-9 ]+$/;
     return allowedChars.test(tagName);
 }
@@ -16,9 +18,11 @@ export function formatTagName(tagName: string) {
 
 export async function waitForElement(selector: string, root: ParentNode = document) {
     return new Promise<HTMLElement>((resolve) => {
-        const element = root.querySelector(selector);
-        if (element) {
-            resolve(element as HTMLElement);
+        {
+            const element = root.querySelector(selector);
+            if (element) {
+                resolve(element as HTMLElement);
+            }
         }
         const interval = setInterval(() => {
             const element = root.querySelector(selector);
@@ -34,9 +38,9 @@ export async function waitForElement(selector: string, root: ParentNode = docume
  * https://sourceforge.net/p/greasemonkey/wiki/GM_addStyle/
  */
 export function GM_addStyle(aCss: string) {
-    let head = document.getElementsByTagName('head')[0];
+    const head = document.getElementsByTagName('head')[0];
     if (head) {
-        let style = document.createElement('style');
+        const style = document.createElement('style');
         style.setAttribute('type', 'text/css');
         style.textContent = aCss;
         head.appendChild(style);

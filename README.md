@@ -23,3 +23,11 @@ Click on a tweet's "..." button to access the tags menu.
 -   Click on `View Tags` to open the tags gallery
 
 ![image](https://github.com/poohcom1/twitter-art-collection-v2/assets/74857873/f5e1de7b-70cb-4e73-a403-f60e8d1a02c4)
+
+## Attribution
+
+Special thanks to
+
+-   [vanilla-context-menu](https://github.com/GeorgianStan/vanilla-context-menu) by @GeorgianStan
+-   [valibot](https://github.com/fabian-hiller/valibot) by @fabian-hiller
+-   [Ui Oval Interface Icons Collection](https://www.svgrepo.com/collection/ui-oval-interface-icons) from [svgrepo.com](https://www.svgrepo.com/)

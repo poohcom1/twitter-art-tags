@@ -3,19 +3,22 @@ import { renderTweetDropdown } from './pages/tweetDropdown';
 import { renderTagsGallery } from './pages/tagsGallery';
 import { CUSTOM_PAGE_PATH } from './constants';
 import { clearAllTags } from './storage';
-import styles from './assets/styles.css';
+import styles from './assets/global.css';
+import { setupContextMenu } from './vanillaContextMenu';
 
 // Commands
 GM.registerMenuCommand(
-    'Twitter Art Col - View tags',
+    'Twitter Art Tags - View tags',
     () => (window.location.href = window.location.origin + CUSTOM_PAGE_PATH)
 );
-GM.registerMenuCommand('Twitter Art Col - Clear all tags', clearAllTags);
+GM.registerMenuCommand('Twitter Art Tags - Clear all tags', clearAllTags);
 
 // HTML
 GM_addStyle(styles);
 
 // Main
+setupContextMenu();
+
 renderTweetDropdown();
 
 if (window.location.href.includes(CUSTOM_PAGE_PATH)) {

@@ -47,6 +47,9 @@ export async function renameTag(oldTagName: string, newTagName: string) {
         console.error('Invalid tag name');
         return;
     }
+    if (oldTagName === newTagName) {
+        return;
+    }
 
     const tags = await GM.getValue<Tags>(KEY_TAGS, {});
 
@@ -121,7 +124,7 @@ export async function removeTag(tweetId: string, tagName: string) {
         return;
     }
 
-    tags[tagName].tweets = tags[tagName].tweets.filter((tweetId) => tweetId !== tweetId);
+    tags[tagName].tweets = tags[tagName].tweets.filter((id) => id !== tweetId);
 
     await GM.setValue(KEY_TAGS, tags);
 }
@@ -163,6 +166,16 @@ export async function importData(jsonString: string) {
             'Failed to import data due to potentially corrupted file. Check the console for more information.'
         );
     }
+}
+
+export function getExportFileName() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+
+    return `twitter-art-tag_data_${year}-${month}-${day}_${hours}.json`;
 }
 
 export async function clearAllTags() {

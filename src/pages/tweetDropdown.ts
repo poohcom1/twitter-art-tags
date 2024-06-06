@@ -1,7 +1,7 @@
 import { addTag, getTags, removeTag } from '../storage';
 import { formatTagName, waitForElement } from '../utils';
-import tagIcon from '../assets/tag-01-svgrepo-com.svg';
-import tagGalleryIcon from '../assets/tag-03-svgrepo-com.svg';
+import tagIcon from '../assets/tag.svg';
+import tagGalleryIcon from '../assets/tags.svg';
 import { CUSTOM_PAGE_PATH } from '../constants';
 
 async function listTags(tweetId: string): Promise<string[]> {
@@ -40,7 +40,7 @@ export async function renderTweetDropdown() {
 
     //#region Create the tag modal
     const tagModal = document.createElement('div');
-    tagModal.innerHTML = `<input id="tagInput" type="text" placeholder="Add a tag..." /><hr style="width: 100%" /><div id="tagsContainer"/>`;
+    tagModal.innerHTML = `<input id="tagInput" type="text" placeholder="Press enter to add a tag..." /><hr style="width: 100%" /><div id="tagsContainer"/>`;
     tagModal.classList.add('tag-dropdown');
     document.body.appendChild(tagModal);
 
@@ -77,7 +77,7 @@ export async function renderTweetDropdown() {
     //#region Tags Menu
     await waitForElement('#layers');
 
-    const dropdownObserver = new MutationObserver((mutationsList, observer) => {
+    const dropdownObserver = new MutationObserver((mutationsList) => {
         mutationsList.forEach(async (mutation) => {
             if (mutation.addedNodes.length > 0) {
                 waitForElement('div[role="menu"]', mutation.addedNodes[0] as ParentNode).then(
@@ -160,6 +160,12 @@ export async function renderTweetDropdown() {
                         const tagList = await listTags(currentTweetId);
 
                         clearTagsContainer();
+
+                        if (tagList.length === 0) {
+                            tagsContainer.innerHTML = 'No tags yet!';
+                            return;
+                        }
+
                         const tagElements = tagList.map((tag) =>
                             renderTag(tag, tags[tag].tweets.includes(currentTweetId ?? ''))
                         );

@@ -3,19 +3,32 @@
     "description": "",
     "version": "0.1.0",
     "private": true,
+    "engines": {
+        "node": ">=18.20.3"
+    },
     "scripts": {
-        "dev": "webpack --watch",
-        "build": "webpack"
+        "prod": "webpack --config webpack.prod.js",
+        "prod:watch": "webpack --config webpack.prod.js --watch",
+        "dev": "webpack --config webpack.dev.js",
+        "dev:watch": "webpack --config webpack.dev.js --watch",
+        "lint": "eslint"
     },
     "devDependencies": {
+        "@eslint/js": "^9.4.0",
+        "@types/eslint__js": "^8.42.3",
+        "@typescript-eslint/eslint-plugin": "^7.12.0",
+        "@typescript-eslint/parser": "^7.12.0",
         "css-loader": "^7.1.2",
+        "eslint": "^9.4.0",
         "html-loader": "^5.0.0",
         "ts-loader": "^9.4.2",
-        "typescript": "^5.0.4",
+        "typescript": "^5.4.5",
+        "typescript-eslint": "^7.12.0",
         "valibot": "^0.31.0-rc.12",
         "vanilla-context-menu": "^1.6.0",
         "webpack": "^5.78.0",
         "webpack-cli": "^5.0.1",
+        "webpack-merge": "^5.10.0",
         "webpack-userscript": "^3.2.2"
     }
 }
