@@ -1,19 +1,19 @@
 # Twitter Art Tags
 
-A Grease Monkey script for caching and tagging images on Twitter.
+A Greasemonkey script for caching and tagging images on Twitter.
 
 Reinterpretation of the [Twitter Art Collection](https://github.com/poohcom1/twitter-art-collection) web app.
 
 ## Installation
 
-0. Install Grease Monkey extension on Firefox
-1. Find the latest [release](https://github.com/poohcom1/twitter-art-tags/releases)
-2. Copy the script from the release to and add it to Grease Monkey
+0. Install Greasemonkey extension on Firefox if not already added.
+1. Find the latest [release](https://github.com/poohcom1/twitter-art-tags/releases).
+2. Copy the script from the release to and add it to Greasemonkey.
 
 ## Usage
 
--   Only tweets with images can be tagged
--   Images are cached locally for fast load
+-   Only tweets with images can be tagged.
+-   Images are cached locally for fast load.
 
 ![twitter-art-tags_example](https://github.com/poohcom1/twitter-art-tags/assets/74857873/dcf52dd9-2334-4c7c-a982-ab66bf759585)
 
