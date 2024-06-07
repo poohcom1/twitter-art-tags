@@ -156,17 +156,12 @@ async function renderImages(renderKeys: RenderKeys[]) {
             {
                 label: 'Open image',
                 iconHTML: createContextMenuIcon(eyeIcon),
-                callback: (e) => {
-                    console.log(e.target);
-                    window.open(image.image, '_blank');
-                },
+                callback: () => window.open(image.image, '_blank'),
             },
             {
                 label: 'Open tweet',
                 iconHTML: createContextMenuIcon(externalLinkIcon),
-                callback: () => {
-                    window.open(`/poohcom1/status/${image.tweetId}`, '_blank');
-                },
+                callback: () => window.open(`/poohcom1/status/${image.tweetId}`, '_blank'),
             },
         ];
 
