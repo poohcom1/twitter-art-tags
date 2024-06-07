@@ -1,3 +1,9 @@
+/**
+ * Types from https://github.com/poohcom1/vanilla-context-menu
+ * Library is included via @require in user script, so this file needs to be kept in sync with the library.
+ * This is set in webpack.prod.js.
+ */
+
 /* eslint-disable no-unused-private-class-members */
 interface CoreOptions {
     transformOrigin: [string, string];
@@ -15,6 +21,7 @@ interface ConfigurableOptions extends Partial<DefaultOptions> {
     customThemeClass?: string;
     openSubMenuOnHover?: boolean;
     preventCloseOnClick?: boolean;
+    onClose?: () => void;
 }
 interface Options extends ConfigurableOptions, CoreOptions {}
 interface BaseMenuOption {

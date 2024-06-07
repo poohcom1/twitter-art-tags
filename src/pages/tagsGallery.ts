@@ -258,6 +258,7 @@ async function renderImages(renderKeys: RenderKeys[]) {
                 .firstElementChild as HTMLElement,
             openSubMenuOnHover: true,
             customClass: 'context-menu',
+            onClose: () => (lockHover = false),
         });
     });
 }
