@@ -3,17 +3,24 @@ import { SANITIZE_INFO, formatTagName, parseHTML, verifyEvent } from '../utils';
 import squareIcon from '../assets/square.svg';
 import checkSquareIcon from '../assets/check-square.svg';
 
+interface TagModalCallbacks {
+    tagCreated?: (tag: string) => void;
+    tagModified?: (tag: string, tweetId: string) => void;
+}
+
 export default class TagModal {
     private tagModal: HTMLElement;
     private tagInput: HTMLInputElement;
     private tagsContainer: HTMLElement;
 
+    private callbacks: Partial<TagModalCallbacks> = {};
     private tagInputKeydownListener: ((ev: KeyboardEvent) => void) | null = null;
 
     constructor() {
         this.tagModal = document.createElement('div');
         this.tagModal.innerHTML = `<input id="tagInput" type="text" placeholder="Add a tag..." /><hr style="width: 100%" /><div id="tagsContainer"/>`;
         this.tagModal.classList.add('tag-dropdown');
+        this.tagModal.style.backgroundColor = document.body.style.backgroundColor;
         document.body.appendChild(this.tagModal);
 
         this.tagInput = this.tagModal.querySelector<HTMLInputElement>('#tagInput')!;
@@ -21,7 +28,14 @@ export default class TagModal {
         this.tagsContainer = this.tagModal.querySelector('#tagsContainer')!;
     }
 
-    public show(tweetId: string, images: string[], position: { top: number; left: number }) {
+    public show(
+        tweetId: string,
+        images: string[],
+        position: { top: number; left: number },
+        callbacks?: TagModalCallbacks
+    ) {
+        this.callbacks = callbacks ?? {};
+
         // Render tags
         const renderTags = async () => {
             if (tweetId === null) {
@@ -63,6 +77,8 @@ export default class TagModal {
                         await addTag(tweetId, tagName, images);
                     }
 
+                    this.callbacks.tagModified?.(tagName, tweetId);
+
                     renderTags();
                 });
             }
@@ -82,9 +98,12 @@ export default class TagModal {
                         return;
                     }
 
-                    await addTag(tweetId, target.value, getTweetImages(tweetId));
+                    const tagName = target.value;
+
+                    await addTag(tweetId, tagName, getTweetImages(tweetId));
                     target.value = '';
                     renderTags();
+                    this.callbacks.tagCreated?.(tagName);
                 } else {
                     renderTags();
                 }

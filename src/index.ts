@@ -5,7 +5,7 @@ import { CUSTOM_PAGE_PATH } from './constants';
 import { clearAllTags } from './storage';
 import styles from './assets/global.css';
 import { renderNavButton } from './pages/navButton';
-import TagModal from './components/tagModal';
+import TagModal from './components/TagModal';
 
 // Commands
 GM.registerMenuCommand(
@@ -24,10 +24,10 @@ renderNavButton();
 renderTweetDropdown(tagModal);
 
 if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
-    renderTagsGallery();
+    renderTagsGallery(tagModal);
 }
 window.addEventListener('popstate', () => {
     if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
-        renderTagsGallery();
+        renderTagsGallery(tagModal);
     }
 });

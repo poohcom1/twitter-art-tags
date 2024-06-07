@@ -8,7 +8,6 @@ import {
     verifyEvent,
 } from '../utils';
 import {
-    addTag,
     createTag,
     deleteTag,
     exportData,
@@ -16,7 +15,6 @@ import {
     getTags,
     getTweets,
     importData,
-    removeTag,
     removeTweet,
     renameTag,
 } from '../storage';
@@ -24,12 +22,12 @@ import htmlHtml from '../assets/tagsGallery.html';
 import tagIcon from '../assets/tag.svg';
 import eyeIcon from '../assets/eye.svg';
 import tagPlusIcon from '../assets/file-plus.svg';
-import tagMinusIcon from '../assets/file-minus.svg';
 import externalLinkIcon from '../assets/link-external.svg';
 import pencilIcon from '../assets/pencil.svg';
 import trashIcon from '../assets/trash.svg';
 import squareIcon from '../assets/square.svg';
 import checkSquareIcon from '../assets/check-square.svg';
+import TagModal from '../components/TagModal';
 
 const ID_IMAGE = 'tagImage';
 const ID_IMPORT = 'tagImport';
@@ -51,297 +49,287 @@ enum RenderKeys {
     IMAGES = 'images',
 }
 
-// Global states
-const cleanup: (() => void)[] = [];
+export async function renderTagsGallery(tagModal: TagModal) {
+    // Render func
+    // Global states
+    const cleanup: (() => void)[] = [];
 
-let selectedTags: string[] = [];
-let lockHover = false;
+    let selectedTags: string[] = [];
+    let lockHover = false;
 
-let imageData: { tweetId: string; image: string; index: number; element: HTMLElement }[];
+    let imageData: { tweetId: string; image: string; index: number; element: HTMLElement }[];
 
-function rerender(renderKeys: RenderKeys[]) {
-    renderTags(renderKeys);
-    renderImages(renderKeys);
+    function rerender(renderKeys: RenderKeys[]) {
+        renderTags(renderKeys);
+        renderImages(renderKeys);
 
-    cleanup.forEach((fn) => fn());
-    cleanup.length = 0;
-}
-
-async function renderImages(renderKeys: RenderKeys[]) {
-    const imageContainer = document.querySelector<HTMLElement>('#' + ID_IMAGE_GALLERY)!;
-
-    if (renderKeys.includes(RenderKeys.IMAGES)) {
-        imageContainer.innerHTML =
-            `<div class="${CLASS_IMAGE} ${CLASS_IMAGE_SKELETON}"></div>`.repeat(15);
+        cleanup.forEach((fn) => fn());
+        cleanup.length = 0;
     }
 
-    const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
+    async function renderImages(renderKeys: RenderKeys[]) {
+        const imageContainer = document.querySelector<HTMLElement>('#' + ID_IMAGE_GALLERY)!;
 
-    // Images that have all selected tags
-    if (renderKeys.includes(RenderKeys.IMAGES)) {
-        imageData = Object.keys(tags)
-            .filter((tag) => selectedTags.includes(tag))
-            .reduce(
-                (acc, tag) => acc.filter((tweetId) => tags[tag].tweets.includes(tweetId)),
-                Object.keys(tweets)
-            )
-            .reverse()
-            .filter((tweetId) => tweetId in tweets)
-            .flatMap((tweetId) =>
-                tweets[tweetId].images.map((image, index) => ({
-                    tweetId,
-                    image,
-                    index,
-                    element: parseHTML(`
+        if (renderKeys.includes(RenderKeys.IMAGES)) {
+            imageContainer.innerHTML =
+                `<div class="${CLASS_IMAGE} ${CLASS_IMAGE_SKELETON}"></div>`.repeat(15);
+        }
+
+        const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
+
+        // Images that have all selected tags
+        if (renderKeys.includes(RenderKeys.IMAGES)) {
+            imageData = Object.keys(tags)
+                .filter((tag) => selectedTags.includes(tag))
+                .reduce(
+                    (acc, tag) => acc.filter((tweetId) => tags[tag].tweets.includes(tweetId)),
+                    Object.keys(tweets)
+                )
+                .reverse()
+                .filter((tweetId) => tweetId in tweets)
+                .flatMap((tweetId) =>
+                    tweets[tweetId].images.map((image, index) => ({
+                        tweetId,
+                        image,
+                        index,
+                        element: parseHTML(`
                     <a id="${ID_IMAGE}__${tweetId}__${index}" class="${CLASS_IMAGE} ${CLASS_IMAGE_LOADED}" href="/poohcom1/status/${tweetId}" target="_blank">
                         <img src="${image}" />
                     </a>`),
-                }))
-            );
-        imageContainer.innerHTML = '';
-        imageContainer.append(...imageData.map((e) => e.element));
-    }
+                    }))
+                );
+            imageContainer.innerHTML = '';
+            imageContainer.append(...imageData.map((e) => e.element));
+        }
 
-    if (Object.keys(tags).length === 0) {
-        imageContainer.innerHTML =
-            '<h3>No tags yet!<br>Add one by clicking on the "..." menu of a tweet with images and selected "Tag Tweet"</h3>';
-    } else if (imageData.length === 0) {
-        imageContainer.innerHTML = '<h3>Nothing to see here!</h3>';
-    }
-
-    // Menu item
-    imageData.forEach((image) => {
-        // Hover fx
-        const tweetImages = imageData.filter((img) => img.tweetId === image.tweetId);
-
-        const hoverFx = () => {
-            if (lockHover) {
-                return;
-            }
-
-            document
-                .querySelectorAll('.' + CLASS_IMAGE_HOVER)
-                .forEach((img) => img.classList.remove(CLASS_IMAGE_HOVER));
-            tweetImages.forEach((img) => img.element.classList.add(CLASS_IMAGE_HOVER));
-        };
-        const unhoverFx = () => {
-            if (lockHover) {
-                return;
-            }
-
-            tweetImages.forEach((img) => img.element.classList.remove(CLASS_IMAGE_HOVER));
-        };
-
-        const onDocumentClick = () => {
-            lockHover = false;
-            unhoverFx();
-        };
-
-        image.element.addEventListener('mouseover', hoverFx);
-        image.element.addEventListener('mouseout', unhoverFx);
-
-        image.element.addEventListener('contextmenu', () => {
-            lockHover = false;
-            hoverFx();
-            lockHover = true;
-        });
-        document.addEventListener('click', onDocumentClick);
-
-        cleanup.push(() => {
-            document.removeEventListener('click', onDocumentClick);
-        });
+        if (Object.keys(tags).length === 0) {
+            imageContainer.innerHTML =
+                '<h3>No tags yet!<br>Add one by clicking on the "..." menu of a tweet with images and selected "Tag Tweet"</h3>';
+        } else if (imageData.length === 0) {
+            imageContainer.innerHTML = '<h3>Nothing to see here!</h3>';
+        }
 
         // Menu item
-        const viewMenu: MenuItem[] = [
-            {
-                label: 'Open image',
-                iconHTML: createContextMenuIcon(eyeIcon),
-                callback: () => window.open(image.image, '_blank'),
-            },
-            {
-                label: 'Open tweet',
-                iconHTML: createContextMenuIcon(externalLinkIcon),
-                callback: () => window.open(`/poohcom1/status/${image.tweetId}`, '_blank'),
-            },
-        ];
+        imageData.forEach((image) => {
+            // Hover fx
+            const tweetImages = imageData.filter((img) => img.tweetId === image.tweetId);
 
-        const tagEditMenu: MenuItem[] = [];
-        const otherTags = Object.keys(tags).filter(
-            (tag) => !tags[tag].tweets.includes(image.tweetId)
-        );
-        const existingTags = Object.keys(tags).filter((tag) =>
-            tags[tag].tweets.includes(image.tweetId)
-        );
-
-        if (otherTags.length > 0) {
-            tagEditMenu.push({
-                label: 'Add to',
-                iconHTML: createContextMenuIcon(tagPlusIcon),
-                preventCloseOnClick: true,
-                nestedMenu: otherTags.map((tag) => ({
-                    label: formatTagName(tag),
-                    iconHTML: createContextMenuIcon(tagPlusIcon),
-                    callback: async () => {
-                        await addTag(image.tweetId, tag, []);
-                        const newRenderkeys = [RenderKeys.TAGS];
-                        if (selectedTags.includes(tag)) {
-                            newRenderkeys.push(RenderKeys.IMAGES);
-                        }
-                        rerender(newRenderkeys);
-                    },
-                })),
-            });
-        }
-        if (existingTags.length > 0) {
-            tagEditMenu.push({
-                label: 'Remove from',
-                iconHTML: createContextMenuIcon(tagMinusIcon),
-                preventCloseOnClick: true,
-                nestedMenu: existingTags.map((tag) => ({
-                    label: formatTagName(tag),
-                    iconHTML: createContextMenuIcon(tagMinusIcon),
-                    callback: async () => {
-                        await removeTag(image.tweetId, tag);
-                        const newRenderkeys = [RenderKeys.TAGS];
-                        if (selectedTags.includes(tag)) {
-                            newRenderkeys.push(RenderKeys.IMAGES);
-                        }
-                        rerender(newRenderkeys);
-                    },
-                })),
-            });
-        }
-        tagEditMenu.push({
-            label: 'Remove tweet',
-            iconHTML: createContextMenuIcon(trashIcon),
-            callback: async () => {
-                if (confirm('Are you sure you want to remove this tweet from all tags?')) {
-                    await removeTweet(image.tweetId);
-                    rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+            const hoverFx = () => {
+                if (lockHover) {
+                    return;
                 }
-            },
-        });
 
-        const tagsMenu: MenuItem[] = Object.keys(tags)
-            .filter((tag) => tags[tag].tweets.includes(image.tweetId))
-            .map((tag) => ({
-                label: formatTagName(tag),
-                iconHTML: createContextMenuIcon(tagIcon),
-                callback: () => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                document
+                    .querySelectorAll('.' + CLASS_IMAGE_HOVER)
+                    .forEach((img) => img.classList.remove(CLASS_IMAGE_HOVER));
+                tweetImages.forEach((img) => img.element.classList.add(CLASS_IMAGE_HOVER));
+            };
+            const unhoverFx = () => {
+                if (lockHover) {
+                    return;
+                }
 
-                    if (selectedTags.length === 1 && selectedTags[0] === tag) {
-                        return;
-                    }
+                tweetImages.forEach((img) => img.element.classList.remove(CLASS_IMAGE_HOVER));
+            };
 
-                    selectedTags = [tag];
-                    rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+            const onDocumentClick = () => {
+                lockHover = false;
+                unhoverFx();
+            };
+
+            image.element.addEventListener('mouseover', hoverFx);
+            image.element.addEventListener('mouseout', unhoverFx);
+
+            image.element.addEventListener('contextmenu', () => {
+                lockHover = false;
+                hoverFx();
+                lockHover = true;
+            });
+            document.addEventListener('click', onDocumentClick);
+
+            cleanup.push(() => {
+                document.removeEventListener('click', onDocumentClick);
+            });
+
+            // Menu item
+            const contextMenu = new VanillaContextMenu({
+                scope: image.element,
+                transitionDuration: 0,
+                menuItems: [],
+                normalizePosition: true,
+                customNormalizeScope: document.querySelector<HTMLElement>('main')!
+                    .firstElementChild as HTMLElement,
+                openSubMenuOnHover: true,
+                preventCloseOnClick: true,
+                customClass: 'context-menu',
+                onClose: () => {
+                    lockHover = false;
+                    tagModal.hide();
                 },
-            }));
+            });
 
-        const menuItems: MenuItem[] = [...viewMenu, 'hr', ...tagEditMenu];
-        if (tagsMenu.length > 0) {
-            menuItems.push('hr', ...tagsMenu);
-        }
+            const viewMenu: MenuItem[] = [
+                {
+                    label: 'Open image',
+                    iconHTML: createContextMenuIcon(eyeIcon),
+                    callback: () => window.open(image.image, '_blank'),
+                },
+                {
+                    label: 'Open tweet',
+                    iconHTML: createContextMenuIcon(externalLinkIcon),
+                    callback: () => window.open(`/poohcom1/status/${image.tweetId}`, '_blank'),
+                },
+            ];
 
-        new VanillaContextMenu({
-            scope: image.element,
-            transitionDuration: 0,
-            menuItems,
-            normalizePosition: true,
-            customNormalizeScope: document.querySelector<HTMLElement>('main')!
-                .firstElementChild as HTMLElement,
-            openSubMenuOnHover: true,
-            customClass: 'context-menu',
-            onClose: () => (lockHover = false),
+            const tagEditMenu: MenuItem[] = [];
+
+            tagEditMenu.push({
+                label: 'Edit tags',
+                iconHTML: createContextMenuIcon(tagPlusIcon),
+                callback: async (_, e) => {
+                    const rect = (e.target as HTMLElement).getBoundingClientRect();
+                    tagModal.show(
+                        image.tweetId,
+                        [image.image],
+                        {
+                            top: rect.top + window.scrollY,
+                            left: rect.right,
+                        },
+                        {
+                            tagModified: async (tag) => {
+                                if (selectedTags.includes(tag)) {
+                                    rerender([RenderKeys.TAGS, RenderKeys.IMAGES]);
+                                } else {
+                                    rerender([RenderKeys.TAGS]);
+                                }
+                                contextMenu.close();
+                            },
+                        }
+                    );
+                },
+            });
+            tagEditMenu.push({
+                label: 'Remove tweet',
+                iconHTML: createContextMenuIcon(trashIcon),
+                callback: async () => {
+                    if (confirm('Are you sure you want to remove this tweet from all tags?')) {
+                        await removeTweet(image.tweetId);
+                        rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+                    }
+                    contextMenu.close();
+                },
+            });
+
+            const tagsMenu: MenuItem[] = Object.keys(tags)
+                .filter((tag) => tags[tag].tweets.includes(image.tweetId))
+                .map((tag) => ({
+                    label: formatTagName(tag),
+                    iconHTML: createContextMenuIcon(tagIcon),
+                    callback: () => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                        if (selectedTags.length === 1 && selectedTags[0] === tag) {
+                            return;
+                        }
+
+                        selectedTags = [tag];
+                        rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+                        contextMenu.close();
+                    },
+                }));
+
+            const menuItems: MenuItem[] = [...viewMenu, 'hr', ...tagEditMenu];
+            if (tagsMenu.length > 0) {
+                menuItems.push('hr', ...tagsMenu);
+            }
+
+            contextMenu.updateOptions({ ...contextMenu.options, menuItems });
         });
-    });
-}
-
-async function renderTags(renderKeys: RenderKeys[]) {
-    if (!renderKeys.includes(RenderKeys.TAGS) && !renderKeys.includes(RenderKeys.IMAGES)) {
-        return;
     }
 
-    const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
-    const tagList = Object.keys(tags);
+    async function renderTags(renderKeys: RenderKeys[]) {
+        if (!renderKeys.includes(RenderKeys.TAGS) && !renderKeys.includes(RenderKeys.IMAGES)) {
+            return;
+        }
 
-    const tagsContainer = document.querySelector('#' + ID_TAGS)!;
+        const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
+        const tagList = Object.keys(tags);
 
-    tagList.sort((a, b) => a.localeCompare(b));
+        const tagsContainer = document.querySelector('#' + ID_TAGS)!;
 
-    const tagElements = tagList.map((tag) => {
-        const active = selectedTags.includes(tag);
+        tagList.sort((a, b) => a.localeCompare(b));
 
-        const tweetCount = tags[tag].tweets
-            .map((tweetId) => tweets[tweetId].images.length)
-            .reduce((a, b) => a + b, 0);
+        const tagElements = tagList.map((tag) => {
+            const active = selectedTags.includes(tag);
 
-        const button = parseHTML<HTMLButtonElement>(
-            `<button class="tag ${!active && CLASS_TAG_INACTIVE}">
+            const tweetCount = tags[tag].tweets
+                .map((tweetId) => tweets[tweetId].images.length)
+                .reduce((a, b) => a + b, 0);
+
+            const button = parseHTML<HTMLButtonElement>(
+                `<button class="tag ${!active && CLASS_TAG_INACTIVE}">
                 ${active ? checkSquareIcon : squareIcon}
                 <div class="text">${formatTagName(tag)} (${tweetCount})</div>
             </button>`
-        );
+            );
 
-        button.addEventListener('click', () => {
-            if (active) {
-                selectedTags = selectedTags.filter((t) => t !== tag);
-            } else {
-                selectedTags.push(tag);
-            }
-            rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
-        });
+            button.addEventListener('click', () => {
+                if (active) {
+                    selectedTags = selectedTags.filter((t) => t !== tag);
+                } else {
+                    selectedTags.push(tag);
+                }
+                rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+            });
 
-        new VanillaContextMenu({
-            scope: button,
-            normalizePosition: false,
-            transitionDuration: 0,
-            menuItems: [
-                {
-                    label: 'Rename',
-                    iconHTML: createContextMenuIcon(pencilIcon),
-                    callback: async () => {
-                        let newTagName;
-                        while (true) {
-                            newTagName = prompt('Enter new tag name:', formatTagName(tag));
-                            if (!newTagName) {
+            new VanillaContextMenu({
+                scope: button,
+                normalizePosition: false,
+                transitionDuration: 0,
+                menuItems: [
+                    {
+                        label: 'Rename',
+                        iconHTML: createContextMenuIcon(pencilIcon),
+                        callback: async () => {
+                            let newTagName;
+                            while (true) {
+                                newTagName = prompt('Enter new tag name:', formatTagName(tag));
+                                if (!newTagName) {
+                                    return;
+                                }
+                                if (verifyTagName(newTagName)) {
+                                    break;
+                                } else {
+                                    alert(
+                                        'Invalid tag name! Tag names can only contain letters, numbers, and spaces.'
+                                    );
+                                }
+                            }
+                            await renameTag(tag, newTagName);
+                            rerender([RenderKeys.TAGS]);
+                        },
+                    },
+                    {
+                        label: 'Delete',
+                        iconHTML: createContextMenuIcon(trashIcon),
+                        callback: async () => {
+                            if (!confirm('Are you sure you want to delete this tag?')) {
                                 return;
                             }
-                            if (verifyTagName(newTagName)) {
-                                break;
-                            } else {
-                                alert(
-                                    'Invalid tag name! Tag names can only contain letters, numbers, and spaces.'
-                                );
-                            }
-                        }
-                        await renameTag(tag, newTagName);
-                        rerender([RenderKeys.TAGS]);
+                            await deleteTag(tag);
+                            rerender([RenderKeys.TAGS]);
+                        },
                     },
-                },
-                {
-                    label: 'Delete',
-                    iconHTML: createContextMenuIcon(trashIcon),
-                    callback: async () => {
-                        if (!confirm('Are you sure you want to delete this tag?')) {
-                            return;
-                        }
-                        await deleteTag(tag);
-                        rerender([RenderKeys.TAGS]);
-                    },
-                },
-            ],
+                ],
+            });
+
+            return button;
         });
 
-        return button;
-    });
+        tagsContainer.innerHTML = '';
+        tagsContainer.append(...tagElements);
+    }
 
-    tagsContainer.innerHTML = '';
-    tagsContainer.append(...tagElements);
-}
-
-export async function renderTagsGallery() {
     // Render page
     const main = (await waitForElement('div[data-testid="error-detail"]'))!.parentElement!;
     main.style.maxWidth = '100%';

@@ -26,7 +26,7 @@ interface ConfigurableOptions extends Partial<DefaultOptions> {
 interface Options extends ConfigurableOptions, CoreOptions {}
 interface BaseMenuOption {
     label: string;
-    callback?: (ev: MouseEvent) => unknown;
+    callback?: (contextEvent: MouseEvent, optionEvent: MouseEvent) => unknown;
     /**
      * @deprecated This property was replaced by the new iconHTML property
      */
