@@ -14,7 +14,7 @@
     padding: 10px 20px;
     color: inherit;
     white-space: nowrap;
-    z-index: 1000; /* Ensure it is above other content */
+    z-index: 20000; /* Ensure it is above other content */
     font-family: TwitterChirp;
     font-weight: 700;
     max-width: 300px;

@@ -5,7 +5,7 @@ const prod = require('./webpack.prod.js');
 module.exports = merge(prod, {
     mode: 'development',
     output: {
-        filename: 'twitterArtTags.dev.js',
+        filename: 'twitterArtTags.js',
         path: path.resolve(__dirname, 'dist'),
     },
 });
