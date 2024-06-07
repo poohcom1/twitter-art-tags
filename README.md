@@ -17,18 +17,23 @@ A Greasemonkey script for caching and tagging images on Twitter.
 
 ## Development
 
-1. Install dependencies
-  ```sh
-  yarn
-  ```
-2. Run build in watch mode for live reload
-  ```sh
-  yarn prod:watch
-  ```
-3. Compiled script will be at `dist/twitterArtTags.user.js`
+1. Install dependencies:
+
+```sh
+yarn
+```
+
+2. Run build in watch mode for live reload:
+
+```sh
+yarn dev
+```
+
+3. Compiled script will be at `dist/twitterArtTags.user.js`.
 
 ### Dependencies
-- [vanilla-context-menu](https://github.com/poohcom1/vanilla-context-menu): Forked `vanilla-context-menu` to support screen position normalization and hover with nested menu.  
+
+-   [vanilla-context-menu](https://github.com/poohcom1/vanilla-context-menu): Forked to support screen position normalization and hover with nested menu.
 
 ## Attribution
 

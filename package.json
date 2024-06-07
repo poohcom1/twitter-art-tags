@@ -8,10 +8,12 @@
         "node": ">=18.20.3"
     },
     "scripts": {
-        "prod": "webpack --config webpack.prod.js",
-        "prod:watch": "webpack --config webpack.prod.js --watch",
-        "dev": "webpack --config webpack.dev.js",
-        "dev:watch": "webpack --config webpack.dev.js --watch",
+        "build:prod": "webpack --config webpack.prod.js",
+        "build:prod:watch": "webpack --config webpack.prod.js --watch",
+        "build:dev": "webpack --config webpack.dev.js",
+        "build:dev:watch": "webpack --config webpack.dev.js --watch",
+        "dev": "yarn build:prod:watch",
+        "build": "yarn build:prod",
         "lint": "eslint"
     },
     "devDependencies": {

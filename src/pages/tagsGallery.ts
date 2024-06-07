@@ -45,16 +45,32 @@ const CLASS_IMAGE_HOVER = 'image-container__hover';
 const CLASS_IMAGE_LOADED = 'image-container__loaded';
 const CLASS_IMAGE_SKELETON = 'image-container__skeleton';
 
+// Render keys
+enum RenderKeys {
+    TAGS = 'tags',
+    IMAGES = 'images',
+}
+
 // Global states
 const cleanup: (() => void)[] = [];
 
 let selectedTags: string[] = [];
 let lockHover = false;
 
-async function renderImages(showLoading = false) {
+let imageData: { tweetId: string; image: string; index: number; element: HTMLElement }[];
+
+function rerender(renderKeys: RenderKeys[]) {
+    renderTags(renderKeys);
+    renderImages(renderKeys);
+
+    cleanup.forEach((fn) => fn());
+    cleanup.length = 0;
+}
+
+async function renderImages(renderKeys: RenderKeys[]) {
     const imageContainer = document.querySelector<HTMLElement>('#' + ID_IMAGE_GALLERY)!;
 
-    if (showLoading) {
+    if (renderKeys.includes(RenderKeys.IMAGES)) {
         imageContainer.innerHTML =
             `<div class="${CLASS_IMAGE} ${CLASS_IMAGE_SKELETON}"></div>`.repeat(15);
     }
@@ -62,28 +78,29 @@ async function renderImages(showLoading = false) {
     const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
 
     // Images that have all selected tags
-    const imageData = Object.keys(tags)
-        .filter((tag) => selectedTags.includes(tag))
-        .reduce(
-            (acc, tag) => acc.filter((tweetId) => tags[tag].tweets.includes(tweetId)),
-            Object.keys(tweets)
-        )
-        .reverse()
-        .filter((tweetId) => tweetId in tweets)
-        .flatMap((tweetId) =>
-            tweets[tweetId].images.map((image, index) => ({
-                tweetId,
-                image,
-                index,
-                element: parseHTML(`
+    if (renderKeys.includes(RenderKeys.IMAGES)) {
+        imageData = Object.keys(tags)
+            .filter((tag) => selectedTags.includes(tag))
+            .reduce(
+                (acc, tag) => acc.filter((tweetId) => tags[tag].tweets.includes(tweetId)),
+                Object.keys(tweets)
+            )
+            .reverse()
+            .filter((tweetId) => tweetId in tweets)
+            .flatMap((tweetId) =>
+                tweets[tweetId].images.map((image, index) => ({
+                    tweetId,
+                    image,
+                    index,
+                    element: parseHTML(`
                     <a id="${ID_IMAGE}__${tweetId}__${index}" class="${CLASS_IMAGE} ${CLASS_IMAGE_LOADED}" href="/poohcom1/status/${tweetId}" target="_blank">
                         <img src="${image}" />
                     </a>`),
-            }))
-        );
-
-    imageContainer.innerHTML = '';
-    imageContainer.append(...imageData.map((e) => e.element));
+                }))
+            );
+        imageContainer.innerHTML = '';
+        imageContainer.append(...imageData.map((e) => e.element));
+    }
 
     if (Object.keys(tags).length === 0) {
         imageContainer.innerHTML =
@@ -171,7 +188,11 @@ async function renderImages(showLoading = false) {
                     iconHTML: createContextMenuIcon(tagPlusIcon),
                     callback: async () => {
                         await addTag(image.tweetId, tag, []);
-                        rerender();
+                        const newRenderkeys = [RenderKeys.TAGS];
+                        if (selectedTags.includes(tag)) {
+                            newRenderkeys.push(RenderKeys.IMAGES);
+                        }
+                        rerender(newRenderkeys);
                     },
                 })),
             });
@@ -186,7 +207,11 @@ async function renderImages(showLoading = false) {
                     iconHTML: createContextMenuIcon(tagMinusIcon),
                     callback: async () => {
                         await removeTag(image.tweetId, tag);
-                        rerender();
+                        const newRenderkeys = [RenderKeys.TAGS];
+                        if (selectedTags.includes(tag)) {
+                            newRenderkeys.push(RenderKeys.IMAGES);
+                        }
+                        rerender(newRenderkeys);
                     },
                 })),
             });
@@ -197,7 +222,7 @@ async function renderImages(showLoading = false) {
             callback: async () => {
                 if (confirm('Are you sure you want to remove this tweet from all tags?')) {
                     await removeTweet(image.tweetId);
-                    rerender();
+                    rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
                 }
             },
         });
@@ -215,14 +240,13 @@ async function renderImages(showLoading = false) {
                     }
 
                     selectedTags = [tag];
-                    rerender();
+                    rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
                 },
             }));
 
         const menuItems: MenuItem[] = [...viewMenu, 'hr', ...tagEditMenu];
         if (tagsMenu.length > 0) {
-            menuItems.push('hr');
-            menuItems.push(...tagsMenu);
+            menuItems.push('hr', ...tagsMenu);
         }
 
         new VanillaContextMenu({
@@ -233,11 +257,16 @@ async function renderImages(showLoading = false) {
             customNormalizeScope: document.querySelector<HTMLElement>('main')!
                 .firstElementChild as HTMLElement,
             openSubMenuOnHover: true,
+            customClass: 'context-menu',
         });
     });
 }
 
-async function renderTags() {
+async function renderTags(renderKeys: RenderKeys[]) {
+    if (!renderKeys.includes(RenderKeys.TAGS) && !renderKeys.includes(RenderKeys.IMAGES)) {
+        return;
+    }
+
     const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
     const tagList = Object.keys(tags);
 
@@ -265,7 +294,7 @@ async function renderTags() {
             } else {
                 selectedTags.push(tag);
             }
-            rerender(true);
+            rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
         });
 
         new VanillaContextMenu({
@@ -292,7 +321,7 @@ async function renderTags() {
                             }
                         }
                         await renameTag(tag, newTagName);
-                        rerender();
+                        rerender([RenderKeys.TAGS]);
                     },
                 },
                 {
@@ -303,7 +332,7 @@ async function renderTags() {
                             return;
                         }
                         await deleteTag(tag);
-                        rerender();
+                        rerender([RenderKeys.TAGS]);
                     },
                 },
             ],
@@ -314,14 +343,6 @@ async function renderTags() {
 
     tagsContainer.innerHTML = '';
     tagsContainer.append(...tagElements);
-}
-
-function rerender(showLoading = false) {
-    renderTags();
-    renderImages(showLoading);
-
-    cleanup.forEach((fn) => fn());
-    cleanup.length = 0;
 }
 
 export async function renderTagsGallery() {
@@ -356,11 +377,9 @@ export async function renderTagsGallery() {
 
         if (verifyEvent(event)) {
             if (event.key === 'Enter') {
-                console.log(target.value);
-
                 await createTag(target.value);
                 target.value = '';
-                renderTags();
+                rerender([RenderKeys.TAGS]);
             }
         } else {
             event.preventDefault();
@@ -396,7 +415,7 @@ export async function renderTagsGallery() {
                     return;
                 }
                 await importData(reader.result as string);
-                rerender();
+                rerender([RenderKeys.TAGS, RenderKeys.IMAGES]);
             };
             reader.readAsText(file);
         });
@@ -404,8 +423,8 @@ export async function renderTagsGallery() {
     });
 
     // First load
-    await renderTags();
-    renderImages(true);
+    await renderTags([RenderKeys.IMAGES, RenderKeys.TAGS]);
+    renderImages([RenderKeys.IMAGES, RenderKeys.TAGS]);
 }
 
 // Utils

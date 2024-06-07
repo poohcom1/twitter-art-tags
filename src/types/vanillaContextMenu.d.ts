@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-private-class-members */
 interface CoreOptions {
     transformOrigin: [string, string];
 }
