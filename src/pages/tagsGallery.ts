@@ -104,7 +104,7 @@ export async function renderTagsGallery(tagModal: TagModal) {
 
         if (Object.keys(tags).length === 0) {
             imageContainer.innerHTML =
-                '<h3>No tags yet!<br>Add one by clicking on the "..." menu of a tweet with images and selected "Tag Tweet"</h3>';
+                '<div>No tags yet! Create one by clicking on the "..." menu of a tweet with images and selected "Tag Tweet"</div>';
         } else if (imageData.length === 0) {
             imageContainer.innerHTML = '<h3>Nothing to see here!</h3>';
         }
@@ -168,57 +168,65 @@ export async function renderTagsGallery(tagModal: TagModal) {
                 },
             });
 
-            const viewMenu: MenuItem[] = [
+            const menuItems: MenuItem[] = [
                 {
                     label: 'Open image',
                     iconHTML: createContextMenuIcon(eyeIcon),
-                    callback: () => window.open(image.image, '_blank'),
+                    callback: () => {
+                        window.open(image.image, '_blank');
+                        contextMenu.close();
+                    },
                 },
                 {
                     label: 'Open tweet',
                     iconHTML: createContextMenuIcon(externalLinkIcon),
-                    callback: () => window.open(`/poohcom1/status/${image.tweetId}`, '_blank'),
+                    callback: () => {
+                        window.open(`/poohcom1/status/${image.tweetId}`, '_blank');
+                        contextMenu.close();
+                    },
+                },
+                {
+                    label: 'Edit tags',
+                    iconHTML: createContextMenuIcon(tagPlusIcon),
+                    callback: async (_, currentEvent) => {
+                        tagModal.setStyles({
+                            backgroundColor: '#1b1a1a',
+                            color: '#eee',
+                        });
+                        const rect = (
+                            currentEvent.currentTarget as HTMLElement
+                        ).getBoundingClientRect();
+                        tagModal.show(
+                            image.tweetId,
+                            [image.image],
+                            {
+                                top: rect.top + window.scrollY,
+                                left: rect.right,
+                            },
+                            {
+                                tagModified: async (tag) => {
+                                    if (selectedTags.includes(tag)) {
+                                        rerender([RenderKeys.TAGS, RenderKeys.IMAGES]);
+                                    } else {
+                                        rerender([RenderKeys.TAGS]);
+                                    }
+                                },
+                            }
+                        );
+                    },
+                },
+                {
+                    label: 'Remove tweet',
+                    iconHTML: createContextMenuIcon(trashIcon),
+                    callback: async () => {
+                        if (confirm('Are you sure you want to remove this tweet from all tags?')) {
+                            await removeTweet(image.tweetId);
+                            rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+                        }
+                        contextMenu.close();
+                    },
                 },
             ];
-
-            const tagEditMenu: MenuItem[] = [];
-
-            tagEditMenu.push({
-                label: 'Edit tags',
-                iconHTML: createContextMenuIcon(tagPlusIcon),
-                callback: async (_, e) => {
-                    const rect = (e.target as HTMLElement).getBoundingClientRect();
-                    tagModal.show(
-                        image.tweetId,
-                        [image.image],
-                        {
-                            top: rect.top + window.scrollY,
-                            left: rect.right,
-                        },
-                        {
-                            tagModified: async (tag) => {
-                                if (selectedTags.includes(tag)) {
-                                    rerender([RenderKeys.TAGS, RenderKeys.IMAGES]);
-                                } else {
-                                    rerender([RenderKeys.TAGS]);
-                                }
-                                contextMenu.close();
-                            },
-                        }
-                    );
-                },
-            });
-            tagEditMenu.push({
-                label: 'Remove tweet',
-                iconHTML: createContextMenuIcon(trashIcon),
-                callback: async () => {
-                    if (confirm('Are you sure you want to remove this tweet from all tags?')) {
-                        await removeTweet(image.tweetId);
-                        rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
-                    }
-                    contextMenu.close();
-                },
-            });
 
             const tagsMenu: MenuItem[] = Object.keys(tags)
                 .filter((tag) => tags[tag].tweets.includes(image.tweetId))
@@ -237,8 +245,6 @@ export async function renderTagsGallery(tagModal: TagModal) {
                         contextMenu.close();
                     },
                 }));
-
-            const menuItems: MenuItem[] = [...viewMenu, 'hr', ...tagEditMenu];
             if (tagsMenu.length > 0) {
                 menuItems.push('hr', ...tagsMenu);
             }
@@ -263,7 +269,7 @@ export async function renderTagsGallery(tagModal: TagModal) {
             const active = selectedTags.includes(tag);
 
             const tweetCount = tags[tag].tweets
-                .map((tweetId) => tweets[tweetId].images.length)
+                .map((tweetId) => tweets[tweetId]?.images.length)
                 .reduce((a, b) => a + b, 0);
 
             const button = parseHTML<HTMLButtonElement>(

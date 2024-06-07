@@ -4,7 +4,6 @@ import squareIcon from '../assets/square.svg';
 import checkSquareIcon from '../assets/check-square.svg';
 
 interface TagModalCallbacks {
-    tagCreated?: (tag: string) => void;
     tagModified?: (tag: string, tweetId: string) => void;
 }
 
@@ -21,6 +20,7 @@ export default class TagModal {
         this.tagModal.innerHTML = `<input id="tagInput" type="text" placeholder="Add a tag..." /><hr style="width: 100%" /><div id="tagsContainer"/>`;
         this.tagModal.classList.add('tag-dropdown');
         this.tagModal.style.backgroundColor = document.body.style.backgroundColor;
+        this.tagModal.onclick = (e) => e.stopPropagation(); // Prevent parent context menu from closing
         document.body.appendChild(this.tagModal);
 
         this.tagInput = this.tagModal.querySelector<HTMLInputElement>('#tagInput')!;
@@ -103,7 +103,7 @@ export default class TagModal {
                     await addTag(tweetId, tagName, images);
                     target.value = '';
                     renderTags();
-                    this.callbacks.tagCreated?.(tagName);
+                    this.callbacks.tagModified?.(tagName, tweetId);
                 } else {
                     renderTags();
                 }
@@ -126,8 +126,20 @@ export default class TagModal {
         this.clearTags();
     }
 
-    public setStyles(styles: Partial<CSSStyleDeclaration>) {
-        Object.assign(this.tagModal.style, styles);
+    public setStyles(
+        styles: Partial<
+            Pick<
+                CSSStyleDeclaration,
+                'border' | 'borderRadius' | 'color' | 'backgroundColor' | 'boxShadow'
+            >
+        >
+    ) {
+        this.tagModal.style.border = styles.border ?? this.tagModal.style.border;
+        this.tagModal.style.borderRadius = styles.borderRadius ?? this.tagModal.style.borderRadius;
+        this.tagModal.style.color = styles.color ?? this.tagModal.style.color;
+        this.tagModal.style.backgroundColor =
+            styles.backgroundColor ?? this.tagModal.style.backgroundColor;
+        this.tagModal.style.boxShadow = styles.boxShadow ?? this.tagModal.style.boxShadow;
     }
 
     private clearTags() {
