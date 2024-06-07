@@ -12,12 +12,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          submodules: 'true'
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
@@ -25,10 +23,10 @@ jobs:
         run: yarn
 
       - name: Build with webpack
-        run: yarn prod
+        run: yarn build:prod
 
       - name: Get script content
-        id: get-script
+        id: get_script
         run: |
           echo "SCRIPT_SRC<<EOF" >> $GITHUB_ENV
           cat dist/twitterArtTags.user.js >> $GITHUB_ENV
@@ -46,12 +44,10 @@ jobs:
 
       - name: Create GitHub release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCRIPT_SRC: ${{ env.SCRIPT_SRC }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
           body: |
             ```javascript
             ${{ env.SCRIPT_SRC }}
