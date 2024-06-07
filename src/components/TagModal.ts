@@ -100,7 +100,7 @@ export default class TagModal {
 
                     const tagName = target.value;
 
-                    await addTag(tweetId, tagName, getTweetImages(tweetId));
+                    await addTag(tweetId, tagName, images);
                     target.value = '';
                     renderTags();
                     this.callbacks.tagCreated?.(tagName);
@@ -154,11 +154,4 @@ function renderTag(tag: string, active: boolean): HTMLButtonElement {
             <div class="text">${formatTagName(tag)}</div>
         </button>`
     );
-}
-
-function getTweetImages(tweetId: string): string[] {
-    return Array.from(document.querySelectorAll('a'))
-        .filter((a) => a.href.includes(tweetId))
-        .flatMap((a) => Array.from(a.querySelectorAll('img')))
-        .map((img) => img.src);
 }

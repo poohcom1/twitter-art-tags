@@ -80,7 +80,15 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
         return;
     }
 
-    const tags = await GM.getValue<Tags>(KEY_TAGS, {});
+    const [tags, tweets] = await Promise.all([
+        GM.getValue<Tags>(KEY_TAGS, {}),
+        GM.getValue<Tweets>(KEY_TWEETS, {}),
+    ]);
+
+    if (!(tweetId in tweets) && imagesCache.length === 0) {
+        console.error('New tweet being cached, but no images found');
+        return;
+    }
 
     let tag: Tag = {
         tweets: [],
@@ -99,17 +107,13 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
         tag.tweets.push(tweetId);
     }
 
-    await GM.setValue(KEY_TAGS, tags);
-
-    const tweets = await GM.getValue<Tweets>(KEY_TWEETS, {});
-
     if (imagesCache.length > 0) {
         tweets[tweetId] = {
             images: imagesCache,
         };
     }
 
-    await GM.setValue(KEY_TWEETS, tweets);
+    await Promise.all([GM.setValue(KEY_TAGS, tags), GM.setValue(KEY_TWEETS, tweets)]);
 }
 
 export async function removeTag(tweetId: string, tagName: string) {
