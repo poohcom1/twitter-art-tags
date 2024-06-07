@@ -1,31 +1,8 @@
-import { addTag, getTags, removeTag } from '../storage';
-import { SANITIZE_INFO, formatTagName, parseHTML, verifyEvent, waitForElement } from '../utils';
+import { waitForElement } from '../utils';
 import tagIcon from '../assets/tag.svg';
 import tagGalleryIcon from '../assets/tags.svg';
-import squareIcon from '../assets/square.svg';
-import checkSquareIcon from '../assets/check-square.svg';
 import { CUSTOM_PAGE_PATH } from '../constants';
-
-async function listTags(tweetId: string): Promise<string[]> {
-    if (tweetId === null) {
-        console.error('No tweet selected');
-        return [];
-    }
-
-    const tags = await getTags();
-    const tagArray = Object.keys(tags);
-    tagArray.sort((a, b) => a.localeCompare(b));
-    return tagArray;
-}
-
-function renderTag(tag: string, active: boolean): HTMLButtonElement {
-    return parseHTML(
-        `<button id="${tag}" class="tag ${!active && 'tag__inactive'}">
-            ${active ? checkSquareIcon : squareIcon}
-            <div class="text">${formatTagName(tag)}</div>
-        </button>`
-    );
-}
+import TagModal from '../components/tagModal';
 
 function getTweetImages(tweetId: string): string[] {
     return Array.from(document.querySelectorAll('a'))
@@ -34,45 +11,9 @@ function getTweetImages(tweetId: string): string[] {
         .map((img) => img.src);
 }
 
-export async function renderTweetDropdown() {
-    let currentTweetId: string | null = null;
-    let rerenderTagList: (() => void) | null = null;
-
+export async function renderTweetDropdown(tagModal: TagModal) {
     let tagButton: HTMLElement | null = null;
     let viewTagsButton: HTMLElement | null = null;
-
-    // Tag modal
-    const tagModal = document.createElement('div');
-    tagModal.innerHTML = `<input id="tagInput" type="text" placeholder="Add a tag..." /><hr style="width: 100%" /><div id="tagsContainer"/>`;
-    tagModal.classList.add('tag-dropdown');
-    document.body.appendChild(tagModal);
-
-    const tagInput = tagModal.querySelector<HTMLInputElement>('#tagInput')!;
-    tagInput.maxLength = SANITIZE_INFO.maxLength;
-    tagInput.addEventListener('keydown', async (event) => {
-        const target = event.target as HTMLInputElement;
-        if (verifyEvent(event)) {
-            if (event.key === 'Enter') {
-                if (currentTweetId === null) {
-                    console.error('No tweet selected');
-                    return;
-                }
-
-                await addTag(currentTweetId, target.value, getTweetImages(currentTweetId));
-                target.value = '';
-                rerenderTagList?.();
-            } else {
-                rerenderTagList?.();
-            }
-        } else {
-            event.preventDefault();
-        }
-    });
-
-    const tagsContainer = tagModal.querySelector('#tagsContainer')!;
-    function clearTagsContainer() {
-        tagsContainer.innerHTML = '';
-    }
 
     // Create tag button
     function renderTagButtons(dropdown: HTMLElement, tagId: string, images: string[]) {
@@ -102,59 +43,7 @@ export async function renderTweetDropdown() {
         tagButton.id = tagId;
         tagButton.addEventListener('click', async () => {
             const rect = tagButton!.getBoundingClientRect();
-
-            tagModal.style.top = `${rect.top + window.scrollY}px`;
-            tagModal.style.left = `${rect.right + 10}px`;
-            tagModal.style.display = 'block';
-
-            async function renderTagList() {
-                if (currentTweetId === null) {
-                    return;
-                }
-
-                const tags = await getTags();
-                const tagList = await listTags(currentTweetId);
-                const filteredTagList = tagList.filter((tag) =>
-                    tag.toLowerCase().includes(tagInput.value.toLowerCase())
-                );
-
-                clearTagsContainer();
-
-                if (tagList.length === 0) {
-                    tagsContainer.innerHTML = 'No tags yet!';
-                    return;
-                } else if (filteredTagList.length === 0) {
-                    tagsContainer.innerHTML = `<div style="overflow: hidden; text-overflow: ellipsis; max-width: 200px">Create a new tag: ${tagInput.value}</div>`;
-                    return;
-                }
-
-                const tagElements = filteredTagList.map((tag) =>
-                    renderTag(tag, tags[tag].tweets.includes(currentTweetId ?? ''))
-                );
-                tagsContainer.append(...tagElements);
-
-                for (const tag of tagModal.querySelectorAll('.tag')) {
-                    tag.addEventListener('click', async () => {
-                        if (currentTweetId === null) {
-                            console.error('No tweet selected');
-                            return;
-                        }
-
-                        const tagName = tag.id;
-                        if (tagName in tags && tags[tagName].tweets.includes(currentTweetId)) {
-                            await removeTag(currentTweetId, tagName);
-                        } else {
-                            await addTag(currentTweetId, tagName, images);
-                        }
-
-                        renderTagList();
-                    });
-                }
-            }
-            renderTagList();
-            rerenderTagList = renderTagList;
-
-            tagInput.focus();
+            tagModal.show(tagId, images, { top: rect.top, left: rect.right + 10 });
         });
 
         dropdown.prepend(viewTagsButton);
@@ -172,11 +61,13 @@ export async function renderTweetDropdown() {
                             return;
                         }
                         const menuStyles = window.getComputedStyle(menu);
-                        tagModal.style.border = menuStyles.border;
-                        tagModal.style.borderRadius = menuStyles.borderRadius;
-                        tagModal.style.backgroundColor = menuStyles.backgroundColor;
-                        tagModal.style.color = menuStyles.color;
-                        tagModal.style.boxShadow = menuStyles.boxShadow;
+                        tagModal.setStyles({
+                            border: menuStyles.border,
+                            borderRadius: menuStyles.borderRadius,
+                            backgroundColor: menuStyles.backgroundColor,
+                            color: menuStyles.color,
+                            boxShadow: menuStyles.boxShadow,
+                        });
                     }
                 );
 
@@ -202,7 +93,6 @@ export async function renderTweetDropdown() {
                     return;
                 }
 
-                currentTweetId = id;
                 const tagId = id + '_tagButton';
 
                 if (document.getElementById(tagId)) {
@@ -219,9 +109,7 @@ export async function renderTweetDropdown() {
 
                 renderTagButtons(dropdown, tagId, images);
             } else if (mutation.removedNodes.length > 0) {
-                tagModal.style.display = 'none';
-                clearTagsContainer();
-                rerenderTagList = null;
+                tagModal.hide();
             }
         });
     });

@@ -5,6 +5,7 @@ import { CUSTOM_PAGE_PATH } from './constants';
 import { clearAllTags } from './storage';
 import styles from './assets/global.css';
 import { renderNavButton } from './pages/navButton';
+import TagModal from './components/tagModal';
 
 // Commands
 GM.registerMenuCommand(
@@ -17,8 +18,10 @@ GM.registerMenuCommand('Twitter Art Tags - Clear all tags', clearAllTags);
 GM_addStyle(styles);
 
 // Main
+const tagModal = new TagModal();
+
 renderNavButton();
-renderTweetDropdown();
+renderTweetDropdown(tagModal);
 
 if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
     renderTagsGallery();
