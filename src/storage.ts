@@ -2,6 +2,23 @@ import { Tags, Tag, Tweets, DataExport } from './models';
 import { sanitizeTagName } from './utils';
 import { safeParse } from 'valibot';
 
+// Cache
+const cache: Record<string, unknown> = {};
+async function gmSetWithCache(key: string, value: unknown) {
+    cache[key] = value;
+    GM.setValue(key, value);
+}
+
+async function gmGetWithCache<T>(key: string, defVal: T): Promise<T> {
+    if (key in cache) {
+        return cache[key] as T;
+    }
+
+    const value = await GM.getValue<T>(key, defVal);
+    cache[key] = value;
+    return value;
+}
+
 const KEY_TAGS = 'tags';
 const KEY_TWEETS = 'tweets';
 
@@ -13,7 +30,7 @@ export async function createTag(tagName: string) {
         return;
     }
 
-    const tags = await GM.getValue<Tags>(KEY_TAGS, {});
+    const tags = await gmGetWithCache<Tags>(KEY_TAGS, {});
 
     if (tagName in tags) {
         alert('Tag already exists');
@@ -25,11 +42,11 @@ export async function createTag(tagName: string) {
         lastUpdated: Date.now(),
     };
 
-    await GM.setValue(KEY_TAGS, tags);
+    await gmSetWithCache(KEY_TAGS, tags);
 }
 
 export async function deleteTag(tagName: string) {
-    const tags = await GM.getValue<Tags>(KEY_TAGS, {});
+    const tags = await gmGetWithCache<Tags>(KEY_TAGS, {});
 
     if (!(tagName in tags)) {
         return;
@@ -37,7 +54,7 @@ export async function deleteTag(tagName: string) {
 
     delete tags[tagName];
 
-    await GM.setValue(KEY_TAGS, tags);
+    await gmSetWithCache(KEY_TAGS, tags);
 }
 
 export async function renameTag(oldTagName: string, newTagName: string) {
@@ -51,7 +68,7 @@ export async function renameTag(oldTagName: string, newTagName: string) {
         return;
     }
 
-    const tags = await GM.getValue<Tags>(KEY_TAGS, {});
+    const tags = await gmGetWithCache<Tags>(KEY_TAGS, {});
 
     if (!(oldTagName in tags)) {
         return;
@@ -65,7 +82,7 @@ export async function renameTag(oldTagName: string, newTagName: string) {
     tags[newTagName] = tags[oldTagName];
     delete tags[oldTagName];
 
-    await GM.setValue(KEY_TAGS, tags);
+    await gmSetWithCache(KEY_TAGS, tags);
 }
 
 // Tweet
@@ -81,8 +98,8 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
     }
 
     const [tags, tweets] = await Promise.all([
-        GM.getValue<Tags>(KEY_TAGS, {}),
-        GM.getValue<Tweets>(KEY_TWEETS, {}),
+        gmGetWithCache<Tags>(KEY_TAGS, {}),
+        gmGetWithCache<Tweets>(KEY_TWEETS, {}),
     ]);
 
     if (!(tweetId in tweets) && imagesCache.length === 0) {
@@ -113,7 +130,7 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
         };
     }
 
-    await Promise.all([GM.setValue(KEY_TAGS, tags), GM.setValue(KEY_TWEETS, tweets)]);
+    await Promise.all([gmSetWithCache(KEY_TAGS, tags), gmSetWithCache(KEY_TWEETS, tweets)]);
 }
 
 export async function removeTag(tweetId: string, tagName: string) {
@@ -127,7 +144,7 @@ export async function removeTag(tweetId: string, tagName: string) {
         return;
     }
 
-    const tags = await GM.getValue<Tags>(KEY_TAGS, {});
+    const tags = await gmGetWithCache<Tags>(KEY_TAGS, {});
 
     if (!(tagName in tags)) {
         return;
@@ -135,37 +152,38 @@ export async function removeTag(tweetId: string, tagName: string) {
 
     tags[tagName].tweets = tags[tagName].tweets.filter((id) => id !== tweetId);
 
-    await GM.setValue(KEY_TAGS, tags);
+    await gmSetWithCache(KEY_TAGS, tags);
 }
 
 export async function removeTweet(tweetId: string) {
-    const tags = await GM.getValue<Tags>(KEY_TAGS, {});
+    const tags = await gmGetWithCache<Tags>(KEY_TAGS, {});
 
     for (const tag of Object.values(tags)) {
         tag.tweets = tag.tweets.filter((id) => id !== tweetId);
     }
 
-    await GM.setValue(KEY_TAGS, tags);
+    await gmSetWithCache(KEY_TAGS, tags);
 
-    const tweets = await GM.getValue<Tweets>(KEY_TWEETS, {});
+    const tweets = await gmGetWithCache<Tweets>(KEY_TWEETS, {});
 
     delete tweets[tweetId];
 
-    await GM.setValue(KEY_TWEETS, tweets);
+    await gmSetWithCache(KEY_TWEETS, tweets);
 }
 
 export async function getTags(): Promise<Tags> {
-    return GM.getValue(KEY_TAGS, {});
+    return gmGetWithCache(KEY_TAGS, {});
 }
 
 export async function getTweets(): Promise<Tweets> {
-    return GM.getValue(KEY_TWEETS, {});
+    return gmGetWithCache(KEY_TWEETS, {});
 }
 
 export async function setTags(tags: Tags) {
-    await GM.setValue(KEY_TAGS, tags);
+    await gmSetWithCache(KEY_TAGS, tags);
 }
 
+// Store
 export async function exportData(): Promise<string> {
     const tags = await getTags();
     const tweets = await getTweets();
@@ -183,8 +201,8 @@ export async function importData(jsonString: string) {
     const result = safeParse(DataExport, data);
 
     if (result.success) {
-        await GM.setValue(KEY_TAGS, result.output.tags);
-        await GM.setValue(KEY_TWEETS, result.output.tweets);
+        await gmSetWithCache(KEY_TAGS, result.output.tags);
+        await gmSetWithCache(KEY_TWEETS, result.output.tweets);
     } else {
         console.error(result.issues);
         alert(
