@@ -133,20 +133,4 @@
         height: 20px;
         margin-right: 5px;
     }
-
-    .context-menu-icon {
-        width: 14px;
-        height: 14px;
-        stroke: currentcolor;
-        opacity: 0.8;
-        margin-right: 2px;
-    }
-
-    .context-menu {
-        font-family: TwitterChirp;
-    }
-
-    .context-menu hr {
-        margin: 3px; /* Without this, some hr aren't visible for some reason */
-    }
 }
