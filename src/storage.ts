@@ -1,12 +1,20 @@
+import { CUSTOM_PAGE_PATH } from './constants';
 import { Tags, Tag, Tweets, DataExport } from './models';
 import { sanitizeTagName } from './utils';
 import { safeParse } from 'valibot';
 
 // Cache
 const cache: Record<string, unknown> = {};
+
+const pendingPromises: Record<string, Promise<void> | undefined> = {};
 async function gmSetWithCache(key: string, value: unknown) {
     cache[key] = value;
-    GM.setValue(key, value);
+
+    if (key in pendingPromises) {
+        await pendingPromises[key];
+    }
+
+    pendingPromises[key] = GM.setValue(key, value);
 }
 
 async function gmGetWithCache<T>(key: string, defVal: T): Promise<T> {
@@ -225,5 +233,12 @@ export async function clearAllTags() {
     if (!confirm('Are you sure you want to delete all tags?')) {
         return;
     }
-    await GM.deleteValue(KEY_TAGS);
+    cache[KEY_TAGS] = {};
+    cache[KEY_TWEETS] = {};
+    GM.deleteValue(KEY_TAGS);
+    GM.deleteValue(KEY_TWEETS);
+
+    if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
+        window.location.reload();
+    }
 }
