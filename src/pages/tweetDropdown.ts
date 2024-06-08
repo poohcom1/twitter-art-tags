@@ -1,7 +1,7 @@
 import { waitForElement } from '../utils';
 import tagIcon from '../assets/tag.svg';
 import tagGalleryIcon from '../assets/tags.svg';
-import { CUSTOM_PAGE_PATH } from '../constants';
+import { CUSTOM_PAGE_PATH, HOVER_COLOR_MAP } from '../constants';
 import TagModal from '../components/TagModal';
 
 function getTweetImages(tweetId: string): string[] {
@@ -19,7 +19,7 @@ export async function renderTweetDropdown(tagModal: TagModal) {
     function renderTagButtons(dropdown: HTMLElement, tagId: string, images: string[]) {
         if (tagButton === null || viewTagsButton === null) {
             tagButton = dropdown.childNodes[0].cloneNode(true) as HTMLElement;
-            viewTagsButton = tagButton.cloneNode(true) as HTMLElement;
+            viewTagsButton = tagButton.cloneNode(true)! as HTMLElement;
 
             const svgClasslist = tagButton.querySelector('svg')!.classList;
             tagButton.querySelector('span')!.innerText = 'Tag Tweet';
@@ -28,6 +28,14 @@ export async function renderTweetDropdown(tagModal: TagModal) {
             tagButton.querySelector('svg')!.style.stroke = 'currentColor';
             tagButton.querySelector('svg')!.style.fill = 'transparent';
 
+            const hoverColor = HOVER_COLOR_MAP[document.body.style.backgroundColor];
+            tagButton.addEventListener('mouseenter', () => {
+                tagButton!.style.backgroundColor = hoverColor ?? '';
+            });
+            tagButton.addEventListener('mouseleave', () => {
+                tagButton!.style.backgroundColor = 'transparent';
+            });
+
             viewTagsButton.querySelector('span')!.innerText = 'View Tags';
             viewTagsButton.querySelector('svg')!.outerHTML = tagGalleryIcon;
             viewTagsButton.querySelector('svg')!.classList.add(...svgClasslist);
@@ -35,8 +43,14 @@ export async function renderTweetDropdown(tagModal: TagModal) {
             viewTagsButton.querySelector('svg')!.style.fill = 'transparent';
             viewTagsButton.querySelector('svg')!.style.height = '20px';
             viewTagsButton.querySelector('svg')!.style.width = '20px';
+            viewTagsButton.addEventListener('mouseenter', () => {
+                viewTagsButton!.style.backgroundColor = hoverColor ?? '';
+            });
+            viewTagsButton.addEventListener('mouseleave', () => {
+                viewTagsButton!.style.backgroundColor = 'transparent';
+            });
             viewTagsButton.addEventListener('click', async () => {
-                window.location.href = window.location.origin + CUSTOM_PAGE_PATH;
+                window.open(CUSTOM_PAGE_PATH, '_blank');
             });
         }
 

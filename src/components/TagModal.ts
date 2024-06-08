@@ -54,7 +54,9 @@ export default class TagModal {
                 this.tagsContainer.innerHTML = 'No tags yet!';
                 return;
             } else if (filteredTagList.length === 0) {
-                this.tagsContainer.innerHTML = `<div style="overflow: hidden; text-overflow: ellipsis; max-width: 200px">Create a new tag: ${this.tagInput.value}</div>`;
+                this.tagsContainer.innerHTML = `<div style="overflow: hidden; text-overflow: ellipsis; max-width: 200px">Create a new tag: ${formatTagName(
+                    this.tagInput.value
+                )}</div>`;
                 return;
             }
 

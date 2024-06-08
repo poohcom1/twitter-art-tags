@@ -1,14 +1,8 @@
 import { waitForElement } from '../utils';
 import tagIcon from '../assets/tag.svg';
-import { CUSTOM_PAGE_PATH } from '../constants';
+import { CUSTOM_PAGE_PATH, HOVER_COLOR_MAP } from '../constants';
 
 const ID = 'tagsPageButton';
-
-const HOVER_COLOR_MAP: Record<string, string | undefined> = {
-    'rgb(0, 0, 0)': 'rgb(22, 24, 28)',
-    'rgb(255, 255, 255)': 'rgb(247, 249, 249)',
-    'rgb(21, 32, 43)': 'rgb(30, 39, 50)',
-};
 
 export async function renderNavButton() {
     const nav = await waitForElement('nav');
