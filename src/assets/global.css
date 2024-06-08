@@ -11,7 +11,7 @@
 .tag-dropdown {
     padding: 12px 10px;
     display: none;
-    position: absolute;
+    position: fixed;
     color: inherit;
     white-space: nowrap;
     z-index: 20000; /* Ensure it is above other content */
@@ -56,4 +56,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    max-height: 350px;
+    overflow-y: auto;
 }

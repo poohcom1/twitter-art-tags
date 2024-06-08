@@ -28,7 +28,7 @@ export default class TagModal {
         this.tagsContainer = this.tagModal.querySelector('#tagsContainer')!;
     }
 
-    public show(
+    public async show(
         tweetId: string,
         images: string[],
         position: { top: number; left: number; right: number; space: number },
@@ -109,11 +109,12 @@ export default class TagModal {
         };
         this.tagInput.addEventListener('keydown', this.tagInputKeydownListener);
 
-        renderTags();
+        await renderTags();
 
         // Show
         this.tagModal.style.display = 'block';
         const modalRightEdge = position.right + this.tagModal.offsetWidth + position.space + 10;
+        const modalBottomEdge = position.top + this.tagModal.offsetHeight;
         if (modalRightEdge > window.innerWidth) {
             this.tagModal.style.left = `${
                 position.left - this.tagModal.offsetWidth - position.space
@@ -121,7 +122,11 @@ export default class TagModal {
         } else {
             this.tagModal.style.left = `${position.right + position.space}px`;
         }
-        this.tagModal.style.top = `${position.top + window.scrollY}px`;
+        if (modalBottomEdge > window.innerHeight) {
+            this.tagModal.style.top = `${position.top - (modalBottomEdge - window.innerHeight)}px`;
+        } else {
+            this.tagModal.style.top = `${position.top}px`;
+        }
     }
 
     public hide() {
