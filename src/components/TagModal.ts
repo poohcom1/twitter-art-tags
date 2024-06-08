@@ -60,19 +60,13 @@ export default class TagModal {
                 return;
             }
 
-            const tagElements = filteredTagList.map((tag) =>
-                renderTag(tag, tags[tag].tweets.includes(tweetId ?? ''))
-            );
-            this.tagsContainer.append(...tagElements);
-
-            for (const tag of this.tagModal.querySelectorAll('.tag')) {
-                tag.addEventListener('click', async () => {
+            const tagButtons = filteredTagList.map((tagName) =>
+                renderTag(tagName, tags[tagName].tweets.includes(tweetId ?? ''), async () => {
                     if (tweetId === null) {
                         console.error('No tweet selected');
                         return;
                     }
 
-                    const tagName = tag.id;
                     if (tagName in tags && tags[tagName].tweets.includes(tweetId)) {
                         await removeTag(tweetId, tagName);
                     } else {
@@ -82,8 +76,9 @@ export default class TagModal {
                     this.callbacks.tagModified?.(tagName, tweetId);
 
                     renderTags();
-                });
-            }
+                })
+            );
+            this.tagsContainer.append(...tagButtons);
         };
 
         // Setup input
@@ -128,20 +123,8 @@ export default class TagModal {
         this.clearTags();
     }
 
-    public setStyles(
-        styles: Partial<
-            Pick<
-                CSSStyleDeclaration,
-                'border' | 'borderRadius' | 'color' | 'backgroundColor' | 'boxShadow'
-            >
-        >
-    ) {
-        this.tagModal.style.border = styles.border ?? this.tagModal.style.border;
-        this.tagModal.style.borderRadius = styles.borderRadius ?? this.tagModal.style.borderRadius;
-        this.tagModal.style.color = styles.color ?? this.tagModal.style.color;
-        this.tagModal.style.backgroundColor =
-            styles.backgroundColor ?? this.tagModal.style.backgroundColor;
-        this.tagModal.style.boxShadow = styles.boxShadow ?? this.tagModal.style.boxShadow;
+    public setStyles(styles: Partial<CSSStyleDeclaration>) {
+        Object.assign(this.tagModal.style, styles);
     }
 
     private clearTags() {
@@ -161,11 +144,14 @@ async function listTags(tweetId: string): Promise<string[]> {
     return tagArray;
 }
 
-function renderTag(tag: string, active: boolean): HTMLButtonElement {
-    return parseHTML(
-        `<button id="${tag}" class="tag ${!active && 'tag__inactive'}">
+function renderTag(tag: string, active: boolean, onClick: () => void): HTMLButtonElement {
+    const html = parseHTML(
+        `<button class="tag ${!active && 'tag__inactive'}">
             ${active ? checkSquareIcon : squareIcon}
             <div class="text">${formatTagName(tag)}</div>
         </button>`
     );
+
+    html.onclick = onClick;
+    return html as HTMLButtonElement;
 }

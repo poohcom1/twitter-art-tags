@@ -199,16 +199,22 @@ export async function renderTagsGallery(tagModal: TagModal) {
                         tagModal.setStyles({
                             backgroundColor: '#1b1a1a',
                             color: '#eee',
+                            padding: '12px',
+                            borderRadius: '5px',
+                            width: '200px',
+                            boxShadow:
+                                'rgba(255, 255, 255, 0.2) 0px 0px 15px 0px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px',
                         });
                         const rect = (
                             currentEvent.currentTarget as HTMLElement
                         ).getBoundingClientRect();
+
                         tagModal.show(
                             image.tweetId,
                             [image.image],
                             {
                                 top: rect.top + window.scrollY,
-                                left: rect.right,
+                                left: rect.right + 5,
                             },
                             {
                                 tagModified: async (tag) => {
