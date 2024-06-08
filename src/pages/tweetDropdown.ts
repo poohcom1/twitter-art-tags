@@ -93,9 +93,7 @@ export async function renderTweetDropdown(tagModal: TagModal) {
                     return;
                 }
 
-                const tagId = id + '_tagButton';
-
-                if (document.getElementById(tagId)) {
+                if (document.getElementById(id + '_tagButton')) {
                     // Already added
                     return;
                 }
@@ -107,7 +105,7 @@ export async function renderTweetDropdown(tagModal: TagModal) {
                     return;
                 }
 
-                renderTagButtons(dropdown, tagId, images);
+                renderTagButtons(dropdown, id, images);
             } else if (mutation.removedNodes.length > 0) {
                 tagModal.hide();
             }
