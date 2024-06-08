@@ -21,6 +21,7 @@ import {
     renameTag,
 } from '../storage';
 import htmlHtml from '../assets/tags-gallery.html';
+import tagIcon from '../assets/img/tag.svg';
 import eyeIcon from '../assets/img/eye.svg';
 import tagPlusIcon from '../assets/img/file-plus.svg';
 import externalLinkIcon from '../assets/img/link-external.svg';
@@ -241,7 +242,6 @@ export async function renderTagsGallery(tagModal: TagModal) {
                         );
                     },
                 },
-                'hr',
                 {
                     label: 'Remove tweet',
                     iconHTML: createContextMenuIcon(trashIcon),
@@ -254,6 +254,33 @@ export async function renderTagsGallery(tagModal: TagModal) {
                     },
                 },
             ];
+
+            const tagsMenu: MenuItem[] = Object.keys(tags)
+                .filter((tag) => tags[tag].tweets.includes(image.tweetId))
+                .sort((a, b) => a.localeCompare(b))
+                .map((tag) => ({
+                    label: formatTagName(tag),
+                    iconHTML: createContextMenuIcon(tagIcon),
+                    callback: async () => {
+                        if (!(selectedTags.length === 1 && selectedTags[0] === tag)) {
+                            // If not already selected
+                            selectedTags = [tag];
+                            await rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+                        }
+
+                        contextMenu.close();
+
+                        await new Promise((resolve) => setTimeout(resolve, 10));
+
+                        window.scrollTo({
+                            top: 0,
+                            behavior: 'smooth',
+                        });
+                    },
+                }));
+            if (tagsMenu.length > 0) {
+                menuItems.push('hr', ...tagsMenu);
+            }
 
             contextMenu.updateOptions({ ...contextMenu.options, menuItems });
         });
