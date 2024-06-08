@@ -206,6 +206,8 @@ export async function renderTagsGallery(tagModal: TagModal) {
                     label: 'Edit tags',
                     iconHTML: createContextMenuIcon(tagPlusIcon),
                     callback: async (_, currentEvent) => {
+                        currentEvent.stopPropagation();
+
                         tagModal.setStyles({
                             backgroundColor: '#1b1a1a',
                             color: '#eee',
