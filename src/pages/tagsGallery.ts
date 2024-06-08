@@ -29,7 +29,6 @@ import squareIcon from '../assets/square.svg';
 import checkSquareIcon from '../assets/check-square.svg';
 import TagModal from '../components/TagModal';
 
-const ID_IMAGE = 'tagImage';
 const ID_IMPORT = 'tagImport';
 const ID_EXPORT = 'tagExport';
 const ID_TAGS = 'tags';
@@ -50,14 +49,13 @@ enum RenderKeys {
 }
 
 export async function renderTagsGallery(tagModal: TagModal) {
-    // Render func
     // Global states
     const cleanup: (() => void)[] = [];
 
     let selectedTags: string[] = [];
     let lockHover = false;
 
-    let imageData: { tweetId: string; image: string; index: number; element: HTMLElement }[];
+    let imageData: { tweetId: string; image: string; index: number; element: HTMLElement }[] = [];
 
     function rerender(renderKeys: RenderKeys[]) {
         renderTags(renderKeys);
@@ -68,6 +66,7 @@ export async function renderTagsGallery(tagModal: TagModal) {
     }
 
     async function renderImages(renderKeys: RenderKeys[]) {
+        const previousImages = imageData;
         const imageContainer = document.querySelector<HTMLElement>('#' + ID_IMAGE_GALLERY)!;
 
         if (renderKeys.includes(RenderKeys.IMAGES)) {
@@ -87,16 +86,24 @@ export async function renderTagsGallery(tagModal: TagModal) {
                 )
                 .reverse()
                 .filter((tweetId) => tweetId in tweets)
-                .flatMap((tweetId) =>
-                    tweets[tweetId].images.map((image, index) => ({
-                        tweetId,
-                        image,
-                        index,
-                        element: parseHTML(`
-                    <a id="${ID_IMAGE}__${tweetId}__${index}" class="${CLASS_IMAGE} ${CLASS_IMAGE_LOADED}" href="/poohcom1/status/${tweetId}" target="_blank">
-                        <img src="${image}" />
-                    </a>`),
-                    }))
+                .flatMap((tweetId, ind) =>
+                    tweets[tweetId].images.map((image, index) => {
+                        const atSamePos =
+                            previousImages[ind]?.tweetId === tweetId &&
+                            previousImages[ind]?.index === index;
+
+                        return {
+                            tweetId,
+                            image,
+                            index,
+                            element: parseHTML(`
+                            <a class="${CLASS_IMAGE} ${
+                                !atSamePos && CLASS_IMAGE_LOADED
+                            }" href="/poohcom1/status/${tweetId}" target="_blank">
+                                <img src="${image}" />
+                            </a>`),
+                        };
+                    })
                 );
             imageContainer.innerHTML = '';
             imageContainer.append(...imageData.map((e) => e.element));
