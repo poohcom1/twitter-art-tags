@@ -56,7 +56,7 @@ module.exports = {
                     'GM.registerMenuCommand',
                 ],
                 require: [
-                    'https://github.com/poohcom1/vanilla-context-menu/releases/download/v1.9.1/vanilla-context-menu.js',
+                    'https://github.com/poohcom1/vanilla-context-menu/releases/download/v1.10.0/vanilla-context-menu.js',
                 ],
             },
             pretty: true,

@@ -49,7 +49,7 @@
         margin-right: 5px;
     }
 
-    &___inactive {
+    &__inactive {
         opacity: 0.75;
         border: 2px solid transparent;
     }
@@ -61,7 +61,6 @@
 
 .context-menu {
     font-family: TwitterChirp;
-    position: absolute;
 
     hr {
         margin: 3px;

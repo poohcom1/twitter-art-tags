@@ -58,12 +58,14 @@ export async function renderTagsGallery(tagModal: TagModal) {
 
     let imageData: { tweetId: string; image: string; index: number; element: HTMLElement }[] = [];
 
-    function rerender(renderKeys: RenderKeys[]) {
-        renderTags(renderKeys);
-        renderImages(renderKeys);
+    async function rerender(renderKeys: RenderKeys[]) {
+        const tagRender = renderTags(renderKeys);
+        const imageRender = renderImages(renderKeys);
 
         cleanup.forEach((fn) => fn());
         cleanup.length = 0;
+
+        await Promise.all([tagRender, imageRender]);
     }
 
     async function renderImages(renderKeys: RenderKeys[]) {
@@ -249,15 +251,19 @@ export async function renderTagsGallery(tagModal: TagModal) {
                 .map((tag) => ({
                     label: formatTagName(tag),
                     iconHTML: createContextMenuIcon(tagIcon),
-                    callback: () => {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    callback: async () => {
                         if (!(selectedTags.length === 1 && selectedTags[0] === tag)) {
                             // If not already selected
                             selectedTags = [tag];
-                            rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+                            await rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
                         }
 
                         contextMenu.close();
+
+                        window.scrollTo({
+                            top: 0,
+                            behavior: 'smooth',
+                        });
                     },
                 }));
             if (tagsMenu.length > 0) {

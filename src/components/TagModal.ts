@@ -117,21 +117,29 @@ export default class TagModal {
 
         await renderTags();
 
-        // Show
         this.tagModal.style.display = 'block';
+        // Show
         const modalRightEdge = position.right + this.tagModal.offsetWidth + position.space + 10;
         const modalBottomEdge = position.top + this.tagModal.offsetHeight;
-        if (modalRightEdge > window.innerWidth) {
+
+        // Get the current scroll positions
+        const scrollLeft = document.documentElement.scrollLeft;
+        const scrollTop = document.documentElement.scrollTop;
+
+        if (modalRightEdge > window.innerWidth + scrollLeft) {
             this.tagModal.style.left = `${
                 position.left - this.tagModal.offsetWidth - position.space
             }px`;
         } else {
             this.tagModal.style.left = `${position.right + position.space}px`;
         }
-        if (modalBottomEdge > window.innerHeight) {
-            this.tagModal.style.top = `${position.top - (modalBottomEdge - window.innerHeight)}px`;
+
+        if (modalBottomEdge > window.innerHeight + scrollTop) {
+            this.tagModal.style.top = `${
+                position.top - (modalBottomEdge - (window.innerHeight + scrollTop))
+            }px`;
         } else {
-            this.tagModal.style.top = `${position.top}px`;
+            this.tagModal.style.top = `${position.top + scrollTop}px`;
         }
 
         // Focus
