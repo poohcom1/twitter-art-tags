@@ -308,21 +308,30 @@ export async function renderTagsGallery(tagModal: TagModal) {
             </button>`
             );
 
-            button.addEventListener('click', (e) => {
-                if (e.shiftKey) {
-                    if (active) {
-                        selectedTags = selectedTags.filter((t) => t !== tag);
-                    } else {
-                        selectedTags.push(tag);
-                    }
+            const select = () => {
+                if (selectedTags.length === 1 && selectedTags[0] === tag) {
+                    selectedTags = [];
                 } else {
-                    if (selectedTags.length === 1 && selectedTags[0] === tag) {
-                        selectedTags = [];
-                    } else {
-                        selectedTags = [tag];
-                    }
+                    selectedTags = [tag];
                 }
                 rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+            };
+
+            const modifySelection = () => {
+                if (active) {
+                    selectedTags = selectedTags.filter((t) => t !== tag);
+                } else {
+                    selectedTags.push(tag);
+                }
+                rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+            };
+
+            button.addEventListener('click', (e) => {
+                if (e.shiftKey) {
+                    modifySelection();
+                } else {
+                    select();
+                }
             });
 
             new VanillaContextMenu({
@@ -334,26 +343,12 @@ export async function renderTagsGallery(tagModal: TagModal) {
                     {
                         label: active ? 'Deselect' : 'Select',
                         iconHTML: createContextMenuIcon(active ? squareIcon : checkSquareIcon),
-                        callback: () => {
-                            if (active) {
-                                selectedTags = selectedTags.filter((t) => t !== tag);
-                            } else {
-                                selectedTags.push(tag);
-                            }
-                            rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
-                        },
+                        callback: select,
                     },
                     {
-                        label: active ? 'Remove  from selection' : 'Add to selection',
+                        label: active ? 'Remove from selection' : 'Add to selection',
                         iconHTML: createNoIcon(),
-                        callback: () => {
-                            if (active) {
-                                selectedTags = selectedTags.filter((t) => t !== tag);
-                            } else {
-                                selectedTags.push(tag);
-                            }
-                            rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
-                        },
+                        callback: modifySelection,
                     },
                     {
                         label: 'Deselct all',
