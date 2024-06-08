@@ -1,7 +1,7 @@
 .tags-gallery {
     padding: 40px 0;
     font-family: TwitterChirp;
-    font-weight: 600;
+    font-weight: 500;
     stroke: currentcolor;
 
     .title {
@@ -67,42 +67,48 @@
         padding: 0px;
         margin: 0px;
         border-radius: 5px;
-    }
 
-    .image-container__loaded {
-        background-color: #aaaaaa;
-        animation: 0.1s fadeIn ease-in-out;
-    }
-
-    .image-container img {
-        object-fit: cover;
-        width: 100%;
-        height: 100%;
-    }
-
-    .image-container__hover {
-        outline: 4px solid #8c8cff;
-    }
-
-    @keyframes loading {
-        to {
-            background-position-x: -20%;
+        img {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+            transition: filter 0.2s ease-in-out;
         }
-    }
 
-    .image-container__skeleton {
-        background-color: #aaaaaa;
-        background: linear-gradient(
-                100deg,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.7) 50%,
-                rgba(255, 255, 255, 0) 70%
-            )
-            #aaaaaa;
-        background-size: 200% 100%;
-        background-position-x: 180%;
-        animation: 0.5s loading linear infinite;
-        opacity: 0.2;
+        &__loaded {
+            background-color: #aaaaaa;
+            animation: 0.1s fadeIn ease-in-out;
+        }
+
+        &__hover {
+            outline: 4px solid #8ca3ff;
+            background-color: transparent;
+
+            img {
+                filter: brightness(0.6);
+            }
+        }
+
+        @keyframes loading {
+            to {
+                background-position-x: -20%;
+            }
+        }
+
+        &__skeleton {
+            background-color: #aaaaaa;
+            background: linear-gradient(
+                    100deg,
+                    rgba(255, 255, 255, 0) 0%,
+                    rgba(255, 255, 255, 0.7) 50%,
+                    rgba(255, 255, 255, 0) 70%
+                )
+                #aaaaaa;
+            background-size: 200% 100%;
+            background-position-x: 180%;
+            animation: 0.5s loading linear infinite;
+            opacity: 0.2;
+        }
     }
 
     #tagSelect {

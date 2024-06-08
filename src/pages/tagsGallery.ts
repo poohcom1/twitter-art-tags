@@ -29,6 +29,8 @@ import pencilIcon from '../assets/img/pencil.svg';
 import trashIcon from '../assets/img/trash.svg';
 import squareIcon from '../assets/img/square.svg';
 import checkSquareIcon from '../assets/img/check-square.svg';
+// import plusSquareIcon from '../assets/img/plus-square.svg';
+// import minusSquareIcon from '../assets/img/minus-square.svg';
 import TagModal from '../components/TagModal';
 
 const ID_TAGS_GALLERY = 'tagsGallery';
@@ -38,6 +40,8 @@ const ID_TAGS = 'tags';
 const ID_ADD_TAG = 'addTag';
 const ID_IMAGE_GALLERY = 'imageGallery';
 
+const CLASS_CONTEXT_MENU = 'context-menu';
+const CLASS_CONTEXT_MENU_WIDE = 'context-menu-wide';
 const CLASS_CONTEXT_MENU_ICON = 'context-menu-icon';
 const CLASS_TAG_INACTIVE = 'tag__inactive';
 const CLASS_IMAGE = 'image-container';
@@ -178,7 +182,7 @@ export async function renderTagsGallery(tagModal: TagModal) {
                     .firstElementChild as HTMLElement,
                 openSubMenuOnHover: true,
                 preventCloseOnClick: true,
-                customClass: 'context-menu',
+                customClass: CLASS_CONTEXT_MENU,
                 onClose: () => {
                     lockHover = false;
                     tagModal.hide();
@@ -209,14 +213,6 @@ export async function renderTagsGallery(tagModal: TagModal) {
                     callback: async (_, currentEvent) => {
                         currentEvent.stopPropagation();
 
-                        tagModal.setStyles({
-                            backgroundColor: '#1b1a1a',
-                            color: '#eee',
-                            padding: '12px',
-                            borderRadius: '5px',
-                            boxShadow:
-                                'rgba(255, 255, 255, 0.05) 0px 0px 15px 0px, rgba(255, 255, 255, 0.05) 0px 0px 3px 1px',
-                        });
                         const rect = (
                             currentEvent.currentTarget as HTMLElement
                         ).getBoundingClientRect();
@@ -312,20 +308,62 @@ export async function renderTagsGallery(tagModal: TagModal) {
             </button>`
             );
 
-            button.addEventListener('click', () => {
-                if (active) {
-                    selectedTags = selectedTags.filter((t) => t !== tag);
+            button.addEventListener('click', (e) => {
+                if (e.shiftKey) {
+                    if (active) {
+                        selectedTags = selectedTags.filter((t) => t !== tag);
+                    } else {
+                        selectedTags.push(tag);
+                    }
                 } else {
-                    selectedTags.push(tag);
+                    if (selectedTags.length === 1 && selectedTags[0] === tag) {
+                        selectedTags = [];
+                    } else {
+                        selectedTags = [tag];
+                    }
                 }
                 rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
             });
 
             new VanillaContextMenu({
                 scope: button,
+                customClass: active ? CLASS_CONTEXT_MENU_WIDE : CLASS_CONTEXT_MENU,
                 normalizePosition: false,
                 transitionDuration: 0,
                 menuItems: [
+                    {
+                        label: active ? 'Deselect' : 'Select',
+                        iconHTML: createContextMenuIcon(active ? squareIcon : checkSquareIcon),
+                        callback: () => {
+                            if (active) {
+                                selectedTags = selectedTags.filter((t) => t !== tag);
+                            } else {
+                                selectedTags.push(tag);
+                            }
+                            rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+                        },
+                    },
+                    {
+                        label: active ? 'Remove  from selection' : 'Add to selection',
+                        iconHTML: createNoIcon(),
+                        callback: () => {
+                            if (active) {
+                                selectedTags = selectedTags.filter((t) => t !== tag);
+                            } else {
+                                selectedTags.push(tag);
+                            }
+                            rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+                        },
+                    },
+                    {
+                        label: 'Deselct all',
+                        iconHTML: createNoIcon(),
+                        callback: () => {
+                            selectedTags = [];
+                            rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+                        },
+                    },
+                    'hr',
                     {
                         label: 'Rename',
                         iconHTML: createContextMenuIcon(pencilIcon),
@@ -459,6 +497,12 @@ export async function renderTagsGallery(tagModal: TagModal) {
 // Utils
 function createContextMenuIcon(iconSvg: string): string {
     const icon = parseHTML(iconSvg);
+    icon.classList.add(CLASS_CONTEXT_MENU_ICON);
+    return icon.outerHTML;
+}
+
+function createNoIcon(): string {
+    const icon = parseHTML('<div />');
     icon.classList.add(CLASS_CONTEXT_MENU_ICON);
     return icon.outerHTML;
 }

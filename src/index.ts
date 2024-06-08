@@ -14,16 +14,18 @@ GM.registerMenuCommand(
 GM.registerMenuCommand('Twitter Art Tags - Clear all tags', clearAllTags);
 
 // Main
-const tagModal = new TagModal();
+const dropdownTagModal = new TagModal();
+const galleryTagModal = new TagModal();
+galleryTagModal.addClass('tag-modal-menu');
 
 renderNavButton();
-renderTweetDropdown(tagModal);
+renderTweetDropdown(dropdownTagModal);
 
 if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
-    renderTagsGallery(tagModal);
+    renderTagsGallery(galleryTagModal);
 }
 window.addEventListener('popstate', () => {
     if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
-        renderTagsGallery(tagModal);
+        renderTagsGallery(galleryTagModal);
     }
 });

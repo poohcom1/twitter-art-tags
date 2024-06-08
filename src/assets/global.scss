@@ -1,7 +1,8 @@
 .tag-input {
     width: 100%;
-    height: 25px;
+    height: 30px;
     font-family: TwitterChirp;
+    font-weight: 400;
     margin-top: 4px;
     border-radius: 5px;
     box-sizing: border-box;
@@ -18,7 +19,8 @@
     font-weight: 700;
     width: 300px;
 
-    #tagsContainer {
+    .tags-container {
+        margin-top: 16px;
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
@@ -59,18 +61,56 @@
     }
 }
 
-.context-menu {
+%menu-style-base {
+    background-color: #0b0b0ce0;
+    backdrop-filter: blur(10px);
+}
+
+%context-menu-base {
+    @extend %menu-style-base;
     font-family: TwitterChirp;
+    border-radius: 5px;
 
     hr {
         margin: 3px;
     }
 }
 
+.context-menu {
+    @extend %context-menu-base;
+    width: 160px;
+}
+
+.context-menu-wide {
+    @extend %context-menu-base;
+    width: 200px;
+}
+
 .context-menu-icon {
     width: 14px;
     height: 14px;
     stroke: currentcolor;
-    opacity: 0.8;
+    opacity: 0.9;
     margin-right: 2px;
+}
+
+.tag-modal-menu {
+    @extend %context-menu-base;
+    color: '#eee';
+    padding: 12px;
+    border-radius: '5px';
+    box-shadow: 'rgba(255, 255, 255, 0.05) 0px 0px 15px 0px, rgba(255, 255, 255, 0.05) 0px 0px 3px 1px';
+
+    .tag {
+        opacity: 1;
+        background-color: rgb(86, 84, 96);
+
+        &:hover {
+            background-color: rgb(111, 111, 122);
+        }
+
+        &__inactive {
+            opacity: 0.85;
+        }
+    }
 }

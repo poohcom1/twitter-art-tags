@@ -3,12 +3,10 @@ import { SANITIZE_INFO, formatTagName, parseHTML, verifyEvent } from '../utils';
 import squareIcon from '../assets/img/square.svg';
 import checkSquareIcon from '../assets/img/check-square.svg';
 
-const ID_TAG_INPUT = 'tagInput';
-const ID_TAG_CONTAINER = 'tagsContainer';
-
 const CLASS_TAG = 'tag';
 const CLASS_TAG_INACTIVE = 'tag__inactive';
 const CLASS_TAG_INPUT = 'tag-input';
+const CLASS_TAGS_CONTAINER = 'tags-container';
 
 interface TagModalCallbacks {
     tagModified?: (tag: string, tweetId: string) => void;
@@ -23,16 +21,18 @@ export default class TagModal {
     private tagInputKeydownListener: ((ev: KeyboardEvent) => void) | null = null;
 
     constructor() {
+        this.tagInput = parseHTML(
+            `<input class="${CLASS_TAG_INPUT}" type="text" placeholder="Add a tag..." />`
+        ) as HTMLInputElement;
+        this.tagInput.maxLength = SANITIZE_INFO.maxLength;
+        this.tagsContainer = parseHTML(`<div class="${CLASS_TAGS_CONTAINER}"/>`);
+
         this.tagModal = document.createElement('div');
-        this.tagModal.innerHTML = `<input id="${ID_TAG_INPUT}" class="${CLASS_TAG_INPUT}" type="text" placeholder="Add a tag..." /><hr style="width: 100%" /><div id="${ID_TAG_CONTAINER}"/>`;
+        this.tagModal.appendChild(this.tagInput);
+        this.tagModal.appendChild(this.tagsContainer);
         this.tagModal.classList.add('tag-dropdown');
-        this.tagModal.style.backgroundColor = document.body.style.backgroundColor;
         this.tagModal.onclick = (e) => e.stopPropagation(); // Prevent parent context menu from closing
         document.body.appendChild(this.tagModal);
-
-        this.tagInput = this.tagModal.querySelector<HTMLInputElement>('#' + ID_TAG_INPUT)!;
-        this.tagInput.maxLength = SANITIZE_INFO.maxLength;
-        this.tagsContainer = this.tagModal.querySelector('#' + ID_TAG_CONTAINER)!;
     }
 
     public async show(
@@ -153,6 +153,10 @@ export default class TagModal {
 
     public setStyles(styles: Partial<CSSStyleDeclaration>) {
         Object.assign(this.tagModal.style, styles);
+    }
+
+    public addClass(className: string) {
+        this.tagModal.classList.add(className);
     }
 
     private clearTags() {
