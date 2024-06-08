@@ -53,3 +53,6 @@ jobs:
             ${{ env.SCRIPT_SRC }}
             ```
             ${{ steps.changelog.outputs.changes }}
+          files: |
+            dist/twitterArtTags.user.js
+            dist/twitterArtTags.meta.js
