@@ -57,7 +57,12 @@ export async function renderTweetDropdown(tagModal: TagModal) {
         tagButton.id = tagId;
         tagButton.addEventListener('click', () => {
             const rect = tagButton!.getBoundingClientRect();
-            tagModal.show(tagId, images, { top: rect.top, left: rect.right + 10 });
+            tagModal.show(tagId, images, {
+                top: rect.top,
+                right: rect.right,
+                left: rect.left,
+                space: 10,
+            });
         });
 
         dropdown.prepend(viewTagsButton);

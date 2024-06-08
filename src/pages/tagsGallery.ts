@@ -201,7 +201,7 @@ export async function renderTagsGallery(tagModal: TagModal) {
                             color: '#eee',
                             padding: '12px',
                             borderRadius: '5px',
-                            width: '200px',
+                            width: '250px',
                             boxShadow:
                                 'rgba(255, 255, 255, 0.2) 0px 0px 15px 0px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px',
                         });
@@ -213,8 +213,10 @@ export async function renderTagsGallery(tagModal: TagModal) {
                             image.tweetId,
                             [image.image],
                             {
-                                top: rect.top + window.scrollY,
-                                left: rect.right + 5,
+                                top: rect.top, // don't spread
+                                right: rect.right,
+                                left: rect.left,
+                                space: 5,
                             },
                             {
                                 tagModified: async (tag) => {

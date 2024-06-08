@@ -17,7 +17,7 @@ export default class TagModal {
 
     constructor() {
         this.tagModal = document.createElement('div');
-        this.tagModal.innerHTML = `<input id="tagInput" type="text" placeholder="Add a tag..." /><hr style="width: 100%" /><div id="tagsContainer"/>`;
+        this.tagModal.innerHTML = `<input id="tagInput" class="tag-input" type="text" placeholder="Add a tag..." /><hr style="width: 100%" /><div id="tagsContainer"/>`;
         this.tagModal.classList.add('tag-dropdown');
         this.tagModal.style.backgroundColor = document.body.style.backgroundColor;
         this.tagModal.onclick = (e) => e.stopPropagation(); // Prevent parent context menu from closing
@@ -31,11 +31,10 @@ export default class TagModal {
     public show(
         tweetId: string,
         images: string[],
-        position: { top: number; left: number },
+        position: { top: number; left: number; right: number; space: number },
         callbacks?: TagModalCallbacks
     ) {
         this.callbacks = callbacks ?? {};
-
         // Render tags
         const renderTags = async () => {
             if (tweetId === null) {
@@ -113,9 +112,16 @@ export default class TagModal {
         renderTags();
 
         // Show
-        this.tagModal.style.top = `${position.top + window.scrollY}px`;
-        this.tagModal.style.left = `${position.left}px`;
         this.tagModal.style.display = 'block';
+        const modalRightEdge = position.right + this.tagModal.offsetWidth + position.space + 10;
+        if (modalRightEdge > window.innerWidth) {
+            this.tagModal.style.left = `${
+                position.left - this.tagModal.offsetWidth - position.space
+            }px`;
+        } else {
+            this.tagModal.style.left = `${position.right + position.space}px`;
+        }
+        this.tagModal.style.top = `${position.top + window.scrollY}px`;
     }
 
     public hide() {
