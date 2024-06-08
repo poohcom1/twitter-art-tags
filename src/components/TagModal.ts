@@ -1,7 +1,14 @@
 import { addTag, getTags, removeTag } from '../storage';
 import { SANITIZE_INFO, formatTagName, parseHTML, verifyEvent } from '../utils';
-import squareIcon from '../assets/square.svg';
-import checkSquareIcon from '../assets/check-square.svg';
+import squareIcon from '../assets/img/square.svg';
+import checkSquareIcon from '../assets/img/check-square.svg';
+
+const ID_TAG_INPUT = 'tagInput';
+const ID_TAG_CONTAINER = 'tagsContainer';
+
+const CLASS_TAG = 'tag';
+const CLASS_TAG_INACTIVE = 'tag__inactive';
+const CLASS_TAG_INPUT = 'tag-input';
 
 interface TagModalCallbacks {
     tagModified?: (tag: string, tweetId: string) => void;
@@ -17,15 +24,15 @@ export default class TagModal {
 
     constructor() {
         this.tagModal = document.createElement('div');
-        this.tagModal.innerHTML = `<input id="tagInput" class="tag-input" type="text" placeholder="Add a tag..." /><hr style="width: 100%" /><div id="tagsContainer"/>`;
+        this.tagModal.innerHTML = `<input id="${ID_TAG_INPUT}" class="${CLASS_TAG_INPUT}" type="text" placeholder="Add a tag..." /><hr style="width: 100%" /><div id="${ID_TAG_CONTAINER}"/>`;
         this.tagModal.classList.add('tag-dropdown');
         this.tagModal.style.backgroundColor = document.body.style.backgroundColor;
         this.tagModal.onclick = (e) => e.stopPropagation(); // Prevent parent context menu from closing
         document.body.appendChild(this.tagModal);
 
-        this.tagInput = this.tagModal.querySelector<HTMLInputElement>('#tagInput')!;
+        this.tagInput = this.tagModal.querySelector<HTMLInputElement>('#' + ID_TAG_INPUT)!;
         this.tagInput.maxLength = SANITIZE_INFO.maxLength;
-        this.tagsContainer = this.tagModal.querySelector('#tagsContainer')!;
+        this.tagsContainer = this.tagModal.querySelector('#' + ID_TAG_CONTAINER)!;
     }
 
     public async show(
@@ -159,7 +166,7 @@ async function listTags(tweetId: string): Promise<string[]> {
 
 function renderTag(tag: string, active: boolean, onClick: () => void): HTMLButtonElement {
     const html = parseHTML(
-        `<button class="tag ${!active && 'tag__inactive'}">
+        `<button class="${CLASS_TAG} ${!active && CLASS_TAG_INACTIVE}">
             ${active ? checkSquareIcon : squareIcon}
             <div class="text">${formatTagName(tag)}</div>
         </button>`

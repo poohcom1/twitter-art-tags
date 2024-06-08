@@ -18,15 +18,15 @@ import {
     removeTweet,
     renameTag,
 } from '../storage';
-import htmlHtml from '../assets/tagsGallery.html';
-import tagIcon from '../assets/tag.svg';
-import eyeIcon from '../assets/eye.svg';
-import tagPlusIcon from '../assets/file-plus.svg';
-import externalLinkIcon from '../assets/link-external.svg';
-import pencilIcon from '../assets/pencil.svg';
-import trashIcon from '../assets/trash.svg';
-import squareIcon from '../assets/square.svg';
-import checkSquareIcon from '../assets/check-square.svg';
+import htmlHtml from '../assets/tags-gallery.html';
+import tagIcon from '../assets/img/tag.svg';
+import eyeIcon from '../assets/img/eye.svg';
+import tagPlusIcon from '../assets/img/file-plus.svg';
+import externalLinkIcon from '../assets/img/link-external.svg';
+import pencilIcon from '../assets/img/pencil.svg';
+import trashIcon from '../assets/img/trash.svg';
+import squareIcon from '../assets/img/square.svg';
+import checkSquareIcon from '../assets/img/check-square.svg';
 import TagModal from '../components/TagModal';
 
 const ID_IMPORT = 'tagImport';
@@ -203,7 +203,7 @@ export async function renderTagsGallery(tagModal: TagModal) {
                             padding: '12px',
                             borderRadius: '5px',
                             boxShadow:
-                                'rgba(255, 255, 255, 0.2) 0px 0px 15px 0px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px',
+                                'rgba(255, 255, 255, 0.05) 0px 0px 15px 0px, rgba(255, 255, 255, 0.05) 0px 0px 3px 1px',
                         });
                         const rect = (
                             currentEvent.currentTarget as HTMLElement
@@ -216,7 +216,7 @@ export async function renderTagsGallery(tagModal: TagModal) {
                                 top: rect.top, // don't spread
                                 right: rect.right,
                                 left: rect.left,
-                                space: 5,
+                                space: 1,
                             },
                             {
                                 tagModified: async (tag) => {

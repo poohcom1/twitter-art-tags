@@ -1,5 +1,5 @@
 import { waitForElement } from '../utils';
-import tagIcon from '../assets/tag.svg';
+import tagIcon from '../assets/img/tag.svg';
 import { CUSTOM_PAGE_PATH, HOVER_COLOR_MAP } from '../constants';
 
 const ID = 'tagsPageButton';
