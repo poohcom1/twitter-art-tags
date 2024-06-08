@@ -81,7 +81,6 @@ export default class TagModal {
         };
 
         // Setup input
-        this.tagInput.focus();
         if (this.tagInputKeydownListener) {
             this.tagInput.removeEventListener('keydown', this.tagInputKeydownListener);
         }
@@ -127,6 +126,9 @@ export default class TagModal {
         } else {
             this.tagModal.style.top = `${position.top}px`;
         }
+
+        // Focus
+        this.tagInput.focus();
     }
 
     public hide() {
