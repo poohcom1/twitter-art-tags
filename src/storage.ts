@@ -3,6 +3,20 @@ import { Tags, Tag, Tweets, DataExport } from './models';
 import { sanitizeTagName } from './utils';
 import { safeParse } from 'valibot';
 
+export const cacheInvalidated = new Event('cacheInvalidated');
+
+document.addEventListener('visibilitychange', () => {
+    delete cache[KEY_TWEETS];
+    delete cache[KEY_TAGS];
+    Promise.all([GM.getValue<Tweets>(KEY_TWEETS, {}), GM.getValue<Tags>(KEY_TAGS, {})]).then(
+        ([tweets, tags]) => {
+            cache[KEY_TWEETS] = tweets;
+            cache[KEY_TAGS] = tags;
+            document.dispatchEvent(cacheInvalidated);
+        }
+    );
+});
+
 // Cache
 const cache: Record<string, unknown> = {};
 
@@ -19,6 +33,7 @@ async function gmSetWithCache(key: string, value: unknown) {
 
 async function gmGetWithCache<T>(key: string, defVal: T): Promise<T> {
     if (key in cache) {
+        GM.getValue(key, cache[key]).then((v) => (cache[key] = v)); // Update cache
         return cache[key] as T;
     }
 
