@@ -250,13 +250,12 @@ export async function renderTagsGallery(tagModal: TagModal) {
                     iconHTML: createContextMenuIcon(tagIcon),
                     callback: () => {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
-
-                        if (selectedTags.length === 1 && selectedTags[0] === tag) {
-                            return;
+                        if (!(selectedTags.length === 1 && selectedTags[0] === tag)) {
+                            // If not already selected
+                            selectedTags = [tag];
+                            rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
                         }
 
-                        selectedTags = [tag];
-                        rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
                         contextMenu.close();
                     },
                 }));
