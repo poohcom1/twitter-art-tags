@@ -1,3 +1,4 @@
+import '../assets/tags-gallery.scss';
 import { CUSTOM_PAGE_TITLE } from '../constants';
 import {
     waitForElement,

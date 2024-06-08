@@ -27,16 +27,15 @@ module.exports = {
             // html/css
             {
                 test: /\.css$/,
-                use: 'css-loader',
+                use: ['style-loader', 'css-loader'],
+            },
+            {
+                test: /\.scss$/,
+                use: ['style-loader', 'css-loader', 'sass-loader'],
             },
             {
                 test: /\.html$/,
                 use: 'html-loader',
-            },
-            // Tree shaking
-            {
-                include: path.resolve(__dirname, 'node_modules/valibot'),
-                sideEffects: false,
             },
         ],
     },

@@ -51,23 +51,7 @@ export async function waitForElement(selector: string, root: ParentNode = docume
     });
 }
 
-/**
- * https://sourceforge.net/p/greasemonkey/wiki/GM_addStyle/
- */
-export function GM_addStyle(aCss: string) {
-    const head = document.getElementsByTagName('head')[0];
-    if (head) {
-        const style = document.createElement('style');
-        style.setAttribute('type', 'text/css');
-        style.textContent = aCss;
-        head.appendChild(style);
-        return style;
-    }
-    return null;
-}
-
 const parser = new DOMParser();
-
 export function parseHTML<T extends HTMLElement>(html: string): T {
     return parser.parseFromString(html, 'text/html').body.firstChild as T;
 }
