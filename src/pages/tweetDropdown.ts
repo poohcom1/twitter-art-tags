@@ -1,6 +1,6 @@
 import { waitForElement } from '../utils';
-import tagIcon from '../assets/img/tag.svg';
-import tagGalleryIcon from '../assets/img/tags.svg';
+import tagIcon from '../assets/tag.svg';
+import tagGalleryIcon from '../assets/tags.svg';
 import { CUSTOM_PAGE_PATH, HOVER_COLOR_MAP } from '../constants';
 import TagModal from '../components/tagModal/TagModal';
 

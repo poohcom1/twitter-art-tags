@@ -1,5 +1,13 @@
-@use '../../assets/global.module.scss' as global;
+@use '../../scss/_mixins' as mixins;
 
+@mixin menu-style-base {
+    background-color: #0b0b0ce0;
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    font-family: TwitterChirp;
+}
+
+// Root type
 .tagsGallery {
     padding: 40px 0;
     font-family: TwitterChirp;
@@ -19,15 +27,6 @@
         height: 20px;
         margin-right: 5px;
     }
-}
-
-/* Override to match context menu style */
-.tagModal {
-    @include global.menu-style-base;
-    color: '#eee';
-    padding: 12px;
-    border-radius: '5px';
-    box-shadow: 'rgba(255, 255, 255, 0.05) 0px 0px 15px 0px, rgba(255, 255, 255, 0.05) 0px 0px 3px 1px';
 }
 
 .title {
@@ -71,7 +70,7 @@
     }
 }
 
-.options-panel {
+.optionsPanel {
     display: flex;
     gap: 10px;
 
@@ -80,19 +79,26 @@
     }
 }
 
+.tag {
+    @include mixins.tag-base(rgb(59, 58, 66), rgb(81, 81, 91), 1, 0.75);
+}
+
 .imageGallery {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0.2;
-    }
-    to {
-        opacity: 1;
-    }
+.addTag {
+    @include mixins.tag-input-base;
+    width: 300px;
+}
+
+.tagsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 10px 0;
 }
 
 .imageContainer {
@@ -108,6 +114,15 @@
         width: 100%;
         height: 100%;
         transition: filter 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0.2;
+        }
+        to {
+            opacity: 1;
+        }
     }
 
     &__loaded {
@@ -146,13 +161,38 @@
     }
 }
 
-.tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin: 10px 0;
+// Context menu
+@mixin context-menu-base {
+    @include menu-style-base;
+
+    hr {
+        margin: 3px;
+    }
 }
 
-.addTag {
+.contextMenuIcon {
+    width: 14px;
+    height: 14px;
+    stroke: currentcolor;
+    opacity: 0.9;
+    margin-right: 2px;
+}
+
+.contextMenu {
+    @include context-menu-base;
+    width: 160px;
+}
+
+.contextMenuWide {
+    @include context-menu-base;
     width: 200px;
+}
+
+/* Override to match context menu style */
+.tagModal {
+    @include menu-style-base;
+    color: '#eee';
+    padding: 12px;
+    border-radius: '5px';
+    box-shadow: 'rgba(255, 255, 255, 0.05) 0px 0px 15px 0px, rgba(255, 255, 255, 0.05) 0px 0px 3px 1px';
 }

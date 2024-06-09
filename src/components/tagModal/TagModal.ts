@@ -2,8 +2,8 @@ import styles from './tag-modal.module.scss';
 import template from './tag-modal.pug';
 import { addTag, getTags, removeTag } from '../../storage';
 import { SANITIZE_INFO, formatTagName, parseHTML, verifyEvent } from '../../utils';
-import squareIcon from '../../assets/img/square.svg';
-import checkSquareIcon from '../../assets/img/check-square.svg';
+import squareIcon from '../../assets/square.svg';
+import checkSquareIcon from '../../assets/check-square.svg';
 
 interface TagModalCallbacks {
     tagModified?: (tag: string, tweetId: string) => void;

@@ -1,13 +1,13 @@
-@use '../../assets/global.module.scss' as global;
+@use '../../scss/_mixins' as mixins;
 
 .tag {
-    @include global.tag-base(rgb(86, 84, 96), rgb(111, 111, 122), 1, 0.85);
+    @include mixins.tag-base(rgb(86, 84, 96), rgb(111, 111, 122), 1, 0.85);
     opacity: 1;
     background-color: rgb(86, 84, 96);
 }
 
 .tagInput {
-    @include global.tag-input-base;
+    @include mixins.tag-input-base;
 }
 
 .tagModal {

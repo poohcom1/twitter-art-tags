@@ -1,17 +1,16 @@
 import template from './tag-gallery.pug';
 import styles from './tag-gallery.module.scss';
-import globalStyles from '../../assets/global.module.scss';
 import { formatTagName, parseHTML, verifyTagName } from '../../utils';
 import { getTags, getTweets, removeTweet, renameTag, deleteTag } from '../../storage';
 import TagModal from '../tagModal/TagModal';
-import tagIcon from '../../assets/img/tag.svg';
-import eyeIcon from '../../assets/img/eye.svg';
-import tagPlusIcon from '../../assets/img/file-plus.svg';
-import externalLinkIcon from '../../assets/img/link-external.svg';
-import pencilIcon from '../../assets/img/pencil.svg';
-import trashIcon from '../../assets/img/trash.svg';
-import squareIcon from '../../assets/img/square.svg';
-import checkSquareIcon from '../../assets/img/check-square.svg';
+import tagIcon from '../../assets/tag.svg';
+import eyeIcon from '../../assets/eye.svg';
+import tagPlusIcon from '../../assets/file-plus.svg';
+import externalLinkIcon from '../../assets/link-external.svg';
+import pencilIcon from '../../assets/pencil.svg';
+import trashIcon from '../../assets/trash.svg';
+import squareIcon from '../../assets/square.svg';
+import checkSquareIcon from '../../assets/check-square.svg';
 
 enum RenderKeys {
     TAGS = 'tags',
@@ -45,10 +44,9 @@ export default class TagGallery {
         parent.style.maxWidth = '100%';
         parent.innerHTML = template({
             styles,
-            globalStyles,
         });
         this.imageContainer = document.querySelector<HTMLElement>(`.${styles.imageGallery}`)!;
-        this.tagsContainer = document.querySelector<HTMLElement>(`.${styles.tags}`)!;
+        this.tagsContainer = document.querySelector<HTMLElement>(`.${styles.tagsContainer}`)!;
 
         this.renderTags([RenderKeys.IMAGES, RenderKeys.TAGS]).then(() =>
             this.renderImages([RenderKeys.IMAGES, RenderKeys.TAGS])
@@ -172,7 +170,7 @@ export default class TagGallery {
                     .firstElementChild as HTMLElement,
                 openSubMenuOnHover: true,
                 preventCloseOnClick: true,
-                customClass: globalStyles.contextMenu,
+                customClass: styles.contextMenu,
                 onClose: () => {
                     this.lockHover = false;
                     this.tagModal.hide();
@@ -290,7 +288,7 @@ export default class TagGallery {
                 .reduce((a, b) => a + b, 0);
 
             const button = parseHTML<HTMLButtonElement>(
-                `<button class="${globalStyles.tag} ${!active && globalStyles.tagInactive}">
+                `<button class="${styles.tag} ${!active && styles.tagInactive}">
                 ${active ? checkSquareIcon : squareIcon}
                 <div class="text">${formatTagName(tag)} (${tweetCount})</div>
             </button>`
@@ -324,7 +322,7 @@ export default class TagGallery {
 
             new VanillaContextMenu({
                 scope: button,
-                customClass: active ? globalStyles.contextMenuWide : globalStyles.contextMenu,
+                customClass: active ? styles.contextMenuWide : styles.contextMenu,
                 normalizePosition: false,
                 transitionDuration: 0,
                 menuItems: [
@@ -394,12 +392,12 @@ export default class TagGallery {
 // Utils
 function createContextMenuIcon(iconSvg: string): string {
     const icon = parseHTML(iconSvg);
-    icon.classList.add(globalStyles.contextMenuIcon);
+    icon.classList.add(styles.contextMenuIcon);
     return icon.outerHTML;
 }
 
 function createNoIcon(): string {
     const icon = parseHTML('<div />');
-    icon.classList.add(globalStyles.contextMenuIcon);
+    icon.classList.add(styles.contextMenuIcon);
     return icon.outerHTML;
 }

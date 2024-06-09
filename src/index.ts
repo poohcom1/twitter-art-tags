@@ -1,4 +1,3 @@
-import './assets/global.module.scss';
 import { renderTweetDropdown } from './pages/tweetDropdown';
 import { renderTagsGallery } from './pages/tagsGallery';
 import { CUSTOM_PAGE_PATH } from './constants';
