@@ -1,9 +1,9 @@
 div(class=styles.tagsGallery)
     div(class=styles.title)
         h1 Tag Gallery
-        .help(title="Right click to view more options for tags and images")
+        div(class=styles.help title="Right click to view more options for tags and images")
             | !{require("/src/assets/question-mark.svg")}
-        .github
+        div(class=styles.github)
             a(href="https://github.com/poohcom1/twitter-art-tags" target="_blank")
                 | !{require("/src/assets/github.svg")}
     div(class=styles.optionsPanel)
