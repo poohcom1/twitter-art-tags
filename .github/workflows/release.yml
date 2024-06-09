@@ -41,6 +41,7 @@ jobs:
           tag: ${{ github.ref_name }}
           writeToFile: false
           useGitmojis: false
+          excludeTypes: 'chore,refactor,build,docs,other,style'
 
       - name: Create GitHub release
         id: create_release
