@@ -1,12 +1,9 @@
-import { addTag, getTags, removeTag } from '../storage';
-import { SANITIZE_INFO, formatTagName, parseHTML, verifyEvent } from '../utils';
-import squareIcon from '../assets/img/square.svg';
-import checkSquareIcon from '../assets/img/check-square.svg';
-
-const CLASS_TAG = 'tag';
-const CLASS_TAG_INACTIVE = 'tag__inactive';
-const CLASS_TAG_INPUT = 'tag-input';
-const CLASS_TAGS_CONTAINER = 'tags-container';
+import styles from './tag-modal.module.scss';
+import template from './tag-modal.pug';
+import { addTag, getTags, removeTag } from '../../storage';
+import { SANITIZE_INFO, formatTagName, parseHTML, verifyEvent } from '../../utils';
+import squareIcon from '../../assets/img/square.svg';
+import checkSquareIcon from '../../assets/img/check-square.svg';
 
 interface TagModalCallbacks {
     tagModified?: (tag: string, tweetId: string) => void;
@@ -20,19 +17,19 @@ export default class TagModal {
     private callbacks: Partial<TagModalCallbacks> = {};
     private tagInputKeydownListener: ((ev: KeyboardEvent) => void) | null = null;
 
-    constructor() {
-        this.tagInput = parseHTML(
-            `<input class="${CLASS_TAG_INPUT}" type="text" placeholder="Add a tag..." />`
-        ) as HTMLInputElement;
-        this.tagInput.maxLength = SANITIZE_INFO.maxLength;
-        this.tagsContainer = parseHTML(`<div class="${CLASS_TAGS_CONTAINER}"/>`);
-
-        this.tagModal = document.createElement('div');
-        this.tagModal.appendChild(this.tagInput);
-        this.tagModal.appendChild(this.tagsContainer);
-        this.tagModal.classList.add('tag-dropdown');
+    constructor(classNames: string[] = []) {
+        this.tagModal = parseHTML(
+            template({
+                styles,
+                inputMaxLength: SANITIZE_INFO.maxLength,
+            })
+        );
         this.tagModal.onclick = (e) => e.stopPropagation(); // Prevent parent context menu from closing
+        this.tagModal.classList.add(...classNames);
         document.body.appendChild(this.tagModal);
+
+        this.tagInput = this.tagModal.querySelector(`.${styles.tagInput}`) as HTMLInputElement;
+        this.tagsContainer = this.tagModal.querySelector(`.${styles.tagsContainer}`) as HTMLElement;
     }
 
     public async show(
@@ -151,8 +148,8 @@ export default class TagModal {
         this.clearTags();
     }
 
-    public setStyles(styles: Partial<CSSStyleDeclaration>) {
-        Object.assign(this.tagModal.style, styles);
+    public setStyles(style: Partial<CSSStyleDeclaration>) {
+        Object.assign(this.tagModal.style, style);
     }
 
     public addClass(className: string) {
@@ -178,7 +175,7 @@ async function listTags(tweetId: string): Promise<string[]> {
 
 function renderTag(tag: string, active: boolean, onClick: () => void): HTMLButtonElement {
     const html = parseHTML(
-        `<button class="${CLASS_TAG} ${!active && CLASS_TAG_INACTIVE}">
+        `<button class="${styles.tag} ${!active && styles.tagInactive}">
             ${active ? checkSquareIcon : squareIcon}
             <div class="text">${formatTagName(tag)}</div>
         </button>`

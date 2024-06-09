@@ -1,0 +1,32 @@
+@use '../../assets/global.module.scss' as global;
+
+.tag {
+    @include global.tag-base(rgb(86, 84, 96), rgb(111, 111, 122), 1, 0.85);
+    opacity: 1;
+    background-color: rgb(86, 84, 96);
+}
+
+.tagInput {
+    @include global.tag-input-base;
+}
+
+.tagModal {
+    padding: 12px 10px;
+    display: none;
+    position: absolute;
+    color: inherit;
+    white-space: nowrap;
+    z-index: 20000; /* Ensure it is above other content */
+    font-family: TwitterChirp;
+    font-weight: 700;
+    width: 300px;
+}
+
+.tagsContainer {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 350px;
+    overflow-y: auto;
+}

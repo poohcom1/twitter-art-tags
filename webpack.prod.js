@@ -26,20 +26,32 @@ module.exports = {
             },
             // html/css
             {
-                test: /\.css$/,
-                use: ['style-loader', 'css-loader'],
+                test: /\.s?css$/i,
+                use: [
+                    'style-loader',
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            modules: true,
+                            esModule: false,
+                        },
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: { implementation: require('sass') },
+                    },
+                ],
             },
             {
-                test: /\.scss$/,
-                use: ['style-loader', 'css-loader', 'sass-loader'],
-            },
-            {
-                test: /\.html$/,
-                use: 'html-loader',
+                test: /\.pug$/,
+                use: {
+                    loader: 'pug-loader',
+                },
             },
         ],
     },
     plugins: [
+        // webpack.WatchIgnorePlugin([/scss\.d\.ts$/]),
         new UserscriptPlugin({
             headers: {
                 name: 'Twitter Art Tags',

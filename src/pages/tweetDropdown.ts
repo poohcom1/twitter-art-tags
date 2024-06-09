@@ -2,7 +2,7 @@ import { waitForElement } from '../utils';
 import tagIcon from '../assets/img/tag.svg';
 import tagGalleryIcon from '../assets/img/tags.svg';
 import { CUSTOM_PAGE_PATH, HOVER_COLOR_MAP } from '../constants';
-import TagModal from '../components/TagModal';
+import TagModal from '../components/tagModal/TagModal';
 
 function getTweetImages(tweetId: string): string[] {
     return Array.from(document.querySelectorAll('a'))
