@@ -68,7 +68,7 @@ export default class TagModal {
                 const active = tags[tagName].tweets.includes(tweetId ?? '');
                 const tagButton = parseHTML(
                     tagButtonTemplate({
-                        class: `${styles.tag} ${!active && styles.tagInactive}`,
+                        className: `${styles.tag} ${!active && styles.tagInactive}`,
                         icon: active ? checkSquareIcon : squareIcon,
                         text: formatTagName(tagName),
                     })
