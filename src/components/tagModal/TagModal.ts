@@ -138,7 +138,7 @@ export default class TagModal {
             this.tagModal.style.left = `${position.right + position.space}px`;
         }
 
-        if (modalBottomEdge > window.innerHeight + scrollTop) {
+        if (modalBottomEdge > window.innerHeight) {
             this.tagModal.style.top = `${
                 position.top - (modalBottomEdge - (window.innerHeight + scrollTop))
             }px`;
