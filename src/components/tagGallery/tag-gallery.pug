@@ -1,20 +1,21 @@
-div(class=`${styles.tagsGallery}`)
-    div(class=`${styles.title}`)
+div(class=styles.tagsGallery)
+    div(class=styles.title)
         h1 Tag Gallery
         .help(title="Right click to view more options for tags and images")
             | !{require("/src/assets/question-mark.svg")}
         .github
             a(href="https://github.com/poohcom1/twitter-art-tags" target="_blank")
                 | !{require("/src/assets/github.svg")}
-    div(class=`${styles.optionsPanel}`)
+    div(class=styles.optionsPanel)
         | !{require("/src/assets/tag.svg")}
-        input#addTag(class=`${styles.addTag}`, type="text", placeholder="Press enter to add a tag...")
-        button#tagExport(style="margin-left: auto")
-            | !{require("/src/assets/export.svg")}
-            | Export Tags
-        button#tagImport
-            | !{require("/src/assets/import.svg")}
-            | Import Tags
+        input(class=`${styles.addTag}`, type="text", placeholder="Press enter to add a tag...")
+        div(class=styles.dotMenu style="margin-left: auto")
+            | !{require("/src/assets/dot-menu.svg")}
+            div(class=styles.dotMenuDropdown)
+                div#tagExport
+                    | Export Tags
+                div#tagImport
+                    | Import Tags
     hr
-    div(class=`${styles.tagsContainer}`)
-    div(class=`${styles.imageGallery}`)
+    div(class=styles.tagsContainer)
+    div(class=styles.imageGallery)

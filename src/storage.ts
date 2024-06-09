@@ -207,7 +207,7 @@ export async function setTags(tags: Tags) {
 }
 
 // Store
-export async function exportData(): Promise<string> {
+async function getExportData(): Promise<string> {
     const tags = await getTags();
     const tweets = await getTweets();
 
@@ -219,7 +219,7 @@ export async function exportData(): Promise<string> {
     return JSON.stringify(data, null, 2);
 }
 
-export async function importData(jsonString: string) {
+async function setImportData(jsonString: string) {
     const data: unknown = JSON.parse(jsonString);
     const result = safeParse(DataExport, data);
 
@@ -234,7 +234,7 @@ export async function importData(jsonString: string) {
     }
 }
 
-export function getExportFileName() {
+function getExportFileName() {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
@@ -242,6 +242,40 @@ export function getExportFileName() {
     const hours = String(now.getHours()).padStart(2, '0');
 
     return `twitter-art-tag_data_${year}-${month}-${day}_${hours}.json`;
+}
+
+export async function exportData() {
+    const tags = await getExportData();
+    const blob = new Blob([tags], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+
+    a.download = getExportFileName();
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+export function importData(): Promise<void> {
+    return new Promise((resolve) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+        input.style.display = 'none';
+        input.addEventListener('change', async () => {
+            const file = input.files![0];
+            const reader = new FileReader();
+            reader.onload = async () => {
+                if (!confirm('Are you sure you want to overwrite all tags?')) {
+                    return;
+                }
+                await setImportData(reader.result as string);
+                resolve();
+            };
+            reader.readAsText(file);
+        });
+        input.click();
+    });
 }
 
 export async function clearAllTags() {

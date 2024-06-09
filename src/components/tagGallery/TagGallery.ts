@@ -2,8 +2,17 @@ import template from './tag-gallery.pug';
 import styles from './tag-gallery.module.scss';
 import imageTemplate from './templates/image-container.pug';
 import tagButtonTemplate from '../templates/tag-button.pug';
-import { formatTagName, parseHTML, verifyTagName } from '../../utils';
-import { getTags, getTweets, removeTweet, renameTag, deleteTag } from '../../storage';
+import { formatTagName, parseHTML, verifyEvent, verifyTagName } from '../../utils';
+import {
+    getTags,
+    getTweets,
+    removeTweet,
+    renameTag,
+    deleteTag,
+    createTag,
+    exportData,
+    importData,
+} from '../../storage';
 import TagModal from '../tagModal/TagModal';
 import tagIcon from '../../assets/tag.svg';
 import eyeIcon from '../../assets/eye.svg';
@@ -67,8 +76,19 @@ export default class TagGallery {
                     event.preventDefault();
                 }
             });
-
         // Menu
+        const dropdown = document.querySelector<HTMLElement>(`.${styles.dotMenuDropdown}`)!;
+        document
+            .querySelector<HTMLElement>(`.${styles.dotMenu}`)!
+            .addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle(styles.dotMenuDropdownVisible);
+            });
+        document.onclick = () => dropdown.classList.remove(styles.dotMenuDropdownVisible);
+
+        document.querySelector<HTMLElement>('#tagExport')!.onclick = exportData;
+        document.querySelector<HTMLElement>('#tagImport')!.onclick = () =>
+            importData().then(() => this.rerender());
 
         this.renderTags([RenderKeys.IMAGES, RenderKeys.TAGS]).then(() =>
             this.renderImages([RenderKeys.IMAGES, RenderKeys.TAGS])
