@@ -50,6 +50,26 @@ export default class TagGallery {
         this.imageContainer = document.querySelector<HTMLElement>(`.${styles.imageGallery}`)!;
         this.tagsContainer = document.querySelector<HTMLElement>(`.${styles.tagsContainer}`)!;
 
+        // Add tag
+        document
+            .querySelector<HTMLInputElement>(`.${styles.addTag}`)!
+            .addEventListener('keydown', async (event) => {
+                const target = event.target as HTMLInputElement;
+                if (verifyEvent(event)) {
+                    if (event.key === 'Enter') {
+                        const tagName = target.value;
+                        await createTag(tagName);
+                        target.value = '';
+
+                        this.rerender([RenderKeys.TAGS]);
+                    }
+                } else {
+                    event.preventDefault();
+                }
+            });
+
+        // Menu
+
         this.renderTags([RenderKeys.IMAGES, RenderKeys.TAGS]).then(() =>
             this.renderImages([RenderKeys.IMAGES, RenderKeys.TAGS])
         );
