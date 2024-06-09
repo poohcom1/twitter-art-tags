@@ -95,10 +95,7 @@ export default class TagModal {
         };
 
         // Setup input
-        if (this.tagInputKeydownListener) {
-            this.tagInput.removeEventListener('keydown', this.tagInputKeydownListener);
-        }
-        this.tagInputKeydownListener = async (event) => {
+        this.tagInput.onkeydown = async (event) => {
             const target = event.target as HTMLInputElement;
             if (verifyEvent(event)) {
                 if (event.key === 'Enter') {
@@ -113,15 +110,14 @@ export default class TagModal {
                     target.value = '';
                     renderTags();
                     this.callbacks.tagModified?.(tagName, tweetId);
-                } else {
-                    renderTags();
                 }
             } else {
                 event.preventDefault();
             }
         };
-        this.tagInput.addEventListener('keydown', this.tagInputKeydownListener);
+        this.tagInput.oninput = renderTags;
 
+        this.tagInput.value = '';
         await renderTags();
 
         this.tagModal.style.display = 'block';
@@ -155,6 +151,7 @@ export default class TagModal {
 
     public hide() {
         this.tagModal.style.display = 'none';
+        this.tagInput.value = '';
         this.clearTags();
     }
 
