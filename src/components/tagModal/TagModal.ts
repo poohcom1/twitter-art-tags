@@ -1,5 +1,6 @@
-import styles from './tag-modal.module.scss';
 import template from './tag-modal.pug';
+import styles from './tag-modal.module.scss';
+import tagButtonTemplate from '../templates/tag-button.pug';
 import { addTag, getTags, removeTag } from '../../storage';
 import { SANITIZE_INFO, formatTagName, parseHTML, verifyEvent } from '../../utils';
 import squareIcon from '../../assets/square.svg';
@@ -63,8 +64,16 @@ export default class TagModal {
                 return;
             }
 
-            const tagButtons = filteredTagList.map((tagName) =>
-                renderTag(tagName, tags[tagName].tweets.includes(tweetId ?? ''), async () => {
+            const tagButtons = filteredTagList.map((tagName) => {
+                const active = tags[tagName].tweets.includes(tweetId ?? '');
+                const tagButton = parseHTML(
+                    tagButtonTemplate({
+                        class: `${styles.tag} ${!active && styles.tagInactive}`,
+                        icon: active ? checkSquareIcon : squareIcon,
+                        text: formatTagName(tagName),
+                    })
+                );
+                tagButton.onclick = async () => {
                     if (tweetId === null) {
                         console.error('No tweet selected');
                         return;
@@ -79,8 +88,9 @@ export default class TagModal {
                     this.callbacks.tagModified?.(tagName, tweetId);
 
                     renderTags();
-                })
-            );
+                };
+                return tagButton;
+            });
             this.tagsContainer.append(...tagButtons);
         };
 
@@ -171,16 +181,4 @@ async function listTags(tweetId: string): Promise<string[]> {
     const tagArray = Object.keys(tags);
     tagArray.sort((a, b) => a.localeCompare(b));
     return tagArray;
-}
-
-function renderTag(tag: string, active: boolean, onClick: () => void): HTMLButtonElement {
-    const html = parseHTML(
-        `<button class="${styles.tag} ${!active && styles.tagInactive}">
-            ${active ? checkSquareIcon : squareIcon}
-            <div class="text">${formatTagName(tag)}</div>
-        </button>`
-    );
-
-    html.onclick = onClick;
-    return html as HTMLButtonElement;
 }

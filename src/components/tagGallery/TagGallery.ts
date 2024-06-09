@@ -1,5 +1,7 @@
 import template from './tag-gallery.pug';
 import styles from './tag-gallery.module.scss';
+import imageTemplate from './templates/image-container.pug';
+import tagButtonTemplate from '../templates/tag-button.pug';
 import { formatTagName, parseHTML, verifyTagName } from '../../utils';
 import { getTags, getTweets, removeTweet, renameTag, deleteTag } from '../../storage';
 import TagModal from '../tagModal/TagModal';
@@ -95,12 +97,15 @@ export default class TagGallery {
                             tweetId,
                             image,
                             index,
-                            element: parseHTML(`
-                            <a class="${styles.imageContainer} ${
-                                !atSamePos && styles.imageContainerLoaded
-                            }" href="/poohcom1/status/${tweetId}" target="_blank">
-                                <img src="${image}" />
-                            </a>`),
+                            element: parseHTML(
+                                imageTemplate({
+                                    className: `${styles.imageContainer} ${
+                                        !atSamePos && styles.imageContainerLoaded
+                                    }`,
+                                    href: `/poohcom1/status/${tweetId}`,
+                                    src: image,
+                                })
+                            ),
                         };
                     })
                 );
@@ -282,18 +287,17 @@ export default class TagGallery {
 
         const tagElements = tagList.map((tag) => {
             const active = this.selectedTags.includes(tag);
-
             const tweetCount = tags[tag].tweets
                 .map((tweetId) => tweets[tweetId]?.images.length)
                 .reduce((a, b) => a + b, 0);
 
-            const button = parseHTML<HTMLButtonElement>(
-                `<button class="${styles.tag} ${!active && styles.tagInactive}">
-                ${active ? checkSquareIcon : squareIcon}
-                <div class="text">${formatTagName(tag)} (${tweetCount})</div>
-            </button>`
+            const button = parseHTML(
+                tagButtonTemplate({
+                    className: `${styles.tag} ${!active && styles.tagInactive}`,
+                    icon: active ? checkSquareIcon : squareIcon,
+                    text: `${formatTagName(tag)} (${tweetCount})`,
+                })
             );
-
             const select = () => {
                 if (this.selectedTags.length === 1 && this.selectedTags[0] === tag) {
                     this.selectedTags = [];
