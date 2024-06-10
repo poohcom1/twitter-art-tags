@@ -12,6 +12,7 @@ import {
     createTag,
     exportData,
     importData,
+    importMergeData,
 } from '../../storage';
 import TagModal from '../tagModal/TagModal';
 import tagIcon from '../../assets/tag.svg';
@@ -22,6 +23,7 @@ import pencilIcon from '../../assets/pencil.svg';
 import trashIcon from '../../assets/trash.svg';
 import squareIcon from '../../assets/square.svg';
 import checkSquareIcon from '../../assets/check-square.svg';
+import SyncModal from '../syncModal/SyncModal';
 
 enum RenderKeys {
     TAGS = 'tags',
@@ -34,6 +36,13 @@ interface ImageData {
     index: number;
     element: HTMLElement;
 }
+
+const IDS = {
+    tagExport: 'tagExport',
+    tagImport: 'tagImport',
+    tagImportMerge: 'tagImportMerge',
+    tagSync: 'tagSync',
+};
 
 export default class TagGallery {
     private cleanup: (() => void)[] = [];
@@ -55,9 +64,12 @@ export default class TagGallery {
         parent.style.maxWidth = '100%';
         parent.innerHTML = template({
             styles,
+            ids: IDS,
         });
         this.imageContainer = document.querySelector<HTMLElement>(`.${styles.imageGallery}`)!;
         this.tagsContainer = document.querySelector<HTMLElement>(`.${styles.tagsContainer}`)!;
+
+        const syncModal = new SyncModal();
 
         // Add tag
         document
@@ -86,9 +98,14 @@ export default class TagGallery {
             });
         document.onclick = () => dropdown.classList.remove(styles.dotMenuDropdownVisible);
 
-        document.querySelector<HTMLElement>('#tagExport')!.onclick = exportData;
-        document.querySelector<HTMLElement>('#tagImport')!.onclick = () =>
+        document.querySelector<HTMLElement>(`#${IDS.tagExport}`)!.onclick = exportData;
+        document.querySelector<HTMLElement>(`#${IDS.tagImport}`)!.onclick = () =>
             importData().then(() => this.rerender());
+        document.querySelector<HTMLElement>(`#${IDS.tagImportMerge}`)!.onclick = () =>
+            importMergeData().then(() => this.rerender());
+        document.querySelector<HTMLElement>(`#${IDS.tagSync}`)!.onclick = () => {
+            syncModal.show();
+        };
 
         this.renderTags([RenderKeys.IMAGES, RenderKeys.TAGS]).then(() =>
             this.renderImages([RenderKeys.IMAGES, RenderKeys.TAGS])

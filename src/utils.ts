@@ -12,10 +12,6 @@ export function verifyEvent(event: KeyboardEvent) {
     );
 }
 
-export function sanitizeTagName(tagName: string) {
-    return tagName.trim().toLowerCase();
-}
-
 export function verifyTagName(tagName: string) {
     if (!tagName) return false;
     return SANITIZE_INFO.allowedChars.test(tagName);

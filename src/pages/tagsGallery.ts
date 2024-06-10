@@ -1,7 +1,7 @@
 import { CUSTOM_PAGE_TITLE } from '../constants';
 import { waitForElement } from '../utils';
-import { cacheInvalidated } from '../storage';
 import TagGallery from '../components/tagGallery/TagGallery';
+import { cacheInvalidated } from '../cache';
 
 export async function renderTagsGallery() {
     if (TagGallery.exists()) {

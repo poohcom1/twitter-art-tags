@@ -5,3 +5,6 @@ export const HOVER_COLOR_MAP: Record<string, string | undefined> = {
     'rgb(255, 255, 255)': 'rgb(247, 249, 249)',
     'rgb(21, 32, 43)': 'rgb(30, 39, 50)',
 };
+
+export const KEY_TAGS = 'tags';
+export const KEY_TWEETS = 'tweets';

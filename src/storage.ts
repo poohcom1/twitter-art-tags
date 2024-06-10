@@ -1,49 +1,20 @@
-import { CUSTOM_PAGE_PATH } from './constants';
-import { Tags, Tag, Tweets, DataExport } from './models';
-import { sanitizeTagName } from './utils';
+import { clearCache, gmGetWithCache, gmSetWithCache } from './cache';
+import { CUSTOM_PAGE_PATH, KEY_TAGS, KEY_TWEETS } from './constants';
+import { Tags, Tag, Tweets, ExportData, Tweet } from './models';
 import { safeParse } from 'valibot';
 
-export const cacheInvalidated = new Event('cacheInvalidated');
-
-document.addEventListener('visibilitychange', () => {
-    delete cache[KEY_TWEETS];
-    delete cache[KEY_TAGS];
-    Promise.all([GM.getValue<Tweets>(KEY_TWEETS, {}), GM.getValue<Tags>(KEY_TAGS, {})]).then(
-        ([tweets, tags]) => {
-            cache[KEY_TWEETS] = tweets;
-            cache[KEY_TAGS] = tags;
-            document.dispatchEvent(cacheInvalidated);
-        }
-    );
-});
-
-// Cache
-const cache: Record<string, unknown> = {};
-
-const pendingPromises: Record<string, Promise<void> | undefined> = {};
-async function gmSetWithCache(key: string, value: unknown) {
-    cache[key] = value;
-
-    if (key in pendingPromises) {
-        await pendingPromises[key];
-    }
-
-    pendingPromises[key] = GM.setValue(key, value);
+// Sanitize
+function sanitizeTagName(tagName: string) {
+    return tagName.trim().toLowerCase();
 }
 
-async function gmGetWithCache<T>(key: string, defVal: T): Promise<T> {
-    if (key in cache) {
-        GM.getValue(key, cache[key]).then((v) => (cache[key] = v)); // Update cache
-        return cache[key] as T;
-    }
-
-    const value = await GM.getValue<T>(key, defVal);
-    cache[key] = value;
-    return value;
+function stripQueryParameters(url: string) {
+    const urlObj = new URL(url);
+    const searchParams = urlObj.searchParams;
+    searchParams.delete('name');
+    urlObj.search = searchParams.toString();
+    return urlObj.toString();
 }
-
-const KEY_TAGS = 'tags';
-const KEY_TWEETS = 'tweets';
 
 // Tag
 export async function createTag(tagName: string) {
@@ -55,14 +26,16 @@ export async function createTag(tagName: string) {
 
     const tags = await gmGetWithCache<Tags>(KEY_TAGS, {});
 
-    if (tagName in tags) {
+    if (tagExists(tags, tagName)) {
         alert('Tag already exists');
         return;
     }
 
     tags[tagName] = {
         tweets: [],
-        lastUpdated: Date.now(),
+        modifiedAt: Date.now(),
+        deletedAt: 0,
+        tweetsModifiedAt: {},
     };
 
     await gmSetWithCache(KEY_TAGS, tags);
@@ -75,7 +48,7 @@ export async function deleteTag(tagName: string) {
         return;
     }
 
-    delete tags[tagName];
+    tags[tagName].deletedAt = Date.now();
 
     await gmSetWithCache(KEY_TAGS, tags);
 }
@@ -97,13 +70,18 @@ export async function renameTag(oldTagName: string, newTagName: string) {
         return;
     }
 
-    if (newTagName in tags) {
+    if (tagExists(tags, newTagName)) {
         alert('Tag already exists');
         return;
     }
 
+    tags[oldTagName].deletedAt = Date.now();
     tags[newTagName] = tags[oldTagName];
-    delete tags[oldTagName];
+    tags[newTagName].modifiedAt = Date.now();
+    for (const tweetId of tags[newTagName].tweets) {
+        tags[newTagName].tweetsModifiedAt = tags[newTagName].tweetsModifiedAt ?? {};
+        tags[newTagName].tweetsModifiedAt![tweetId] = Date.now();
+    }
 
     await gmSetWithCache(KEY_TAGS, tags);
 }
@@ -132,7 +110,9 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
 
     let tag: Tag = {
         tweets: [],
-        lastUpdated: Date.now(),
+        modifiedAt: Date.now(),
+        deletedAt: 0,
+        tweetsModifiedAt: {},
     };
 
     if (tagName in tags) {
@@ -141,7 +121,8 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
         tags[tagName] = tag;
     }
 
-    tag.lastUpdated = Date.now();
+    tag.modifiedAt = Date.now();
+    tag.tweetsModifiedAt[tweetId] = Date.now();
 
     if (!tag.tweets.includes(tweetId)) {
         tag.tweets.push(tweetId);
@@ -149,9 +130,12 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
 
     if (imagesCache.length > 0) {
         tweets[tweetId] = {
-            images: imagesCache,
+            images: imagesCache.map(stripQueryParameters),
+            modifiedAt: Date.now(),
+            deletedAt: 0,
         };
     }
+    tweets[tweetId].modifiedAt = Date.now();
 
     await Promise.all([gmSetWithCache(KEY_TAGS, tags), gmSetWithCache(KEY_TWEETS, tweets)]);
 }
@@ -168,12 +152,18 @@ export async function removeTag(tweetId: string, tagName: string) {
     }
 
     const tags = await gmGetWithCache<Tags>(KEY_TAGS, {});
+    const tweets = await gmGetWithCache<Tweets>(KEY_TWEETS, {});
 
     if (!(tagName in tags)) {
         return;
     }
 
     tags[tagName].tweets = tags[tagName].tweets.filter((id) => id !== tweetId);
+    tags[tagName].modifiedAt = Date.now();
+    tags[tagName].tweetsModifiedAt[tweetId] = Date.now();
+    tags[tagName].tweets.forEach((id) => {
+        tweets[id].modifiedAt = Date.now();
+    });
 
     await gmSetWithCache(KEY_TAGS, tags);
 }
@@ -189,27 +179,39 @@ export async function removeTweet(tweetId: string) {
 
     const tweets = await gmGetWithCache<Tweets>(KEY_TWEETS, {});
 
-    delete tweets[tweetId];
+    tweets[tweetId].deletedAt = Date.now();
 
     await gmSetWithCache(KEY_TWEETS, tweets);
 }
 
 export async function getTags(): Promise<Tags> {
-    return gmGetWithCache(KEY_TAGS, {});
+    return gmGetWithCache(KEY_TAGS, {}).then((tags) => {
+        const filteredTags: Tags = {};
+        for (const [tagName, tag] of Object.entries<Tag>(tags)) {
+            if (!tag.deletedAt) {
+                filteredTags[tagName] = tag;
+            }
+        }
+        return filteredTags;
+    });
 }
 
 export async function getTweets(): Promise<Tweets> {
-    return gmGetWithCache(KEY_TWEETS, {});
-}
-
-export async function setTags(tags: Tags) {
-    await gmSetWithCache(KEY_TAGS, tags);
+    return gmGetWithCache(KEY_TWEETS, {}).then((tweets) => {
+        const filteredTweets: Tweets = {};
+        for (const [tweetId, tweet] of Object.entries<Tweet>(tweets)) {
+            if (!tweet.deletedAt) {
+                filteredTweets[tweetId] = tweet;
+            }
+        }
+        return filteredTweets;
+    });
 }
 
 // Store
 async function getExportData(): Promise<string> {
-    const tags = await getTags();
-    const tweets = await getTweets();
+    const tags = await GM.getValue<Tags>(KEY_TAGS, {});
+    const tweets = await GM.getValue<Tweets>(KEY_TWEETS, {});
 
     const data = {
         tags,
@@ -219,13 +221,22 @@ async function getExportData(): Promise<string> {
     return JSON.stringify(data, null, 2);
 }
 
-async function setImportData(jsonString: string) {
+async function setImportData(jsonString: string, merge: boolean = false) {
     const data: unknown = JSON.parse(jsonString);
-    const result = safeParse(DataExport, data);
+    const result = safeParse(ExportData, data);
 
     if (result.success) {
-        await gmSetWithCache(KEY_TAGS, result.output.tags);
-        await gmSetWithCache(KEY_TWEETS, result.output.tweets);
+        let importedData = result.output;
+        if (merge) {
+            const currentData: ExportData = {
+                tags: await gmGetWithCache<Tags>(KEY_TAGS, {}),
+                tweets: await gmGetWithCache<Tweets>(KEY_TWEETS, {}),
+            };
+            importedData = mergeData(currentData, result.output);
+        }
+
+        await gmSetWithCache(KEY_TAGS, importedData.tags);
+        await gmSetWithCache(KEY_TWEETS, importedData.tweets);
     } else {
         console.error(result.issues);
         alert(
@@ -269,7 +280,26 @@ export function importData(): Promise<void> {
                 if (!confirm('Are you sure you want to overwrite all tags?')) {
                     return;
                 }
-                await setImportData(reader.result as string);
+                await setImportData(reader.result as string, false);
+                resolve();
+            };
+            reader.readAsText(file);
+        });
+        input.click();
+    });
+}
+
+export function importMergeData(): Promise<void> {
+    return new Promise((resolve) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+        input.style.display = 'none';
+        input.addEventListener('change', async () => {
+            const file = input.files![0];
+            const reader = new FileReader();
+            reader.onload = async () => {
+                await setImportData(reader.result as string, true);
                 resolve();
             };
             reader.readAsText(file);
@@ -282,12 +312,98 @@ export async function clearAllTags() {
     if (!confirm('Are you sure you want to delete all tags?')) {
         return;
     }
-    cache[KEY_TAGS] = {};
-    cache[KEY_TWEETS] = {};
+    clearCache();
     GM.deleteValue(KEY_TAGS);
     GM.deleteValue(KEY_TWEETS);
 
     if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
         window.location.reload();
     }
+}
+
+// Sync
+function tagExists(tags: Tags, tagName: string) {
+    return tagName in tags && (tags[tagName].modifiedAt ?? 0) >= (tags[tagName].deletedAt ?? 0);
+}
+
+export function mergeData(data1: ExportData, data2: ExportData): ExportData {
+    const merged: ExportData = {
+        tags: {},
+        tweets: {},
+    };
+
+    // Tags
+    const tags1AndShared = Object.keys(data1.tags);
+    const tags2 = Object.keys(data2.tags).filter((tag) => !tags1AndShared.includes(tag));
+
+    // - Shared and unique to data1
+    for (const tag of tags1AndShared) {
+        if (!Object.keys(data2.tags).includes(tag)) {
+            merged.tags[tag] = data1.tags[tag];
+            continue;
+        }
+
+        // Shared
+        const tag1 = data1.tags[tag];
+        const tag2 = data2.tags[tag];
+
+        const mergedTweets = [...new Set([...tag1.tweets, ...tag2.tweets])];
+        const tweets: string[] = [];
+        const mergedTweetsModifiedAt: Record<string, number> = {};
+
+        for (const tweet of mergedTweets) {
+            const modifiedAt1 = tag1.tweetsModifiedAt?.[tweet] ?? 0;
+            const modifiedAt2 = tag2.tweetsModifiedAt?.[tweet] ?? 0;
+
+            if (modifiedAt1 > modifiedAt2 && !tag1.tweets.includes(tweet)) {
+                continue;
+            } else if (modifiedAt2 > modifiedAt1 && !tag2.tweets.includes(tweet)) {
+                continue;
+            }
+
+            tweets.push(tweet);
+            mergedTweetsModifiedAt[tweet] = Math.max(modifiedAt1, modifiedAt2);
+        }
+
+        merged.tags[tag] = {
+            modifiedAt: Math.max(tag1.modifiedAt ?? 0, tag2.modifiedAt ?? 0),
+            deletedAt: Math.max(tag1.deletedAt ?? 0, tag2.deletedAt ?? 0),
+            tweets,
+            tweetsModifiedAt: mergedTweetsModifiedAt,
+        };
+    }
+
+    // - Unique to data2
+    for (const tag of tags2) {
+        merged.tags[tag] = data2.tags[tag];
+    }
+
+    // Tweets
+    const tweets1 = Object.keys(data1.tweets);
+    const tweets2 = Object.keys(data2.tweets).filter((tweet) => !tweets1.includes(tweet));
+
+    // - Shared and unique to data1
+    for (const tweet of tweets1) {
+        if (!Object.keys(data2.tweets).includes(tweet)) {
+            merged.tweets[tweet] = data1.tweets[tweet];
+            continue;
+        }
+
+        // Shared
+        const tweet1 = data1.tweets[tweet];
+        const tweet2 = data2.tweets[tweet];
+
+        merged.tweets[tweet] = {
+            modifiedAt: Math.max(tweet1.modifiedAt ?? 0, tweet2.modifiedAt ?? 0),
+            deletedAt: Math.max(tweet1.deletedAt ?? 0, tweet2.deletedAt ?? 0),
+            images: [...new Set([...tweet1.images, ...tweet2.images].map(stripQueryParameters))],
+        };
+    }
+
+    // - Unique to data2
+    for (const tweet of tweets2) {
+        merged.tweets[tweet] = data2.tweets[tweet];
+    }
+
+    return merged;
 }

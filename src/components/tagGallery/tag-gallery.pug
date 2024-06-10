@@ -8,14 +8,18 @@ div(class=styles.tagsGallery)
                 | !{require("/src/assets/github.svg")}
     div(class=styles.optionsPanel)
         | !{require("/src/assets/tag.svg")}
-        input(class=`${styles.addTag}`, type="text", placeholder="Press enter to add a tag...")
+        input(class=`${styles.addTag}`, type="text" placeholder="Press enter to add a tag...")
         div(class=styles.dotMenu style="margin-left: auto")
             | !{require("/src/assets/dot-menu.svg")}
             div(class=styles.dotMenuDropdown)
-                div#tagExport
+                div(id=ids.tagExport)
                     | Export Tags
-                div#tagImport
-                    | Import Tags
+                div(id=ids.tagImport)
+                    | Import Tags (Replace)
+                div(id=ids.tagImportMerge)
+                    | Import Tags (Merge)
+                div(id=ids.tagSync)
+                    | Sync...
     hr
     div(class=styles.tagsContainer)
     div(class=styles.imageGallery)
