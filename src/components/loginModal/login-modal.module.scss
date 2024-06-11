@@ -1,0 +1,91 @@
+.modalContainer {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    &___show {
+        display: block;
+    }
+}
+
+.modal-open {
+    height: 100vh;
+    width: 100vw;
+    touch-action: none;
+    -webkit-overflow-scrolling: none;
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+.overlay {
+    width: 100vw;
+    height: 100vh;
+
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    z-index: 30000;
+}
+
+.modal {
+    width: 300px;
+    min-height: 200px;
+    height: fit-content;
+    z-index: 30001;
+    padding: 16px;
+    border-radius: 8px;
+
+    font-family: TwitterChirp;
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+
+    background-color: rgb(19, 18, 18);
+
+    position: fixed;
+    .login {
+        h3 {
+            margin: 8px 0;
+        }
+
+        .inputContainer {
+            margin-top: 8px;
+            width: 100%;
+
+            input {
+                width: 100%;
+                box-sizing: border-box;
+                margin-top: 8px;
+            }
+        }
+
+        .buttonContainer {
+            margin-top: auto;
+            margin-top: 8px;
+
+            button {
+                margin: 4px;
+            }
+        }
+    }
+
+    .loading {
+        height: 180px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        h3 {
+            width: fit-content;
+        }
+    }
+}

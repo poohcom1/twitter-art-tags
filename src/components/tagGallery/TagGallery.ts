@@ -10,10 +10,9 @@ import {
     renameTag,
     deleteTag,
     createTag,
-    exportData,
-    importData,
-    importMergeData,
-} from '../../storage';
+    exportDataToFile,
+    importDataFromFile,
+} from '../../services/storage';
 import TagModal from '../tagModal/TagModal';
 import tagIcon from '../../assets/tag.svg';
 import eyeIcon from '../../assets/eye.svg';
@@ -23,7 +22,8 @@ import pencilIcon from '../../assets/pencil.svg';
 import trashIcon from '../../assets/trash.svg';
 import squareIcon from '../../assets/square.svg';
 import checkSquareIcon from '../../assets/check-square.svg';
-import SyncModal from '../syncModal/SyncModal';
+import LoginModal from '../loginModal/LoginModal';
+import { deleteData, syncData } from '../../services/supabase';
 
 enum RenderKeys {
     TAGS = 'tags',
@@ -42,6 +42,8 @@ const IDS = {
     tagImport: 'tagImport',
     tagImportMerge: 'tagImportMerge',
     tagSync: 'tagSync',
+    deleteSync: 'deleteSync',
+    signOut: 'signOut',
 };
 
 export default class TagGallery {
@@ -69,7 +71,7 @@ export default class TagGallery {
         this.imageContainer = document.querySelector<HTMLElement>(`.${styles.imageGallery}`)!;
         this.tagsContainer = document.querySelector<HTMLElement>(`.${styles.tagsContainer}`)!;
 
-        const syncModal = new SyncModal();
+        const syncModal = new LoginModal();
 
         // Add tag
         document
@@ -88,25 +90,80 @@ export default class TagGallery {
                     event.preventDefault();
                 }
             });
+
         // Menu
+        const tagExport = document.querySelector<HTMLElement>(`#${IDS.tagExport}`)!;
+        const tagImport = document.querySelector<HTMLElement>(`#${IDS.tagImport}`)!;
+        const tagImportMerge = document.querySelector<HTMLElement>(`#${IDS.tagImportMerge}`)!;
+        const tagSync = document.querySelector<HTMLElement>(`#${IDS.tagSync}`)!;
+        const deleteSync = document.querySelector<HTMLElement>(`#${IDS.deleteSync}`)!;
+        const signOut = document.querySelector<HTMLElement>(`#${IDS.signOut}`)!;
+
         const dropdown = document.querySelector<HTMLElement>(`.${styles.dotMenuDropdown}`)!;
+        const closeDropdown = () => dropdown.classList.remove(styles.dotMenuDropdownVisible);
         document
             .querySelector<HTMLElement>(`.${styles.dotMenu}`)!
             .addEventListener('click', (e) => {
+                // Show dropdown
                 e.stopPropagation();
                 dropdown.classList.toggle(styles.dotMenuDropdownVisible);
-            });
-        document.onclick = () => dropdown.classList.remove(styles.dotMenuDropdownVisible);
 
-        document.querySelector<HTMLElement>(`#${IDS.tagExport}`)!.onclick = exportData;
-        document.querySelector<HTMLElement>(`#${IDS.tagImport}`)!.onclick = () =>
-            importData().then(() => this.rerender());
-        document.querySelector<HTMLElement>(`#${IDS.tagImportMerge}`)!.onclick = () =>
-            importMergeData().then(() => this.rerender());
-        document.querySelector<HTMLElement>(`#${IDS.tagSync}`)!.onclick = () => {
-            syncModal.show();
+                if (syncModal.isLoggedIn()) {
+                    tagSync.textContent = 'Sync';
+
+                    deleteSync.style.display = 'block';
+                    signOut.style.display = 'block';
+                } else {
+                    tagSync.textContent = 'Sync...';
+
+                    deleteSync.style.display = 'none';
+                    signOut.style.display = 'none';
+                }
+            });
+        document.onclick = closeDropdown;
+        dropdown.onclick = (e) => e.stopPropagation();
+
+        tagExport.onclick = exportDataToFile;
+        tagImport.onclick = () => importDataFromFile(false).then(() => this.rerender());
+        tagImportMerge.onclick = () => importDataFromFile(true).then(() => this.rerender());
+        tagSync.onclick = () => {
+            syncModal.show(async (user) => {
+                const success = await syncData(user);
+                if (!success) {
+                    alert('Failed to sync data!');
+                }
+                closeDropdown();
+                this.rerender();
+                return success;
+            });
+        };
+        deleteSync.onclick = () => {
+            syncModal.show(async (user) => {
+                if (
+                    !confirm(
+                        "Are you sure you want to clear synced tags? This won't remove local tags."
+                    )
+                ) {
+                    syncModal.hide();
+                    return true;
+                }
+
+                const success = await deleteData(user);
+                if (!success) {
+                    alert('Failed to delete data!');
+                }
+                closeDropdown();
+                this.rerender();
+                return success;
+            });
+        };
+        signOut.onclick = () => {
+            syncModal.signOut();
+            closeDropdown();
+            this.rerender();
         };
 
+        // Render
         this.renderTags([RenderKeys.IMAGES, RenderKeys.TAGS]).then(() =>
             this.renderImages([RenderKeys.IMAGES, RenderKeys.TAGS])
         );

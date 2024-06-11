@@ -1,30 +1,35 @@
 import { object, array, record, number, string, InferOutput } from 'valibot';
 
-const Tweet = object({
+const TweetSchema = object({
     images: array(string()),
     // Meta
     modifiedAt: number(),
     deletedAt: number(),
 });
-const Tweets = record(string(), Tweet);
+const TweetsSchema = record(string(), TweetSchema);
 
-export const Tag = object({
+export const TagSchema = object({
     tweets: array(string()),
     // Meta
     modifiedAt: number(),
     deletedAt: number(),
     tweetsModifiedAt: record(string(), number()),
 });
-const Tags = record(string(), Tag);
+const TagsSchema = record(string(), TagSchema);
 
-export const ExportData = object({
-    tweets: Tweets,
-    tags: Tags,
+export const UserDataSchema = object({
+    tweets: TweetsSchema,
+    tags: TagsSchema,
 });
 
 // Type definitions
-export type Tweet = InferOutput<typeof Tweet>;
-export type Tweets = InferOutput<typeof Tweets>;
-export type Tag = InferOutput<typeof Tag>;
-export type Tags = InferOutput<typeof Tags>;
-export type ExportData = InferOutput<typeof ExportData>;
+export type Tweet = InferOutput<typeof TweetSchema>;
+export type Tweets = InferOutput<typeof TweetsSchema>;
+export type Tag = InferOutput<typeof TagSchema>;
+export type Tags = InferOutput<typeof TagsSchema>;
+export type UserData = InferOutput<typeof UserDataSchema>;
+
+export interface WithMetadata {
+    modifiedAt: number;
+    deletedAt: number;
+}

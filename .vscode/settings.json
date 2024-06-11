@@ -22,5 +22,8 @@
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "explicit"
+    },
+    "[jade]": {
+        "editor.defaultFormatter": "ducfilan.pug-formatter"
     }
 }
