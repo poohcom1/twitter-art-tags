@@ -2,7 +2,7 @@ const path = require('path');
 const { UserscriptPlugin } = require('webpack-userscript');
 
 const { version, author } = require('./package.json');
-const { webpack } = require('webpack');
+const Dotenv = require('dotenv-webpack');
 
 /**
  * @type {import('webpack').Configuration}
@@ -51,7 +51,7 @@ module.exports = {
         ],
     },
     plugins: [
-        // webpack.WatchIgnorePlugin([/scss\.d\.ts$/]),
+        new Dotenv(),
         new UserscriptPlugin({
             headers: {
                 name: 'Twitter Art Tags',

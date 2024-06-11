@@ -1,10 +1,11 @@
 import template from './login-modal.pug';
 import styles from './login-modal.module.scss';
 import { parseHTML } from '../../utils';
-import { UserInfo, signIn } from '../../services/supabase';
+import { UserInfo, signIn, signUp } from '../../services/supabase';
 
 const IDS = {
     login: 'login',
+    signUp: 'signUp',
     loading: 'loading',
     // Login
     email: 'email',
@@ -37,6 +38,7 @@ export default class LoginModal {
         // Login
         this.emailInput = this.modalContainer.querySelector<HTMLInputElement>(`#${IDS.email}`)!;
         const pwInput = this.modalContainer.querySelector<HTMLInputElement>(`#${IDS.pw}`)!;
+        const signupToggle = this.modalContainer.querySelector<HTMLInputElement>(`#${IDS.signUp}`)!;
         const loginBtn = this.modalContainer.querySelector<HTMLButtonElement>(`#${IDS.loginBtn}`)!;
         const cancelBtn = this.modalContainer.querySelector<HTMLButtonElement>(
             `#${IDS.cancelBtn}`
@@ -56,7 +58,9 @@ export default class LoginModal {
                 return;
             }
 
-            const userInfo = await signIn(email, pw);
+            const userInfo = signupToggle.checked
+                ? await signUp(email, pw)
+                : await signIn(email, pw);
             if (userInfo) {
                 this.userInfo = userInfo;
                 await this.onLogin(userInfo);

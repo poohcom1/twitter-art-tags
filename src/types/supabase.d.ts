@@ -1,4 +1,10 @@
 declare namespace Supabase {
+    type SignUpResponseErrpr = {
+        code: number;
+        error_code: string;
+        msg: string;
+    };
+
     type TokenResponseSuccess = {
         access_token: string;
         token_type: string;

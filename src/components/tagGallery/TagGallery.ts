@@ -23,7 +23,7 @@ import trashIcon from '../../assets/trash.svg';
 import squareIcon from '../../assets/square.svg';
 import checkSquareIcon from '../../assets/check-square.svg';
 import LoginModal from '../loginModal/LoginModal';
-import { syncData } from '../../services/supabase';
+import { deleteData, syncData } from '../../services/supabase';
 
 enum RenderKeys {
     TAGS = 'tags',
@@ -131,6 +131,24 @@ export default class TagGallery {
                 const success = await syncData(user);
                 if (!success) {
                     alert('Failed to sync data!');
+                }
+                closeDropdown();
+                this.rerender();
+            });
+        };
+        deleteSync.onclick = () => {
+            syncModal.show(async (user) => {
+                if (
+                    !confirm(
+                        "Are you sure you want to clear synced tags? This won't remove local tags."
+                    )
+                ) {
+                    return;
+                }
+
+                const success = await deleteData(user);
+                if (!success) {
+                    alert('Failed to delete data!');
                 }
                 closeDropdown();
                 this.rerender();
