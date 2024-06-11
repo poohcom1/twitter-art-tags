@@ -1,7 +1,7 @@
-import { gmSetWithCache } from '../cache';
-import { KEY_TAGS, KEY_TWEETS } from '../constants';
-import { ExportData } from '../models';
-import { getExportData, mergeData } from '../storage';
+import { gmSetWithCache } from './cache';
+import { KEY_USER_DATA } from '../constants';
+import { UserData } from '../models';
+import { getExportData, mergeData } from './storage';
 
 export interface UserInfo {
     access_token: string;
@@ -11,7 +11,7 @@ export interface UserInfo {
 
 interface ExportDataRow {
     user_id: string;
-    data: ExportData;
+    data: UserData;
 }
 
 const URL = 'https://ecitekeqfiimnyuofxdm.supabase.co';
@@ -70,14 +70,13 @@ export async function syncData(userInfo: UserInfo): Promise<boolean> {
     const success = await uploadData(userInfo, data);
 
     if (success) {
-        await gmSetWithCache(KEY_TAGS, data.tags);
-        await gmSetWithCache(KEY_TWEETS, data.tweets);
+        await gmSetWithCache(KEY_USER_DATA, data);
     }
 
     return success;
 }
 
-export async function uploadData(userInfo: UserInfo, data: ExportData): Promise<boolean> {
+export async function uploadData(userInfo: UserInfo, data: UserData): Promise<boolean> {
     const bodyJson: ExportDataRow = {
         user_id: userInfo.user_id,
         data,
@@ -110,7 +109,7 @@ export async function uploadData(userInfo: UserInfo, data: ExportData): Promise<
     );
 }
 
-export async function downloadData(userInfo: UserInfo): Promise<ExportData | null> {
+export async function downloadData(userInfo: UserInfo): Promise<UserData | null> {
     return new Promise((resolve) =>
         GM.xmlHttpRequest({
             url: `${URL}/rest/v1/${TABLE_NAME}?user_id=eq.${userInfo.user_id}`,

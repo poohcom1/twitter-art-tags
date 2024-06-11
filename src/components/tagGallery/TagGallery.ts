@@ -13,7 +13,7 @@ import {
     exportData,
     importData,
     importMergeData,
-} from '../../storage';
+} from '../../services/storage';
 import TagModal from '../tagModal/TagModal';
 import tagIcon from '../../assets/tag.svg';
 import eyeIcon from '../../assets/eye.svg';

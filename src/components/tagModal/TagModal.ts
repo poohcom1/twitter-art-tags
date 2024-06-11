@@ -1,7 +1,7 @@
 import template from './tag-modal.pug';
 import styles from './tag-modal.module.scss';
 import tagButtonTemplate from '../templates/tag-button.pug';
-import { addTag, getTags, removeTag } from '../../storage';
+import { addTag, getTags, removeTag } from '../../services/storage';
 import { SANITIZE_INFO, formatTagName, parseHTML, verifyEvent } from '../../utils';
 import squareIcon from '../../assets/square.svg';
 import checkSquareIcon from '../../assets/check-square.svg';

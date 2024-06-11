@@ -1,7 +1,7 @@
 import { renderTweetDropdown } from './pages/tweetDropdown';
 import { renderTagsGallery } from './pages/tagsGallery';
 import { CUSTOM_PAGE_PATH } from './constants';
-import { clearAllTags } from './storage';
+import { clearAllTags } from './services/storage';
 import { renderNavButton } from './pages/navButton';
 import TagModal from './components/tagModal/TagModal';
 

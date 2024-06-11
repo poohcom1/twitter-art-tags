@@ -10,6 +10,6 @@
         "moduleResolution": "node",
         "types": ["node", "jest"]
     },
-    "include": ["./src/**/*", "./test/**/*"],
-    "exclude": ["node_modules", "vanilla-context-menu"]
+    "include": ["./src/**/*"],
+    "exclude": ["node_modules", "vanilla-context-menu", "./test/**/*"]
 }

@@ -1,7 +1,21 @@
-import { clearCache, gmGetWithCache, gmSetWithCache } from './cache';
-import { CUSTOM_PAGE_PATH, KEY_TAGS, KEY_TWEETS } from './constants';
-import { Tags, Tag, Tweets, ExportData, Tweet, WithMetadata } from './models';
+import { clearCache, gmGetWithCache, gmSetWithCache, reloadCache } from './cache';
+import { CUSTOM_PAGE_PATH, KEY_USER_DATA } from '../constants';
+import { UserDataSchema, WithMetadata, Tweet, Tweets, UserData, Tag, Tags } from '../models';
 import { safeParse } from 'valibot';
+
+const DEFAULT_USER_DATA: UserData = {
+    tags: {},
+    tweets: {},
+};
+
+// Cache
+export const cacheInvalidated = new Event('cacheInvalidated');
+if (process.env.NODE_ENV !== 'test') {
+    document.addEventListener('visibilitychange', () => {
+        clearCache(KEY_USER_DATA);
+        reloadCache(KEY_USER_DATA).then(() => document.dispatchEvent(cacheInvalidated));
+    });
+}
 
 // Sanitize
 function sanitizeTagName(tagName: string) {
@@ -24,7 +38,7 @@ export async function createTag(tagName: string) {
         return;
     }
 
-    const tags = await gmGetWithCache<Tags>(KEY_TAGS, {});
+    const { tags, tweets } = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
     if (tagExists(tags, tagName)) {
         alert('Tag already exists');
@@ -38,19 +52,18 @@ export async function createTag(tagName: string) {
         tweetsModifiedAt: {},
     };
 
-    await gmSetWithCache(KEY_TAGS, tags);
+    await gmSetWithCache<UserData>(KEY_USER_DATA, { tags, tweets });
 }
 
 export async function deleteTag(tagName: string) {
-    const tags = await gmGetWithCache<Tags>(KEY_TAGS, {});
+    const { tags, tweets } = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
     if (!(tagName in tags)) {
         return;
     }
 
     tags[tagName].deletedAt = Date.now();
-
-    await gmSetWithCache(KEY_TAGS, tags);
+    await gmSetWithCache<UserData>(KEY_USER_DATA, { tags, tweets });
 }
 
 export async function renameTag(oldTagName: string, newTagName: string) {
@@ -64,7 +77,7 @@ export async function renameTag(oldTagName: string, newTagName: string) {
         return;
     }
 
-    const tags = await gmGetWithCache<Tags>(KEY_TAGS, {});
+    const { tags, tweets } = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
     if (!(oldTagName in tags)) {
         return;
@@ -83,7 +96,7 @@ export async function renameTag(oldTagName: string, newTagName: string) {
         tags[newTagName].tweetsModifiedAt![tweetId] = Date.now();
     }
 
-    await gmSetWithCache(KEY_TAGS, tags);
+    await gmSetWithCache<UserData>(KEY_USER_DATA, { tags, tweets });
 }
 
 // Tweet
@@ -98,10 +111,7 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
         return;
     }
 
-    const [tags, tweets] = await Promise.all([
-        gmGetWithCache<Tags>(KEY_TAGS, {}),
-        gmGetWithCache<Tweets>(KEY_TWEETS, {}),
-    ]);
+    const { tags, tweets } = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
     if (!(tweetId in tweets) && imagesCache.length === 0) {
         console.error('New tweet being cached, but no images found');
@@ -137,7 +147,7 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
     }
     tweets[tweetId].modifiedAt = Date.now();
 
-    await Promise.all([gmSetWithCache(KEY_TAGS, tags), gmSetWithCache(KEY_TWEETS, tweets)]);
+    await gmSetWithCache<UserData>(KEY_USER_DATA, { tags, tweets });
 }
 
 export async function removeTag(tweetId: string, tagName: string) {
@@ -151,8 +161,7 @@ export async function removeTag(tweetId: string, tagName: string) {
         return;
     }
 
-    const tags = await gmGetWithCache<Tags>(KEY_TAGS, {});
-    const tweets = await gmGetWithCache<Tweets>(KEY_TWEETS, {});
+    const { tags, tweets } = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
     if (!(tagName in tags)) {
         return;
@@ -165,23 +174,19 @@ export async function removeTag(tweetId: string, tagName: string) {
         tweets[id].modifiedAt = Date.now();
     });
 
-    await gmSetWithCache(KEY_TAGS, tags);
+    await gmSetWithCache<UserData>(KEY_USER_DATA, { tags, tweets });
 }
 
 export async function removeTweet(tweetId: string) {
-    const tags = await gmGetWithCache<Tags>(KEY_TAGS, {});
+    const { tags, tweets } = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
     for (const tag of Object.values(tags)) {
         tag.tweets = tag.tweets.filter((id) => id !== tweetId);
     }
 
-    await gmSetWithCache(KEY_TAGS, tags);
-
-    const tweets = await gmGetWithCache<Tweets>(KEY_TWEETS, {});
-
     tweets[tweetId].deletedAt = Date.now();
 
-    await gmSetWithCache(KEY_TWEETS, tweets);
+    await gmSetWithCache<UserData>(KEY_USER_DATA, { tags, tweets });
 }
 
 // Get data
@@ -190,7 +195,7 @@ function filterExists(data: WithMetadata): boolean {
 }
 
 export async function getTags(): Promise<Tags> {
-    return gmGetWithCache(KEY_TAGS, {}).then((tags) => {
+    return gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA).then(({ tags }) => {
         const filteredTags: Tags = {};
         for (const [tagName, tag] of Object.entries<Tag>(tags)) {
             if (filterExists(tag)) {
@@ -202,7 +207,7 @@ export async function getTags(): Promise<Tags> {
 }
 
 export async function getTweets(): Promise<Tweets> {
-    return gmGetWithCache(KEY_TWEETS, {}).then((tweets) => {
+    return gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA).then(({ tweets }) => {
         const filteredTweets: Tweets = {};
         for (const [tweetId, tweet] of Object.entries<Tweet>(tweets)) {
             if (filterExists(tweet)) {
@@ -214,34 +219,25 @@ export async function getTweets(): Promise<Tweets> {
 }
 
 // Store
-export async function getExportData(): Promise<ExportData> {
-    const tags = await GM.getValue<Tags>(KEY_TAGS, {});
-    const tweets = await GM.getValue<Tweets>(KEY_TWEETS, {});
-
-    const data = {
-        tags,
-        tweets,
-    };
-
-    return data;
+export async function getExportData(): Promise<UserData> {
+    return await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 }
 
 export async function setImportData(jsonString: string, merge: boolean = false) {
     const data: unknown = JSON.parse(jsonString);
-    const result = safeParse(ExportData, data);
+    const result = safeParse(UserDataSchema, data);
 
     if (result.success) {
         let importedData = result.output;
         if (merge) {
-            const currentData: ExportData = {
-                tags: await gmGetWithCache<Tags>(KEY_TAGS, {}),
-                tweets: await gmGetWithCache<Tweets>(KEY_TWEETS, {}),
-            };
+            const currentData: UserData = await gmGetWithCache<UserData>(
+                KEY_USER_DATA,
+                DEFAULT_USER_DATA
+            );
             importedData = mergeData(currentData, result.output);
         }
 
-        await gmSetWithCache(KEY_TAGS, importedData.tags);
-        await gmSetWithCache(KEY_TWEETS, importedData.tweets);
+        await gmSetWithCache(KEY_USER_DATA, importedData);
     } else {
         console.error(result.issues);
         alert(
@@ -317,9 +313,8 @@ export async function clearAllTags() {
     if (!confirm('Are you sure you want to delete all tags?')) {
         return;
     }
-    clearCache();
-    GM.deleteValue(KEY_TAGS);
-    GM.deleteValue(KEY_TWEETS);
+    clearCache(KEY_USER_DATA);
+    GM.deleteValue(KEY_USER_DATA);
 
     if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
         window.location.reload();
@@ -331,8 +326,8 @@ function tagExists(tags: Tags, tagName: string) {
     return tagName in tags && (tags[tagName].modifiedAt ?? 0) >= (tags[tagName].deletedAt ?? 0);
 }
 
-export function mergeData(data1: ExportData, data2: ExportData): ExportData {
-    const merged: ExportData = {
+export function mergeData(data1: UserData, data2: UserData): UserData {
+    const merged: UserData = {
         tags: {},
         tweets: {},
     };

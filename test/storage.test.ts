@@ -1,4 +1,4 @@
-import { ExportData, Tag, Tweet } from '../src/models';
+import { Tag, Tweet, UserData } from '../src/models';
 import { createTag, getTags, mergeData } from '../src/storage';
 
 global.alert = jest.fn();
@@ -82,7 +82,7 @@ describe('storage', () => {
 
     describe('sync', () => {
         it('should merge normally if there are no overlaps', () => {
-            const data1: ExportData = {
+            const data1: UserData = {
                 tags: {
                     tag1: { ...TAG_DEFAULT, tweets: ['tweet1'] },
                 },
@@ -90,7 +90,7 @@ describe('storage', () => {
                     tweet1: { ...TWEET_DEFAULT, images: [] },
                 },
             };
-            const data2: ExportData = {
+            const data2: UserData = {
                 tags: {
                     tag2: { ...TAG_DEFAULT, tweets: ['tweet2'] },
                 },
@@ -113,7 +113,7 @@ describe('storage', () => {
         });
 
         it('should delete if deleted_at is newer', () => {
-            const data1: ExportData = {
+            const data1: UserData = {
                 tags: {
                     tag1: { ...TAG_DEFAULT, modifiedAt: 100, tweets: ['tweet1'] },
                 },
@@ -121,7 +121,7 @@ describe('storage', () => {
                     tweet1: { ...TWEET_DEFAULT, deletedAt: 123, images: [] },
                 },
             };
-            const data2: ExportData = {
+            const data2: UserData = {
                 tags: {
                     tag1: { ...TAG_DEFAULT, deletedAt: 123, tweets: ['tweet1'] },
                 },
@@ -149,7 +149,7 @@ describe('storage', () => {
         });
 
         it('should delete tweet if deleted_at is newer', () => {
-            const data1: ExportData = {
+            const data1: UserData = {
                 tags: {
                     tag1: {
                         ...TAG_DEFAULT,
@@ -159,7 +159,7 @@ describe('storage', () => {
                 },
                 tweets: {},
             };
-            const data2: ExportData = {
+            const data2: UserData = {
                 tags: {
                     tag1: { ...TAG_DEFAULT, tweets: [], tweetsModifiedAt: { tweet1: 123 } },
                 },
