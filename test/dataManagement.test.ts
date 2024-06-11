@@ -68,7 +68,61 @@ describe('dataManagement', () => {
         });
     });
 
-    describe('sync', () => {
+    describe('updateTimestamps', () => {
+        it('should update all tags correctly', () => {
+            const pastTime = Date.now() - 1000;
+            const currentTime = Date.now();
+
+            const oldData = userData({
+                tags: {
+                    currentTag: {
+                        tweets: ['tweet1', 'tweet2'],
+                        modifiedAt: currentTime,
+                        deletedAt: pastTime,
+                        tweetsModifiedAt: {
+                            tweet1: currentTime,
+                            tweet2: pastTime,
+                        },
+                    },
+                    deletedTag: {
+                        tweets: ['tweet2'],
+                        modifiedAt: pastTime,
+                        deletedAt: currentTime,
+                    },
+                },
+            });
+
+            jest.advanceTimersByTime(1000);
+
+            const result = dataManagement.updateTimeStamps(oldData);
+            const updatedTime = Date.now();
+            expect(result).toEqual(
+                userData({
+                    tags: {
+                        currentTag: {
+                            tweets: ['tweet1', 'tweet2'],
+                            modifiedAt: updatedTime,
+                            deletedAt: oldData.tags.currentTag.deletedAt,
+                            tweetsModifiedAt: {
+                                tweet1: updatedTime,
+                                tweet2: updatedTime,
+                            },
+                        },
+                        deletedTag: {
+                            tweets: ['tweet2'],
+                            modifiedAt: oldData.tags.deletedTag.modifiedAt,
+                            deletedAt: updatedTime,
+                            tweetsModifiedAt: {
+                                tweet2: updatedTime,
+                            },
+                        },
+                    },
+                })
+            );
+        });
+    });
+
+    describe('mergeData', () => {
         it('should merge normally if there are no overlaps', () => {
             const data1 = userData({
                 tags: {

@@ -122,12 +122,40 @@ export function removeTweet(userData: UserData, tweetId: string) {
     return newData;
 }
 
+// sync
 function stripeNameParam(url: string) {
     const urlObj = new URL(url);
     const searchParams = urlObj.searchParams;
     searchParams.delete('name');
     urlObj.search = searchParams.toString();
     return urlObj.toString();
+}
+
+export function updateTimeStamps(userData: UserData): UserData {
+    const { tags, tweets } = userData;
+
+    const now = Date.now();
+    for (const tag of Object.keys(tags)) {
+        if (filterExists(tags[tag])) {
+            tags[tag].modifiedAt = now;
+        } else {
+            tags[tag].deletedAt = now;
+        }
+
+        for (const tweet of tags[tag].tweets) {
+            tags[tag].tweetsModifiedAt[tweet] = now;
+        }
+    }
+
+    for (const tweet of Object.keys(tweets)) {
+        if (filterExists(tweets[tweet])) {
+            tweets[tweet].modifiedAt = now;
+        } else {
+            tweets[tweet].deletedAt = now;
+        }
+    }
+
+    return userData;
 }
 
 export function mergeData(data1: UserData, data2: UserData): UserData {

@@ -165,29 +165,7 @@ export async function setImportData(jsonString: string, merge: boolean = false) 
             );
             importedData = dataManagement.mergeData(currentData, result.output);
         } else {
-            // Update modifiedAt and deletedAt
-            const { tags, tweets } = importedData;
-
-            const now = Date.now();
-            for (const tag of Object.keys(importedData.tags)) {
-                if (dataManagement.filterExists(tags[tag])) {
-                    tags[tag].modifiedAt = now;
-                } else {
-                    tags[tag].deletedAt = now;
-                }
-
-                for (const tweet of tags[tag].tweets) {
-                    tweets[tweet].modifiedAt = now;
-                }
-            }
-
-            for (const tweet of Object.keys(importedData.tweets)) {
-                if (dataManagement.filterExists(tweets[tweet])) {
-                    tweets[tweet].modifiedAt = now;
-                } else {
-                    tweets[tweet].deletedAt = now;
-                }
-            }
+            importedData = dataManagement.updateTimeStamps(importedData);
         }
 
         await gmSetWithCache(KEY_USER_DATA, importedData);
