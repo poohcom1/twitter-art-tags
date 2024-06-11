@@ -60,7 +60,9 @@ export async function signIn(email: string, password: string): Promise<UserInfo 
 }
 
 export async function syncData(userInfo: UserInfo): Promise<boolean> {
+    console.log('Downloading data...');
     const onlineData = await downloadData(userInfo);
+    console.log('Data fpimd: ' + !!onlineData);
 
     let data = await getExportData();
 
@@ -68,7 +70,9 @@ export async function syncData(userInfo: UserInfo): Promise<boolean> {
         data = mergeData(data, onlineData);
     }
 
+    console.log('Uploading data...');
     const success = await uploadData(userInfo, data);
+    console.log('Data uploaded successfully: ' + success);
 
     if (success) {
         await gmSetWithCache(KEY_USER_DATA, data);
@@ -96,14 +100,14 @@ export async function uploadData(userInfo: UserInfo, data: UserData): Promise<bo
             data: JSON.stringify(bodyJson),
             onload: (res) => {
                 if (res.status >= 400) {
-                    alert(res);
+                    console.error(JSON.stringify(res));
                     resolve(false);
                 } else {
                     resolve(true);
                 }
             },
             onerror: (res) => {
-                alert(res);
+                console.error(JSON.stringify(res));
                 resolve(false);
             },
         })
@@ -122,7 +126,7 @@ export async function downloadData(userInfo: UserInfo): Promise<UserData | null>
             },
             onload: (res) => {
                 if (res.status >= 400) {
-                    alert(res);
+                    console.error(res);
                     resolve(null);
                 } else {
                     const data: ExportDataRow[] = JSON.parse(res.responseText);
@@ -130,7 +134,7 @@ export async function downloadData(userInfo: UserInfo): Promise<UserData | null>
                 }
             },
             onerror: (res) => {
-                alert(res);
+                console.error(JSON.stringify(res));
                 resolve(null);
             },
         })

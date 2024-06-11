@@ -87,22 +87,35 @@ export default class LoginModal {
         this.showLogin();
     }
 
+    public isLoggedIn() {
+        return !!this.userInfo;
+    }
+
     // Modal
     public async show(onLogin: LoginCallback) {
+        this.modalContainer.classList.add(styles.modalContainerShow);
+        document.body.classList.add(styles.modalOpen);
+
         if (this.userInfo) {
             this.showLoading();
-            onLogin(this.userInfo);
+            await onLogin(this.userInfo);
+            this.hide();
             return;
         }
 
         this.onLogin = onLogin;
-        this.modalContainer.classList.add(styles.modalContainerShow);
-        document.body.classList.add(styles.modalOpen);
-        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        await new Promise((resolve) => setTimeout(resolve, 50));
         this.emailInput.focus();
+        this.emailInput.select();
+        this.showLogin();
     }
 
-    private hide() {
+    public signOut() {
+        this.userInfo = null;
+    }
+
+    public hide() {
         this.modalContainer.classList.remove(styles.modalContainerShow);
         document.body.classList.remove(styles.modalOpen);
     }
