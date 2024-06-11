@@ -113,7 +113,15 @@ export default class LoginModal {
                 return;
             }
 
-            this.showLoading('Syncing...');
+            if (
+                !confirm(
+                    'Are you sure you want to clear synced tags? This will not affect local tags.'
+                )
+            ) {
+                return;
+            }
+
+            this.showLoading('Clearing...');
 
             const success = await deleteData(this.userInfoData.userInfo);
 
