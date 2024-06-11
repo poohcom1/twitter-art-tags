@@ -1,7 +1,6 @@
 import { renderTweetDropdown } from './pages/tweetDropdown';
 import { renderTagsGallery } from './pages/tagsGallery';
 import { CUSTOM_PAGE_PATH } from './constants';
-import { clearAllTags } from './services/storage';
 import { renderNavButton } from './pages/navButton';
 import TagModal from './components/tagModal/TagModal';
 
@@ -10,7 +9,6 @@ GM.registerMenuCommand(
     'Twitter Art Tags - View tags',
     () => (window.location.href = window.location.origin + CUSTOM_PAGE_PATH)
 );
-GM.registerMenuCommand('Twitter Art Tags - Clear all tags', clearAllTags);
 
 // Main
 const dropdownTagModal = new TagModal();

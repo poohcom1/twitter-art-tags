@@ -1,5 +1,5 @@
 import { clearCache, gmGetWithCache, gmSetWithCache, reloadCache } from './cache';
-import { CUSTOM_PAGE_PATH, KEY_USER_DATA } from '../constants';
+import { KEY_USER_DATA } from '../constants';
 import { UserDataSchema, Tweets, UserData, Tags } from '../models';
 import { safeParse } from 'valibot';
 import * as dataManagement from './dataManagement';
@@ -13,8 +13,10 @@ const DEFAULT_USER_DATA: UserData = {
 export const cacheInvalidated = new Event('cacheInvalidated');
 if (process.env.NODE_ENV !== 'test') {
     document.addEventListener('visibilitychange', () => {
-        clearCache(KEY_USER_DATA);
-        reloadCache(KEY_USER_DATA).then(() => document.dispatchEvent(cacheInvalidated));
+        clearCache(KEY_USER_DATA, DEFAULT_USER_DATA);
+        reloadCache(KEY_USER_DATA, DEFAULT_USER_DATA).then(() =>
+            document.dispatchEvent(cacheInvalidated)
+        );
     });
 }
 
@@ -147,11 +149,15 @@ export async function getTweets(): Promise<Tweets> {
     );
 }
 
-// Store
-export async function getExportData(): Promise<UserData> {
+export async function getUserData(): Promise<UserData> {
     return await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 }
 
+export function isDataEmpty(data: UserData): boolean {
+    return data === DEFAULT_USER_DATA;
+}
+
+// Store
 export async function setImportData(jsonString: string, merge: boolean = false) {
     const data: unknown = JSON.parse(jsonString);
     const result = safeParse(UserDataSchema, data);
@@ -187,7 +193,7 @@ const exportFilename = () => {
 };
 
 export async function exportDataToFile() {
-    const tags = JSON.stringify(await getExportData(), null, 2);
+    const tags = JSON.stringify(await getUserData(), null, 2);
     const blob = new Blob([tags], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -208,10 +214,15 @@ export function importDataFromFile(merge: boolean): Promise<void> {
             const file = input.files![0];
             const reader = new FileReader();
             reader.onload = async () => {
-                if (!merge) {
-                    if (!confirm('Are you sure you want to overwrite all tags?')) {
-                        return;
-                    }
+                const warning = merge
+                    ? 'This will merge the data with the current data. Are you sure you want to proceed?'
+                    : 'Are you sure you want to overwrite all tags?';
+
+                const userData = await getUserData();
+
+                if (!(isDataEmpty(userData) || confirm(warning))) {
+                    resolve();
+                    return;
                 }
                 await setImportData(reader.result as string, merge);
 
@@ -224,13 +235,6 @@ export function importDataFromFile(merge: boolean): Promise<void> {
 }
 
 export async function clearAllTags() {
-    if (!confirm('Are you sure you want to delete all tags?')) {
-        return;
-    }
-    clearCache(KEY_USER_DATA);
-    GM.deleteValue(KEY_USER_DATA);
-
-    if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
-        window.location.reload();
-    }
+    clearCache(KEY_USER_DATA, DEFAULT_USER_DATA);
+    await GM.deleteValue(KEY_USER_DATA);
 }

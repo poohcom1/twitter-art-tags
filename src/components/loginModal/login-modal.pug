@@ -1,23 +1,21 @@
 div(class=styles.modalContainer)
     div(class=styles.overlay)
     div(class=styles.modal)
-        div(id=ids.login class=styles.login)
+        div(class=styles.titleContainer)
             h3(class=styles.title) Sync your tags
-            div(class=styles.description) To sync your tags, please create an account or log in.
-            div(class=styles.inputContainer)
-                input(id=ids.email class=styles.input type='text' placeholder='Email')
-                input(id=ids.pw class=styles.input type='password' placeholder='Password')
-                input(id=ids.confirmPw class=styles.input type='password' placeholder='Confirm password')
-            div(class=styles.buttonContainer)
-                input(id=ids.signUp type='checkbox')
-                label(for=ids.signUp)
-                    | Create a new account
-            div(class=styles.buttonContainer)
-                button(id=ids.loginBtn class=styles.button) Sign in
-                button(id=ids.cancelBtn class=styles.button) Cancel
-            div(class=styles.privacy)
-                a(href='https://github.com/poohcom1/twitter-art-tags/blob/master/PRIVACY.md' target='_blank') Privacy Policy
-        div(id=ids.loading)
-            div(class=styles.loading)
-                h3(id=ids.loadingText)
-                    | Syncing...
+            div(id=ids.close class=styles.svg)
+                | !{require("/src/assets/x-close.svg")}
+        div(id=ids.login class=styles.login)
+            div(class=styles.btnContainer)
+                button(id=ids.loginBtn) Log in via Twitter
+        div(id=ids.loading class=styles.loading)
+            h3(id=ids.loadingText) Syncing...
+        div(id=ids.sync class=styles.sync)
+            button(id=ids.syncBtn)
+                | !{require("/src/assets/cloud-upload.svg")} Sync
+            button(id=ids.clearBtn)
+                | !{require("/src/assets/cloud-off.svg")} Clear data
+            button(id=ids.logoutBtn)
+                | !{require("/src/assets/logout.svg")} Log out
+        div(class=styles.privacy)
+            a(href='https://github.com/poohcom1/twitter-art-tags/blob/master/PRIVACY.md' target='_blank') Privacy Policy

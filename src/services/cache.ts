@@ -23,10 +23,10 @@ export async function gmGetWithCache<T>(key: string, defVal: T): Promise<T> {
     return value;
 }
 
-export async function clearCache(key: string, defaultValue: unknown = {}) {
+export async function clearCache(key: string, defaultValue: unknown) {
     cache[key] = defaultValue;
 }
 
-export async function reloadCache(key: string) {
-    cache[key] = await GM.getValue(key);
+export async function reloadCache(key: string, defaultValue: unknown) {
+    cache[key] = await GM.getValue(key, defaultValue);
 }

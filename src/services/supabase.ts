@@ -1,32 +1,113 @@
 import { gmSetWithCache } from './cache';
 import { KEY_USER_DATA } from '../constants';
 import { UserData } from '../models';
-import { getExportData } from './storage';
+import { getUserData } from './storage';
 import { mergeData } from './dataManagement';
 
 export interface UserInfo {
-    access_token: string;
     user_id: string;
-    expires_at: number;
+    email: string;
+    access_token: string;
 }
 
-interface ExportDataRow {
+export interface UserInfoData {
+    userInfo: UserInfo;
+    userData: UserData | null;
+}
+
+interface UserDataRow {
     user_id: string;
     data: UserData;
+}
+
+interface AccessTokenStore {
+    accessToken: string;
+    expiresAt: number;
 }
 
 const URL = process.env.SUPABASE_URL!;
 const API_KEY = process.env.SUPABASE_KEY!;
 
+const LOCAL_STORAGE_KEY = 'twitter-art-tags_access-token';
+
 export const TABLE_NAME = 'export_data';
 
 // Tasks
+{
+    const paramsString = window.location.href.split('#')[1];
+    if (paramsString) {
+        const params = new URLSearchParams(paramsString);
+
+        const date = new Date();
+        date.setTime(date.getTime() + Number.parseInt(params.get('expires_in') ?? '0') * 1000);
+        const store = {
+            accessToken: params.get('access_token') ?? '',
+            expiresAt: date.getTime(),
+        };
+
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(store));
+
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+}
+
+export async function getUserInfo(): Promise<UserInfoData | null> {
+    let accessToken = '';
+
+    const storeString = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storeString) {
+        const store: AccessTokenStore = JSON.parse(storeString);
+        if (store.expiresAt > Date.now()) {
+            accessToken = store.accessToken;
+        }
+    }
+
+    if (accessToken) {
+        const userInfo = await new Promise<UserInfo | null>((resolve) =>
+            GM.xmlHttpRequest({
+                url: `${URL}/auth/v1/user`,
+                method: 'GET',
+                headers: {
+                    apiKey: API_KEY,
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                onload: async (res) => {
+                    if (res.status >= 400) {
+                        console.warn('Get user error - status');
+                        const data: Supabase.UserResponseError = JSON.parse(res.responseText);
+                        alert(data.msg ?? JSON.stringify(res));
+                    } else {
+                        const data: Supabase.UserResponseSuccess = JSON.parse(res.responseText);
+                        resolve({
+                            user_id: data.id,
+                            email: data.email,
+                            access_token: accessToken,
+                        });
+                    }
+                },
+                onerror: (res) => {
+                    console.warn('Get user error - rejected');
+                    console.error(res.responseText);
+                    resolve(null);
+                },
+            })
+        );
+
+        if (userInfo) {
+            const userData = await downloadData(userInfo);
+            return { userInfo, userData };
+        }
+    }
+
+    return null;
+}
+
 export async function syncData(userInfo: UserInfo): Promise<boolean> {
     console.log('Downloading data...');
     const onlineData = await downloadData(userInfo);
     console.log('Data found: ' + !!onlineData);
 
-    let data = await getExportData();
+    let data = await getUserData();
 
     if (onlineData) {
         data = mergeData(data, onlineData);
@@ -44,34 +125,17 @@ export async function syncData(userInfo: UserInfo): Promise<boolean> {
 }
 
 // API
-export async function signIn(email: string, password: string): Promise<UserInfo | null> {
+export async function signIn(): Promise<UserInfo | null> {
     return new Promise((resolve) =>
         GM.xmlHttpRequest({
-            url: `${URL}/auth/v1/token?grant_type=password`,
-            method: 'POST',
+            url: `${URL}/auth/v1/authorize?provider=twitter`,
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 apikey: API_KEY,
             },
-            data: JSON.stringify({
-                email,
-                password,
-            }),
             onload: async (res) => {
-                if (res.status >= 400) {
-                    console.warn('Sign in error - status');
-                    const data: Supabase.TokenResponseError = JSON.parse(res.responseText);
-                    alert(data.error_description ?? JSON.stringify(res));
-                    resolve(null);
-                } else {
-                    const data: Supabase.TokenResponseSuccess = JSON.parse(res.responseText);
-                    const userInfo: UserInfo = {
-                        access_token: data.access_token,
-                        user_id: data.user.id,
-                        expires_at: data.expires_at,
-                    };
-                    resolve(userInfo);
-                }
+                window.location.href = res.finalUrl;
             },
             onerror: (res) => {
                 console.warn('Sign in error - rejected');
@@ -82,46 +146,12 @@ export async function signIn(email: string, password: string): Promise<UserInfo 
     );
 }
 
-export async function signUp(email: string, password: string): Promise<UserInfo | null> {
-    return new Promise((resolve) =>
-        GM.xmlHttpRequest({
-            url: `${URL}/auth/v1/signup`,
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                apikey: API_KEY,
-            },
-            data: JSON.stringify({
-                email,
-                password,
-            }),
-            onload: async (res) => {
-                if (res.status >= 400) {
-                    console.warn('Sign up error - status');
-                    const data: Supabase.SignUpResponseErrpr = JSON.parse(res.responseText);
-                    alert(data.msg ?? JSON.stringify(res));
-                    resolve(null);
-                } else {
-                    const data: Supabase.TokenResponseSuccess = JSON.parse(res.responseText);
-                    const userInfo: UserInfo = {
-                        access_token: data.access_token,
-                        user_id: data.user.id,
-                        expires_at: data.expires_at,
-                    };
-                    resolve(userInfo);
-                }
-            },
-            onerror: (res) => {
-                console.warn('Sign up error - rejected');
-                alert(res.responseText);
-                resolve(null);
-            },
-        })
-    );
+export async function signOut() {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
 }
 
 export async function uploadData(userInfo: UserInfo, data: UserData): Promise<boolean> {
-    const bodyJson: ExportDataRow = {
+    const bodyJson: UserDataRow = {
         user_id: userInfo.user_id,
         data,
     };
@@ -168,7 +198,7 @@ export async function downloadData(userInfo: UserInfo): Promise<UserData | null>
                     console.error(res);
                     resolve(null);
                 } else {
-                    const data: ExportDataRow[] = JSON.parse(res.responseText);
+                    const data: UserDataRow[] = JSON.parse(res.responseText);
                     resolve(data[0]?.data ?? null);
                 }
             },

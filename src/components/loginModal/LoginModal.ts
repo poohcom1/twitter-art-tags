@@ -1,117 +1,63 @@
 import template from './login-modal.pug';
 import styles from './login-modal.module.scss';
 import { parseHTML } from '../../utils';
-import { UserInfo, signIn, signUp } from '../../services/supabase';
+import {
+    UserInfoData,
+    deleteData,
+    getUserInfo,
+    signIn,
+    signOut,
+    syncData,
+} from '../../services/supabase';
 
 const IDS = {
     login: 'login',
-    signUp: 'signUp',
     loading: 'loading',
     loadingText: 'loadingText',
-    // Login
-    email: 'email',
-    pw: 'pw',
-    confirmPw: 'confirmPw',
     loginBtn: 'loginBtn',
-    cancelBtn: 'cancelBtn',
+    sync: 'sync',
+    close: 'close',
+    // Sync Buttons
+    syncBtn: 'syncBtn',
+    clearBtn: 'clearBtn',
+    logoutBtn: 'logOutBtn',
 } as const;
 
-type LoginCallback = (info: UserInfo) => Promise<boolean>;
+interface ShowOptions {
+    onTagsUpdate?: () => void;
+    onClose?: () => void;
+}
 
 export default class LoginModal {
     private modalContainer: HTMLElement;
 
-    private components: Record<string, HTMLElement> = {};
     private loginComponent: HTMLElement;
     private loadingComponent: HTMLElement;
+    private syncComponent: HTMLElement;
+    private allComponents: HTMLElement[] = [];
 
-    private userInfo: UserInfo | null = null;
-    private emailInput: HTMLInputElement;
+    private clearDataBtn: HTMLButtonElement;
 
-    private onLogin: LoginCallback | null = null;
+    private userInfoData: UserInfoData | null = null;
+    private showOptions: ShowOptions = {};
 
     constructor() {
         this.modalContainer = parseHTML(template({ styles, ids: IDS }));
         document.body.appendChild(this.modalContainer);
+        this.modalContainer.onclick = (e) => e.stopPropagation();
 
         this.loginComponent = this.modalContainer.querySelector<HTMLElement>(`#${IDS.login}`)!;
         this.loadingComponent = this.modalContainer.querySelector<HTMLElement>(`#${IDS.loading}`)!;
+        this.syncComponent = this.modalContainer.querySelector<HTMLElement>(`#${IDS.sync}`)!;
+
+        this.modalContainer.querySelector<HTMLElement>(`#${IDS.close}`)!.onclick = () =>
+            this.hide();
 
         // Login
-        this.emailInput = this.modalContainer.querySelector<HTMLInputElement>(`#${IDS.email}`)!;
-        const pwInput = this.modalContainer.querySelector<HTMLInputElement>(`#${IDS.pw}`)!;
-        const pwConfirmInput = this.modalContainer.querySelector<HTMLInputElement>(
-            `#${IDS.confirmPw}`
-        )!;
-        pwConfirmInput.style.display = 'none'; // Hide for now
-        const signupToggle = this.modalContainer.querySelector<HTMLInputElement>(`#${IDS.signUp}`)!;
-        signupToggle.onclick = () => {
-            pwConfirmInput.style.display = signupToggle.checked ? 'block' : 'none';
-        };
         const loginBtn = this.modalContainer.querySelector<HTMLButtonElement>(`#${IDS.loginBtn}`)!;
-        const cancelBtn = this.modalContainer.querySelector<HTMLButtonElement>(
-            `#${IDS.cancelBtn}`
-        )!;
-
-        const submit = async () => {
-            if (this.onLogin === null) {
-                alert('Login callback is not set - something went wrong!');
-                return;
-            }
-
-            const email = this.emailInput.value;
-            const pw = pwInput.value;
-
-            if (!email || !pw) {
-                alert('Email and password are required');
-                return;
-            }
-
-            if (signupToggle.checked) {
-                const pwConfirm = pwConfirmInput.value;
-                if (pw !== pwConfirm) {
-                    alert('Passwords do not match');
-                    return;
-                }
-            }
-
-            this.showLoading('Logging in...');
-
-            const userInfo = signupToggle.checked
-                ? await signUp(email, pw)
-                : await signIn(email, pw);
-            if (userInfo) {
-                this.userInfo = userInfo;
-                this.showLoading('Syncing...');
-                const success = await this.onLogin(userInfo);
-
-                if (success) {
-                    this.showLoading('Synced successfully!');
-                    await new Promise((resolve) => setTimeout(resolve, 500));
-                }
-
-                this.hide();
-            } else {
-                this.showLogin();
-            }
-        };
-
-        cancelBtn.onclick = () => this.hide();
-        loginBtn.onclick = submit;
-        this.emailInput.onkeydown = (e) => {
-            if (e.key === 'Enter') {
-                submit();
-            }
-        };
-        pwInput.onkeydown = (e) => {
-            if (e.key === 'Enter') {
-                submit();
-            }
-        };
-        pwConfirmInput.onkeydown = (e) => {
-            if (e.key === 'Enter') {
-                submit();
-            }
+        loginBtn.onclick = async () => {
+            this.showLoading('Redirecting to twitter login...');
+            await signIn();
         };
 
         // Overlay
@@ -119,41 +65,93 @@ export default class LoginModal {
         overlay.onscroll = (e) => e.stopPropagation();
         overlay.onclick = () => this.hide();
 
-        this.showLogin();
-    }
+        // Sync
+        const syncBtn = this.modalContainer.querySelector<HTMLButtonElement>(`#${IDS.syncBtn}`)!;
+        this.clearDataBtn = this.modalContainer.querySelector<HTMLButtonElement>(
+            `#${IDS.clearBtn}`
+        )!;
+        const logOutBtn = this.modalContainer.querySelector<HTMLButtonElement>(
+            `#${IDS.logoutBtn}`
+        )!;
 
-    public isLoggedIn() {
-        return !!this.userInfo;
+        syncBtn.onclick = async () => {
+            if (!this.userInfoData) {
+                alert("You're not logged in!");
+                this.showLogin();
+                return;
+            }
+
+            this.showLoading('Syncing...');
+
+            const success = await syncData(this.userInfoData.userInfo);
+
+            if (success) {
+                this.showLoading('Syncing successful!');
+                this.clearDataBtn.disabled = false;
+
+                await new Promise((resolve) => setTimeout(resolve, 500));
+
+                this.showSync();
+                this.showOptions.onTagsUpdate?.();
+            } else {
+                alert('Sync failed');
+            }
+        };
+
+        this.clearDataBtn.onclick = async () => {
+            if (!this.userInfoData) {
+                alert("You're not logged in!");
+                this.showLogin();
+                return;
+            }
+
+            this.showLoading('Syncing...');
+
+            const success = await deleteData(this.userInfoData.userInfo);
+
+            if (success) {
+                this.showLoading('Clear successful!');
+                this.clearDataBtn.disabled = false;
+
+                await new Promise((resolve) => setTimeout(resolve, 500));
+
+                this.showSync();
+                this.showOptions.onTagsUpdate?.();
+            } else {
+                alert('Sync failed');
+            }
+        };
+
+        logOutBtn.onclick = () => {
+            signOut();
+            this.showLogin();
+            this.hide();
+        };
+
+        this.allComponents = [this.loginComponent, this.loadingComponent, this.syncComponent];
     }
 
     // Modal
-    public async show(onLogin: LoginCallback) {
+    public async show(showOptions: ShowOptions) {
+        this.showOptions = showOptions;
+
         this.modalContainer.classList.add(styles.modalContainerShow);
         document.body.classList.add(styles.modalOpen);
 
-        if (this.userInfo) {
-            this.showLoading('Syncing...');
-            const success = await onLogin(this.userInfo);
-
-            if (success) {
-                this.showLoading('Synced successfully!');
-                await new Promise((resolve) => setTimeout(resolve, 500));
+        this.showLoading('Loading...');
+        getUserInfo().then((userInfoData) => {
+            if (userInfoData) {
+                this.userInfoData = userInfoData; // MUST BE SET BEFORE SHOWING
+                this.showSync();
+            } else {
+                this.showLogin();
             }
-
-            this.hide();
-            return;
-        }
-
-        this.onLogin = onLogin;
-
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        this.emailInput.focus();
-        this.emailInput.select();
-        this.showLogin();
+        });
     }
 
     public signOut() {
-        this.userInfo = null;
+        signOut();
+        this.userInfoData = null;
     }
 
     public hide() {
@@ -162,13 +160,20 @@ export default class LoginModal {
     }
 
     private showLoading(text: string) {
-        this.loginComponent.style.display = 'none';
-        this.loadingComponent.style.display = 'block';
+        this.allComponents.forEach((c) => (c.style.display = 'none'));
+        this.loadingComponent.style.display = 'flex';
         this.loadingComponent.querySelector<HTMLElement>(`#${IDS.loadingText}`)!.textContent = text;
     }
 
     private showLogin() {
-        this.loginComponent.style.display = 'block';
-        this.loadingComponent.style.display = 'none';
+        this.allComponents.forEach((c) => (c.style.display = 'none'));
+        this.loginComponent.style.display = 'flex';
+    }
+
+    private showSync() {
+        this.allComponents.forEach((c) => (c.style.display = 'none'));
+        this.syncComponent.style.display = 'flex';
+
+        this.clearDataBtn.disabled = !this.userInfoData?.userData;
     }
 }

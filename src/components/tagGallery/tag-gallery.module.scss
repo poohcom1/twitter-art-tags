@@ -109,6 +109,7 @@
     display: none;
     top: 0;
     right: 0;
+    cursor: default;
 
     &__visible {
         display: block;
@@ -124,7 +125,7 @@
     }
 
     hr {
-        cursor: pointer;
+        cursor: default;
         margin: 3px;
     }
 }

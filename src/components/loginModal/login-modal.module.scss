@@ -37,6 +37,9 @@
 $modalHeight: 200px;
 
 .modal {
+    display: flex;
+    flex-direction: column;
+
     width: 300px;
     min-height: $modalHeight;
     height: fit-content;
@@ -52,53 +55,108 @@ $modalHeight: 200px;
     pointer-events: auto;
 
     background-color: rgb(19, 18, 18);
-
     position: fixed;
-    .login {
+
+    .titleContainer {
+        display: flex;
+        align-items: center;
+
         h3 {
             margin: 8px 0;
         }
 
-        .inputContainer {
-            margin-top: 8px;
-            width: 100%;
+        .svg {
+            margin-left: auto;
+            height: 20px;
+            width: 20px;
+            cursor: pointer;
 
-            input {
-                width: 100%;
-                box-sizing: border-box;
-                margin-top: 8px;
+            svg {
+                height: 20px;
+                width: 20px;
+                stroke: currentColor;
+                opacity: 0.75;
             }
         }
+    }
 
-        .buttonContainer {
-            margin-top: auto;
-            margin-top: 8px;
+    .login {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 2;
+
+        .btnContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 2;
+
+            height: 100px;
 
             button {
-                margin: 4px;
-            }
-        }
+                width: 200px;
+                height: 50px;
+                border-radius: 50px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-weight: 700;
 
-        .privacy {
-            width: 100%;
-            display: flex;
-            justify-content: right;
-
-            a {
-                font-size: 12px;
-                color: white;
+                cursor: pointer;
             }
         }
     }
 
     .loading {
-        height: $modalHeight;
         display: flex;
         justify-content: center;
         align-items: center;
+        flex-grow: 2;
 
         h3 {
             width: fit-content;
+        }
+    }
+
+    .sync {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-grow: 2;
+
+        button {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            margin: 8px;
+            height: 80px;
+            width: 80px;
+
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+
+            svg {
+                stroke: currentColor;
+
+                height: 50px;
+                width: 50px;
+            }
+        }
+    }
+
+    .privacy {
+        margin-top: auto;
+
+        width: 100%;
+        display: flex;
+        justify-content: right;
+
+        a {
+            font-size: 12px;
+            color: white;
         }
     }
 }

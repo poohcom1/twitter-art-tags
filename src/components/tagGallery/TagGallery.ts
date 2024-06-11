@@ -12,6 +12,7 @@ import {
     createTag,
     exportDataToFile,
     importDataFromFile,
+    clearAllTags,
 } from '../../services/storage';
 import TagModal from '../tagModal/TagModal';
 import tagIcon from '../../assets/tag.svg';
@@ -23,7 +24,6 @@ import trashIcon from '../../assets/trash.svg';
 import squareIcon from '../../assets/square.svg';
 import checkSquareIcon from '../../assets/check-square.svg';
 import LoginModal from '../loginModal/LoginModal';
-import { deleteData, syncData } from '../../services/supabase';
 
 enum RenderKeys {
     TAGS = 'tags',
@@ -42,8 +42,7 @@ const IDS = {
     tagImport: 'tagImport',
     tagImportMerge: 'tagImportMerge',
     tagSync: 'tagSync',
-    deleteSync: 'deleteSync',
-    signOut: 'signOut',
+    tagClear: 'tagClear',
 };
 
 export default class TagGallery {
@@ -95,72 +94,44 @@ export default class TagGallery {
         const tagExport = document.querySelector<HTMLElement>(`#${IDS.tagExport}`)!;
         const tagImport = document.querySelector<HTMLElement>(`#${IDS.tagImport}`)!;
         const tagImportMerge = document.querySelector<HTMLElement>(`#${IDS.tagImportMerge}`)!;
+        const tagClear = document.querySelector<HTMLElement>(`#${IDS.tagClear}`)!;
         const tagSync = document.querySelector<HTMLElement>(`#${IDS.tagSync}`)!;
-        const deleteSync = document.querySelector<HTMLElement>(`#${IDS.deleteSync}`)!;
-        const signOut = document.querySelector<HTMLElement>(`#${IDS.signOut}`)!;
 
         const dropdown = document.querySelector<HTMLElement>(`.${styles.dotMenuDropdown}`)!;
         const closeDropdown = () => dropdown.classList.remove(styles.dotMenuDropdownVisible);
         document
             .querySelector<HTMLElement>(`.${styles.dotMenu}`)!
             .addEventListener('click', (e) => {
-                // Show dropdown
                 e.stopPropagation();
                 dropdown.classList.toggle(styles.dotMenuDropdownVisible);
-
-                if (syncModal.isLoggedIn()) {
-                    tagSync.textContent = 'Sync';
-
-                    deleteSync.style.display = 'block';
-                    signOut.style.display = 'block';
-                } else {
-                    tagSync.textContent = 'Sync...';
-
-                    deleteSync.style.display = 'none';
-                    signOut.style.display = 'none';
-                }
             });
         document.onclick = closeDropdown;
         dropdown.onclick = (e) => e.stopPropagation();
 
         tagExport.onclick = exportDataToFile;
-        tagImport.onclick = () => importDataFromFile(false).then(() => this.rerender());
-        tagImportMerge.onclick = () => importDataFromFile(true).then(() => this.rerender());
-        tagSync.onclick = () => {
-            syncModal.show(async (user) => {
-                const success = await syncData(user);
-                if (!success) {
-                    alert('Failed to sync data!');
-                }
-                closeDropdown();
+        tagImport.onclick = () =>
+            importDataFromFile(false).then(() => {
                 this.rerender();
-                return success;
-            });
-        };
-        deleteSync.onclick = () => {
-            syncModal.show(async (user) => {
-                if (
-                    !confirm(
-                        "Are you sure you want to clear synced tags? This won't remove local tags."
-                    )
-                ) {
-                    syncModal.hide();
-                    return true;
-                }
-
-                const success = await deleteData(user);
-                if (!success) {
-                    alert('Failed to delete data!');
-                }
                 closeDropdown();
-                this.rerender();
-                return success;
             });
-        };
-        signOut.onclick = () => {
-            syncModal.signOut();
+        tagImportMerge.onclick = () =>
+            importDataFromFile(true).then(() => {
+                this.rerender();
+                closeDropdown();
+            });
+        tagClear.onclick = async () => {
+            if (confirm('Are you sure you want to clear all data?')) {
+                await clearAllTags();
+                this.rerender();
+            }
             closeDropdown();
-            this.rerender();
+        };
+        tagSync.onclick = () => {
+            closeDropdown();
+            syncModal.show({
+                onClose: closeDropdown,
+                onTagsUpdate: () => this.rerender(),
+            });
         };
 
         // Render
@@ -229,7 +200,7 @@ export default class TagGallery {
 
         if (Object.keys(tags).length === 0) {
             this.imageContainer.innerHTML =
-                '<div>No tags yet! Create one by clicking on the "..." menu of a tweet with images and selected "Tag Tweet"</div>';
+                '<div>No tags yet! Create one by clicking on the "..." menu of a tweet with images and selecting "Tag Tweet"</div>';
         } else if (this.imageData.length === 0) {
             this.imageContainer.innerHTML = '<h3>Nothing to see here!</h3>';
         }
