@@ -36,7 +36,8 @@
 
 .modal {
     width: 300px;
-    height: 200px;
+    min-height: 200px;
+    height: fit-content;
     z-index: 30001;
     padding: 16px;
     border-radius: 8px;
@@ -78,6 +79,7 @@
     }
 
     .loading {
+        height: 180px;
         display: flex;
         justify-content: center;
         align-items: center;

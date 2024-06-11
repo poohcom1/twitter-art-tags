@@ -134,6 +134,7 @@ export default class TagGallery {
                 }
                 closeDropdown();
                 this.rerender();
+                return success;
             });
         };
         deleteSync.onclick = () => {
@@ -143,7 +144,8 @@ export default class TagGallery {
                         "Are you sure you want to clear synced tags? This won't remove local tags."
                     )
                 ) {
-                    return;
+                    syncModal.hide();
+                    return true;
                 }
 
                 const success = await deleteData(user);
@@ -152,6 +154,7 @@ export default class TagGallery {
                 }
                 closeDropdown();
                 this.rerender();
+                return success;
             });
         };
         signOut.onclick = () => {

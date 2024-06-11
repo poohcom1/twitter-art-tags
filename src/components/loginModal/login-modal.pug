@@ -7,6 +7,7 @@ div(class=styles.modalContainer)
             div(class=styles.inputContainer)
                 input(id=ids.email class=styles.input type='text' placeholder='Email')
                 input(id=ids.pw class=styles.input type='password' placeholder='Password')
+                input(id=ids.confirmPw class=styles.input type='password' placeholder='Confirm password')
             div(class=styles.buttonContainer)
                 input(id=ids.signUp type='checkbox')
                 label(for=ids.signUp)
@@ -14,6 +15,7 @@ div(class=styles.modalContainer)
             div(class=styles.buttonContainer)
                 button(id=ids.loginBtn class=styles.button) Sign in
                 button(id=ids.cancelBtn class=styles.button) Cancel
-        div(id=ids.loading class=styles.loading)
-            h3
-                | Syncing...
+        div(id=ids.loading)
+            div(class=styles.loading)
+                h3(id=ids.loadingText)
+                    | Syncing...

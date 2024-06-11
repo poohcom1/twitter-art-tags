@@ -7,14 +7,16 @@ const IDS = {
     login: 'login',
     signUp: 'signUp',
     loading: 'loading',
+    loadingText: 'loadingText',
     // Login
     email: 'email',
     pw: 'pw',
+    confirmPw: 'confirmPw',
     loginBtn: 'loginBtn',
     cancelBtn: 'cancelBtn',
 } as const;
 
-type LoginCallback = (info: UserInfo) => Promise<void>;
+type LoginCallback = (info: UserInfo) => Promise<boolean>;
 
 export default class LoginModal {
     private modalContainer: HTMLElement;
@@ -38,7 +40,14 @@ export default class LoginModal {
         // Login
         this.emailInput = this.modalContainer.querySelector<HTMLInputElement>(`#${IDS.email}`)!;
         const pwInput = this.modalContainer.querySelector<HTMLInputElement>(`#${IDS.pw}`)!;
+        const pwConfirmInput = this.modalContainer.querySelector<HTMLInputElement>(
+            `#${IDS.confirmPw}`
+        )!;
+        pwConfirmInput.style.display = 'none'; // Hide for now
         const signupToggle = this.modalContainer.querySelector<HTMLInputElement>(`#${IDS.signUp}`)!;
+        signupToggle.onclick = () => {
+            pwConfirmInput.style.display = signupToggle.checked ? 'block' : 'none';
+        };
         const loginBtn = this.modalContainer.querySelector<HTMLButtonElement>(`#${IDS.loginBtn}`)!;
         const cancelBtn = this.modalContainer.querySelector<HTMLButtonElement>(
             `#${IDS.cancelBtn}`
@@ -49,21 +58,38 @@ export default class LoginModal {
                 alert('Login callback is not set - something went wrong!');
                 return;
             }
-            this.showLoading();
 
             const email = this.emailInput.value;
             const pw = pwInput.value;
 
             if (!email || !pw) {
+                alert('Email and password are required');
                 return;
             }
+
+            if (signupToggle.checked) {
+                const pwConfirm = pwConfirmInput.value;
+                if (pw !== pwConfirm) {
+                    alert('Passwords do not match');
+                    return;
+                }
+            }
+
+            this.showLoading('Logging in...');
 
             const userInfo = signupToggle.checked
                 ? await signUp(email, pw)
                 : await signIn(email, pw);
             if (userInfo) {
                 this.userInfo = userInfo;
-                await this.onLogin(userInfo);
+                this.showLoading('Syncing...');
+                const success = await this.onLogin(userInfo);
+
+                if (success) {
+                    this.showLoading('Synced successfully!');
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+                }
+
                 this.hide();
             } else {
                 this.showLogin();
@@ -78,6 +104,11 @@ export default class LoginModal {
             }
         };
         pwInput.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                submit();
+            }
+        };
+        pwConfirmInput.onkeydown = (e) => {
             if (e.key === 'Enter') {
                 submit();
             }
@@ -101,8 +132,14 @@ export default class LoginModal {
         document.body.classList.add(styles.modalOpen);
 
         if (this.userInfo) {
-            this.showLoading();
-            await onLogin(this.userInfo);
+            this.showLoading('Syncing...');
+            const success = await onLogin(this.userInfo);
+
+            if (success) {
+                this.showLoading('Synced successfully!');
+                await new Promise((resolve) => setTimeout(resolve, 500));
+            }
+
             this.hide();
             return;
         }
@@ -124,9 +161,10 @@ export default class LoginModal {
         document.body.classList.remove(styles.modalOpen);
     }
 
-    private showLoading() {
+    private showLoading(text: string) {
         this.loginComponent.style.display = 'none';
         this.loadingComponent.style.display = 'block';
+        this.loadingComponent.querySelector<HTMLElement>(`#${IDS.loadingText}`)!.textContent = text;
     }
 
     private showLogin() {
