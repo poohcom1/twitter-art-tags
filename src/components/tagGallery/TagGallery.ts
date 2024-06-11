@@ -10,9 +10,8 @@ import {
     renameTag,
     deleteTag,
     createTag,
-    exportData,
-    importData,
-    importMergeData,
+    exportDataToFile,
+    importDataFromFile,
 } from '../../services/storage';
 import TagModal from '../tagModal/TagModal';
 import tagIcon from '../../assets/tag.svg';
@@ -99,11 +98,11 @@ export default class TagGallery {
             });
         document.onclick = () => dropdown.classList.remove(styles.dotMenuDropdownVisible);
 
-        document.querySelector<HTMLElement>(`#${IDS.tagExport}`)!.onclick = exportData;
+        document.querySelector<HTMLElement>(`#${IDS.tagExport}`)!.onclick = exportDataToFile;
         document.querySelector<HTMLElement>(`#${IDS.tagImport}`)!.onclick = () =>
-            importData().then(() => this.rerender());
+            importDataFromFile(false).then(() => this.rerender());
         document.querySelector<HTMLElement>(`#${IDS.tagImportMerge}`)!.onclick = () =>
-            importMergeData().then(() => this.rerender());
+            importDataFromFile(true).then(() => this.rerender());
         document.querySelector<HTMLElement>(`#${IDS.tagSync}`)!.onclick = () => {
             syncModal.show(async (user) => {
                 const success = await syncData(user);

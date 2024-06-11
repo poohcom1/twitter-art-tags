@@ -235,6 +235,30 @@ export async function setImportData(jsonString: string, merge: boolean = false) 
                 DEFAULT_USER_DATA
             );
             importedData = mergeData(currentData, result.output);
+        } else {
+            // Update modifiedAt and deletedAt
+            const { tags, tweets } = importedData;
+
+            const now = Date.now();
+            for (const tag of Object.keys(importedData.tags)) {
+                if (tagExists(tags, tag)) {
+                    tags[tag].modifiedAt = now;
+                } else {
+                    tags[tag].deletedAt = now;
+                }
+
+                for (const tweet of tags[tag].tweets) {
+                    tweets[tweet].modifiedAt = now;
+                }
+            }
+
+            for (const tweet of Object.keys(importedData.tweets)) {
+                if (filterExists(tweets[tweet])) {
+                    tweets[tweet].modifiedAt = now;
+                } else {
+                    tweets[tweet].deletedAt = now;
+                }
+            }
         }
 
         await gmSetWithCache(KEY_USER_DATA, importedData);
@@ -246,29 +270,28 @@ export async function setImportData(jsonString: string, merge: boolean = false) 
     }
 }
 
-function getExportFileName() {
+const exportFilename = () => {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
     const day = String(now.getDate()).padStart(2, '0');
     const hours = String(now.getHours()).padStart(2, '0');
-
     return `twitter-art-tag_data_${year}-${month}-${day}_${hours}.json`;
-}
+};
 
-export async function exportData() {
+export async function exportDataToFile() {
     const tags = JSON.stringify(await getExportData(), null, 2);
     const blob = new Blob([tags], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
 
-    a.download = getExportFileName();
+    a.download = exportFilename();
     a.click();
     URL.revokeObjectURL(url);
 }
 
-export function importData(): Promise<void> {
+export function importDataFromFile(merge: boolean): Promise<void> {
     return new Promise((resolve) => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -278,29 +301,13 @@ export function importData(): Promise<void> {
             const file = input.files![0];
             const reader = new FileReader();
             reader.onload = async () => {
-                if (!confirm('Are you sure you want to overwrite all tags?')) {
-                    return;
+                if (!merge) {
+                    if (!confirm('Are you sure you want to overwrite all tags?')) {
+                        return;
+                    }
                 }
-                await setImportData(reader.result as string, false);
-                resolve();
-            };
-            reader.readAsText(file);
-        });
-        input.click();
-    });
-}
+                await setImportData(reader.result as string, merge);
 
-export function importMergeData(): Promise<void> {
-    return new Promise((resolve) => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'application/json';
-        input.style.display = 'none';
-        input.addEventListener('change', async () => {
-            const file = input.files![0];
-            const reader = new FileReader();
-            reader.onload = async () => {
-                await setImportData(reader.result as string, true);
                 resolve();
             };
             reader.readAsText(file);
