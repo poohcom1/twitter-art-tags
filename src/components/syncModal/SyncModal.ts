@@ -46,7 +46,8 @@ export default class LoginModal {
     private userInfoData: UserInfoData | null = null;
     private showOptions: ShowOptions = {};
 
-    constructor() {
+    constructor(showOptions: ShowOptions) {
+        this.showOptions = showOptions;
         this.modalContainer = parseHTML(template({ styles, ids: IDS }));
         document.body.appendChild(this.modalContainer);
         this.modalContainer.onclick = (e) => e.stopPropagation();
@@ -98,14 +99,8 @@ export default class LoginModal {
                 this.clearDataBtn.disabled = false;
 
                 this.showOptions.onTagsUpdate?.();
-                getUserInfo().then((userInfoData) => {
-                    if (userInfoData) {
-                        this.userInfoData = userInfoData; // MUST BE SET BEFORE SHOWING
-                        this.showSync();
-                    } else {
-                        this.showLogin();
-                    }
-                });
+
+                this.initialLoad();
             } else {
                 alert('Sync failed');
             }
@@ -129,14 +124,7 @@ export default class LoginModal {
                 await new Promise((resolve) => setTimeout(resolve, 200));
 
                 this.showOptions.onTagsUpdate?.();
-                getUserInfo().then((userInfoData) => {
-                    if (userInfoData) {
-                        this.userInfoData = userInfoData; // MUST BE SET BEFORE SHOWING
-                        this.showSync();
-                    } else {
-                        this.showLogin();
-                    }
-                });
+                this.initialLoad();
             } else {
                 alert('Sync failed');
             }
@@ -145,21 +133,14 @@ export default class LoginModal {
         logOutBtn.onclick = () => {
             signOut();
             this.showLogin();
-            this.hide();
         };
 
         this.allComponents = [this.loginComponent, this.loadingComponent, this.syncComponent];
     }
 
     // Modal
-    public async show(showOptions: ShowOptions) {
-        this.showOptions = showOptions;
-
-        this.modalContainer.classList.add(styles.modalContainerShow);
-        document.body.classList.add(styles.modalOpen);
-
-        this.showLoading('Loading...');
-        getUserInfo().then((userInfoData) => {
+    private async initialLoad() {
+        return getUserInfo().then((userInfoData) => {
             if (userInfoData) {
                 this.userInfoData = userInfoData; // MUST BE SET BEFORE SHOWING
                 this.showSync();
@@ -167,6 +148,14 @@ export default class LoginModal {
                 this.showLogin();
             }
         });
+    }
+
+    public async show() {
+        this.modalContainer.classList.add(styles.modalContainerShow);
+        document.body.classList.add(styles.modalOpen);
+
+        this.showLoading('Loading...');
+        this.initialLoad();
     }
 
     public signOut() {

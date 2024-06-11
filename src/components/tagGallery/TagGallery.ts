@@ -24,6 +24,7 @@ import trashIcon from '../../assets/trash.svg';
 import squareIcon from '../../assets/square.svg';
 import checkSquareIcon from '../../assets/check-square.svg';
 import LoginModal from '../syncModal/SyncModal';
+import { loginRedirected } from '../../services/supabase';
 
 enum RenderKeys {
     TAGS = 'tags',
@@ -70,8 +71,6 @@ export default class TagGallery {
         this.imageContainer = document.querySelector<HTMLElement>(`.${styles.imageGallery}`)!;
         this.tagsContainer = document.querySelector<HTMLElement>(`.${styles.tagsContainer}`)!;
 
-        const syncModal = new LoginModal();
-
         // Add tag
         document
             .querySelector<HTMLInputElement>(`.${styles.addTag}`)!
@@ -95,7 +94,7 @@ export default class TagGallery {
         const tagImport = document.querySelector<HTMLElement>(`#${IDS.tagImport}`)!;
         const tagImportMerge = document.querySelector<HTMLElement>(`#${IDS.tagImportMerge}`)!;
         const tagClear = document.querySelector<HTMLElement>(`#${IDS.tagClear}`)!;
-        const tagSync = document.querySelector<HTMLElement>(`#${IDS.tagSync}`)!;
+        const tagSyncBtn = document.querySelector<HTMLElement>(`#${IDS.tagSync}`)!;
 
         const dropdown = document.querySelector<HTMLElement>(`.${styles.dotMenuDropdown}`)!;
         const closeDropdown = () => dropdown.classList.remove(styles.dotMenuDropdownVisible);
@@ -107,6 +106,14 @@ export default class TagGallery {
             });
         document.onclick = closeDropdown;
         dropdown.onclick = (e) => e.stopPropagation();
+
+        const tagSyncModal = new LoginModal({
+            onClose: closeDropdown,
+            onTagsUpdate: () => this.rerender(),
+        });
+        if (loginRedirected) {
+            tagSyncModal.show();
+        }
 
         tagExport.onclick = exportDataToFile;
         tagImport.onclick = () =>
@@ -126,12 +133,9 @@ export default class TagGallery {
             }
             closeDropdown();
         };
-        tagSync.onclick = () => {
+        tagSyncBtn.onclick = () => {
             closeDropdown();
-            syncModal.show({
-                onClose: closeDropdown,
-                onTagsUpdate: () => this.rerender(),
-            });
+            tagSyncModal.show();
         };
 
         // Render

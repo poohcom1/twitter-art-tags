@@ -37,6 +37,8 @@ const LOCAL_STORAGE_KEY = 'twitter-art-tags_access-token';
 export const TABLE_NAME = 'export_data';
 
 // Tasks
+export let loginRedirected = false;
+
 {
     const paramsString = window.location.href.split('#')[1];
     if (paramsString) {
@@ -52,6 +54,8 @@ export const TABLE_NAME = 'export_data';
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(store));
 
         window.history.replaceState({}, document.title, window.location.pathname);
+
+        loginRedirected = true;
     }
 }
 
@@ -145,7 +149,7 @@ export async function signIn(): Promise<UserInfo | null> {
             },
             onerror: (res) => {
                 console.warn('Sign in error - rejected');
-                alert(res.responseText);
+                alert('Something went wrong -- ' + res.responseText);
                 resolve(null);
             },
         })
