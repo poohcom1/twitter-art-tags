@@ -107,9 +107,7 @@ export default class TagGallery {
             syncModal.show(async (user) => {
                 const success = await syncData(user);
 
-                if (success) {
-                    alert('Data synced!');
-                } else {
+                if (!success) {
                     alert('Failed to sync data!');
                 }
 

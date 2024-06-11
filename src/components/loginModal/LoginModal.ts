@@ -3,11 +3,6 @@ import styles from './login-modal.module.scss';
 import { parseHTML } from '../../utils';
 import { UserInfo, signIn } from '../../services/supabase';
 
-const COMPONENTS = {
-    login: 'login',
-    loading: 'loading',
-} as const;
-
 const IDS = {
     login: 'login',
     loading: 'loading',
@@ -24,6 +19,9 @@ export default class LoginModal {
     private modalContainer: HTMLElement;
 
     private components: Record<string, HTMLElement> = {};
+    private loginComponent: HTMLElement;
+    private loadingComponent: HTMLElement;
+
     private userInfo: UserInfo | null = null;
     private emailInput: HTMLInputElement;
 
@@ -33,12 +31,8 @@ export default class LoginModal {
         this.modalContainer = parseHTML(template({ styles, ids: IDS }));
         document.body.appendChild(this.modalContainer);
 
-        this.components[COMPONENTS.login] = this.modalContainer.querySelector<HTMLElement>(
-            `#${IDS.login}`
-        )!;
-        this.components[COMPONENTS.loading] = this.modalContainer.querySelector<HTMLElement>(
-            `#${IDS.loading}`
-        )!;
+        this.loginComponent = this.modalContainer.querySelector<HTMLElement>(`#${IDS.login}`)!;
+        this.loadingComponent = this.modalContainer.querySelector<HTMLElement>(`#${IDS.loading}`)!;
 
         // Login
         this.emailInput = this.modalContainer.querySelector<HTMLInputElement>(`#${IDS.email}`)!;
@@ -48,12 +42,12 @@ export default class LoginModal {
             `#${IDS.cancelBtn}`
         )!;
 
-        cancelBtn.onclick = () => this.hide();
-        loginBtn.onclick = async () => {
+        const submit = async () => {
             if (this.onLogin === null) {
                 alert('Login callback is not set - something went wrong!');
                 return;
             }
+            this.showLoading();
 
             const email = this.emailInput.value;
             const pw = pwInput.value;
@@ -62,16 +56,26 @@ export default class LoginModal {
                 return;
             }
 
-            this.changeComponent(COMPONENTS.login);
-
             const userInfo = await signIn(email, pw);
             if (userInfo) {
                 this.userInfo = userInfo;
-                this.changeComponent(COMPONENTS.loading);
                 await this.onLogin(userInfo);
                 this.hide();
             } else {
-                this.changeComponent(COMPONENTS.login);
+                this.showLogin();
+            }
+        };
+
+        cancelBtn.onclick = () => this.hide();
+        loginBtn.onclick = submit;
+        this.emailInput.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                submit();
+            }
+        };
+        pwInput.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                submit();
             }
         };
 
@@ -80,13 +84,13 @@ export default class LoginModal {
         overlay.onscroll = (e) => e.stopPropagation();
         overlay.onclick = () => this.hide();
 
-        this.changeComponent(COMPONENTS.login);
+        this.showLogin();
     }
 
     // Modal
     public async show(onLogin: LoginCallback) {
         if (this.userInfo) {
-            this.changeComponent(COMPONENTS.loading);
+            this.showLoading();
             onLogin(this.userInfo);
             return;
         }
@@ -94,6 +98,8 @@ export default class LoginModal {
         this.onLogin = onLogin;
         this.modalContainer.classList.add(styles.modalContainerShow);
         document.body.classList.add(styles.modalOpen);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        this.emailInput.focus();
     }
 
     private hide() {
@@ -101,9 +107,13 @@ export default class LoginModal {
         document.body.classList.remove(styles.modalOpen);
     }
 
-    private changeComponent(component: keyof typeof COMPONENTS) {
-        for (const key in this.components) {
-            this.components[key].style.display = key === component ? 'block' : 'none';
-        }
+    private showLoading() {
+        this.loginComponent.style.display = 'none';
+        this.loadingComponent.style.display = 'block';
+    }
+
+    private showLogin() {
+        this.loginComponent.style.display = 'block';
+        this.loadingComponent.style.display = 'none';
     }
 }

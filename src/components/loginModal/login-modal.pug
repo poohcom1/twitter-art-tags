@@ -1,14 +1,15 @@
 div(class=styles.modalContainer)
     div(class=styles.overlay)
     div(class=styles.modal)
-        div(id=ids.login)
-            div(class=styles.title) Sync your account
-            div(class=styles.description) To sync your account, please log in with your email and password.
+        div(id=ids.login class=styles.login)
+            h3(class=styles.title) Sync your account
+            div(class=styles.description) To sync your account, please create an account or log in.
             div(class=styles.inputContainer)
                 input(id=ids.email class=styles.input type='text' placeholder='Email')
                 input(id=ids.pw class=styles.input type='password' placeholder='Password')
             div(class=styles.buttonContainer)
                 button(id=ids.loginBtn class=styles.button) Log in
                 button(id=ids.cancelBtn class=styles.button) Cancel
-        div(id=ids.loading)
-            | Loading...
+        div(id=ids.loading class=styles.loading)
+            h3
+                | Syncing...
