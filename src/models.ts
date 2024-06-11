@@ -28,3 +28,8 @@ export type Tweets = InferOutput<typeof Tweets>;
 export type Tag = InferOutput<typeof Tag>;
 export type Tags = InferOutput<typeof Tags>;
 export type ExportData = InferOutput<typeof ExportData>;
+
+export interface WithMetadata {
+    modifiedAt: number;
+    deletedAt: number;
+}

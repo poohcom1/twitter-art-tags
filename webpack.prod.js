@@ -66,6 +66,7 @@ module.exports = {
                     'GM.deleteValue',
                     'GM.listValues',
                     'GM.registerMenuCommand',
+                    'GM.xmlHttpRequest',
                 ],
                 require: [
                     'https://github.com/poohcom1/vanilla-context-menu/releases/download/v1.10.0/vanilla-context-menu.js',

@@ -23,7 +23,8 @@ import pencilIcon from '../../assets/pencil.svg';
 import trashIcon from '../../assets/trash.svg';
 import squareIcon from '../../assets/square.svg';
 import checkSquareIcon from '../../assets/check-square.svg';
-import SyncModal from '../syncModal/SyncModal';
+import LoginModal from '../loginModal/LoginModal';
+import { syncData } from '../../services/supabase';
 
 enum RenderKeys {
     TAGS = 'tags',
@@ -69,7 +70,7 @@ export default class TagGallery {
         this.imageContainer = document.querySelector<HTMLElement>(`.${styles.imageGallery}`)!;
         this.tagsContainer = document.querySelector<HTMLElement>(`.${styles.tagsContainer}`)!;
 
-        const syncModal = new SyncModal();
+        const syncModal = new LoginModal();
 
         // Add tag
         document
@@ -104,7 +105,17 @@ export default class TagGallery {
         document.querySelector<HTMLElement>(`#${IDS.tagImportMerge}`)!.onclick = () =>
             importMergeData().then(() => this.rerender());
         document.querySelector<HTMLElement>(`#${IDS.tagSync}`)!.onclick = () => {
-            syncModal.show();
+            syncModal.show(async (user) => {
+                const success = await syncData(user);
+
+                if (success) {
+                    alert('Data synced!');
+                } else {
+                    alert('Failed to sync data!');
+                }
+
+                this.rerender();
+            });
         };
 
         this.renderTags([RenderKeys.IMAGES, RenderKeys.TAGS]).then(() =>

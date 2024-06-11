@@ -1,6 +1,6 @@
 import { clearCache, gmGetWithCache, gmSetWithCache } from './cache';
 import { CUSTOM_PAGE_PATH, KEY_TAGS, KEY_TWEETS } from './constants';
-import { Tags, Tag, Tweets, ExportData, Tweet } from './models';
+import { Tags, Tag, Tweets, ExportData, Tweet, WithMetadata } from './models';
 import { safeParse } from 'valibot';
 
 // Sanitize
@@ -184,11 +184,16 @@ export async function removeTweet(tweetId: string) {
     await gmSetWithCache(KEY_TWEETS, tweets);
 }
 
+// Get data
+function filterExists(data: WithMetadata): boolean {
+    return data.modifiedAt >= data.deletedAt;
+}
+
 export async function getTags(): Promise<Tags> {
     return gmGetWithCache(KEY_TAGS, {}).then((tags) => {
         const filteredTags: Tags = {};
         for (const [tagName, tag] of Object.entries<Tag>(tags)) {
-            if (!tag.deletedAt) {
+            if (filterExists(tag)) {
                 filteredTags[tagName] = tag;
             }
         }
@@ -200,7 +205,7 @@ export async function getTweets(): Promise<Tweets> {
     return gmGetWithCache(KEY_TWEETS, {}).then((tweets) => {
         const filteredTweets: Tweets = {};
         for (const [tweetId, tweet] of Object.entries<Tweet>(tweets)) {
-            if (!tweet.deletedAt) {
+            if (filterExists(tweet)) {
                 filteredTweets[tweetId] = tweet;
             }
         }
@@ -209,7 +214,7 @@ export async function getTweets(): Promise<Tweets> {
 }
 
 // Store
-async function getExportData(): Promise<string> {
+export async function getExportData(): Promise<ExportData> {
     const tags = await GM.getValue<Tags>(KEY_TAGS, {});
     const tweets = await GM.getValue<Tweets>(KEY_TWEETS, {});
 
@@ -218,10 +223,10 @@ async function getExportData(): Promise<string> {
         tweets,
     };
 
-    return JSON.stringify(data, null, 2);
+    return data;
 }
 
-async function setImportData(jsonString: string, merge: boolean = false) {
+export async function setImportData(jsonString: string, merge: boolean = false) {
     const data: unknown = JSON.parse(jsonString);
     const result = safeParse(ExportData, data);
 
@@ -256,7 +261,7 @@ function getExportFileName() {
 }
 
 export async function exportData() {
-    const tags = await getExportData();
+    const tags = JSON.stringify(await getExportData(), null, 2);
     const blob = new Blob([tags], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
