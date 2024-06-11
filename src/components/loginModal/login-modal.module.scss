@@ -34,9 +34,11 @@
     z-index: 30000;
 }
 
+$modalHeight: 200px;
+
 .modal {
     width: 300px;
-    min-height: 200px;
+    min-height: $modalHeight;
     height: fit-content;
     z-index: 30001;
     padding: 16px;
@@ -76,10 +78,21 @@
                 margin: 4px;
             }
         }
+
+        .privacy {
+            width: 100%;
+            display: flex;
+            justify-content: right;
+
+            a {
+                font-size: 12px;
+                color: white;
+            }
+        }
     }
 
     .loading {
-        height: 180px;
+        height: $modalHeight;
         display: flex;
         justify-content: center;
         align-items: center;
