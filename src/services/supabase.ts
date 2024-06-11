@@ -15,11 +15,13 @@ export interface UserInfo {
 export interface UserInfoData {
     userInfo: UserInfo;
     userData: UserData | null;
+    syncedAt: string;
 }
 
 interface UserDataRow {
     user_id: string;
     data: UserData;
+    synced_at: string;
 }
 
 interface AccessTokenStore {
@@ -89,7 +91,11 @@ export async function getUserInfo(): Promise<UserInfoData | null> {
                 };
                 if (userInfo) {
                     const userData = await downloadData(userInfo);
-                    return { userInfo, userData };
+                    return {
+                        userInfo,
+                        userData: userData?.data ?? null,
+                        syncedAt: userData?.synced_at ?? '',
+                    };
                 }
             }
         } catch (e: unknown) {
@@ -110,7 +116,7 @@ export async function syncData(userInfo: UserInfo): Promise<boolean> {
     let data = await getUserData();
 
     if (onlineData) {
-        data = mergeData(data, onlineData);
+        data = mergeData(data, onlineData.data);
     }
 
     console.log('Uploading data...');
@@ -154,6 +160,7 @@ export async function uploadData(userInfo: UserInfo, data: UserData): Promise<bo
     const bodyJson: UserDataRow = {
         user_id: userInfo.user_id,
         data,
+        synced_at: new Date().toISOString(),
     };
 
     return new Promise((resolve) =>
@@ -183,9 +190,9 @@ export async function uploadData(userInfo: UserInfo, data: UserData): Promise<bo
     );
 }
 
-export async function downloadData(userInfo: UserInfo): Promise<UserData | null> {
-    return new Promise((resolve) =>
-        GM.xmlHttpRequest({
+async function downloadData(userInfo: UserInfo): Promise<UserDataRow | null> {
+    try {
+        const res = await request({
             url: `${URL}/rest/v1/${TABLE_NAME}?user_id=eq.${userInfo.user_id}`,
             method: 'GET',
             headers: {
@@ -193,21 +200,19 @@ export async function downloadData(userInfo: UserInfo): Promise<UserData | null>
                 apikey: API_KEY,
                 Authorization: `Bearer ${userInfo.access_token}`,
             },
-            onload: (res) => {
-                if (res.status >= 400) {
-                    console.error(res);
-                    resolve(null);
-                } else {
-                    const data: UserDataRow[] = JSON.parse(res.responseText);
-                    resolve(data[0]?.data ?? null);
-                }
-            },
-            onerror: (res) => {
-                console.error(JSON.stringify(res));
-                resolve(null);
-            },
-        })
-    );
+        });
+
+        if (res.status >= 400) {
+            console.error(res);
+            return null;
+        }
+
+        const data: UserDataRow[] = JSON.parse(res.responseText);
+        return data[0] ?? null;
+    } catch (e: unknown) {
+        console.error(JSON.stringify(e));
+        return null;
+    }
 }
 
 export async function deleteData(userInfo: UserInfo): Promise<boolean> {

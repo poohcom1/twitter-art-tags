@@ -9,7 +9,6 @@ import {
     signOut,
     syncData,
 } from '../../services/supabase';
-import * as dataManagement from '../../services/dataManagement';
 
 const IDS = {
     login: 'login',
@@ -95,12 +94,18 @@ export default class LoginModal {
 
             if (success) {
                 this.showLoading('Syncing successful!');
+                await new Promise((resolve) => setTimeout(resolve, 200));
                 this.clearDataBtn.disabled = false;
 
-                await new Promise((resolve) => setTimeout(resolve, 500));
-
-                this.show(this.showOptions);
                 this.showOptions.onTagsUpdate?.();
+                getUserInfo().then((userInfoData) => {
+                    if (userInfoData) {
+                        this.userInfoData = userInfoData; // MUST BE SET BEFORE SHOWING
+                        this.showSync();
+                    } else {
+                        this.showLogin();
+                    }
+                });
             } else {
                 alert('Sync failed');
             }
@@ -121,10 +126,17 @@ export default class LoginModal {
                 this.showLoading('Clear successful!');
                 this.clearDataBtn.disabled = false;
 
-                await new Promise((resolve) => setTimeout(resolve, 500));
+                await new Promise((resolve) => setTimeout(resolve, 200));
 
-                this.show(this.showOptions);
                 this.showOptions.onTagsUpdate?.();
+                getUserInfo().then((userInfoData) => {
+                    if (userInfoData) {
+                        this.userInfoData = userInfoData; // MUST BE SET BEFORE SHOWING
+                        this.showSync();
+                    } else {
+                        this.showLogin();
+                    }
+                });
             } else {
                 alert('Sync failed');
             }
@@ -185,10 +197,17 @@ export default class LoginModal {
         this.clearDataBtn.disabled = !this.userInfoData?.userData;
 
         this.syncInfoUser.textContent = `Logged in as: @${this.userInfoData?.userInfo.username}`;
-        if (this.userInfoData?.userData) {
-            this.syncInfoData.textContent = `Online data: ${
-                Object.keys(dataManagement.getExistingTags(this.userInfoData.userData)).length
-            } tags`;
+        if (this.userInfoData?.userData && this.userInfoData.syncedAt) {
+            const date = new Date(this.userInfoData.syncedAt);
+
+            // Extract the individual components
+            const year = date.getFullYear().toString().slice(-2); // Get last two digits of year
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+            this.syncInfoData.textContent = `Last synced: ${year}/${month}/${day} ${hours}:${minutes}`;
         } else {
             this.syncInfoData.textContent = 'No data synced yet.';
         }
