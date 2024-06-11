@@ -1,5 +1,5 @@
-import template from './login-modal.pug';
-import styles from './login-modal.module.scss';
+import template from './sync-modal.pug';
+import styles from './sync-modal.module.scss';
 import { parseHTML } from '../../utils';
 import {
     UserInfoData,
@@ -9,6 +9,7 @@ import {
     signOut,
     syncData,
 } from '../../services/supabase';
+import * as dataManagement from '../../services/dataManagement';
 
 const IDS = {
     login: 'login',
@@ -21,6 +22,9 @@ const IDS = {
     syncBtn: 'syncBtn',
     clearBtn: 'clearBtn',
     logoutBtn: 'logOutBtn',
+    // Sync info
+    syncInfoUser: 'syncInfoUser',
+    syncInfoData: 'syncInfoData',
 } as const;
 
 interface ShowOptions {
@@ -37,6 +41,8 @@ export default class LoginModal {
     private allComponents: HTMLElement[] = [];
 
     private clearDataBtn: HTMLButtonElement;
+    private syncInfoData: HTMLElement;
+    private syncInfoUser: HTMLElement;
 
     private userInfoData: UserInfoData | null = null;
     private showOptions: ShowOptions = {};
@@ -73,6 +79,8 @@ export default class LoginModal {
         const logOutBtn = this.modalContainer.querySelector<HTMLButtonElement>(
             `#${IDS.logoutBtn}`
         )!;
+        this.syncInfoData = this.modalContainer.querySelector<HTMLElement>(`#${IDS.syncInfoData}`)!;
+        this.syncInfoUser = this.modalContainer.querySelector<HTMLElement>(`#${IDS.syncInfoUser}`)!;
 
         syncBtn.onclick = async () => {
             if (!this.userInfoData) {
@@ -91,7 +99,7 @@ export default class LoginModal {
 
                 await new Promise((resolve) => setTimeout(resolve, 500));
 
-                this.showSync();
+                this.show(this.showOptions);
                 this.showOptions.onTagsUpdate?.();
             } else {
                 alert('Sync failed');
@@ -115,7 +123,7 @@ export default class LoginModal {
 
                 await new Promise((resolve) => setTimeout(resolve, 500));
 
-                this.showSync();
+                this.show(this.showOptions);
                 this.showOptions.onTagsUpdate?.();
             } else {
                 alert('Sync failed');
@@ -175,5 +183,14 @@ export default class LoginModal {
         this.syncComponent.style.display = 'flex';
 
         this.clearDataBtn.disabled = !this.userInfoData?.userData;
+
+        this.syncInfoUser.textContent = `Logged in as: @${this.userInfoData?.userInfo.username}`;
+        if (this.userInfoData?.userData) {
+            this.syncInfoData.textContent = `Online data: ${
+                Object.keys(dataManagement.getExistingTags(this.userInfoData.userData)).length
+            } tags`;
+        } else {
+            this.syncInfoData.textContent = 'No data synced yet.';
+        }
     }
 }

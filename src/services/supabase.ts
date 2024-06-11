@@ -3,10 +3,12 @@ import { KEY_USER_DATA } from '../constants';
 import { UserData } from '../models';
 import { getUserData } from './storage';
 import { mergeData } from './dataManagement';
+import { request } from '../utils';
 
 export interface UserInfo {
     user_id: string;
     email: string;
+    username: string;
     access_token: string;
 }
 
@@ -63,39 +65,37 @@ export async function getUserInfo(): Promise<UserInfoData | null> {
     }
 
     if (accessToken) {
-        const userInfo = await new Promise<UserInfo | null>((resolve) =>
-            GM.xmlHttpRequest({
+        try {
+            const res = await request({
                 url: `${URL}/auth/v1/user`,
                 method: 'GET',
                 headers: {
                     apiKey: API_KEY,
                     Authorization: `Bearer ${accessToken}`,
                 },
-                onload: async (res) => {
-                    if (res.status >= 400) {
-                        console.warn('Get user error - status');
-                        const data: Supabase.UserResponseError = JSON.parse(res.responseText);
-                        alert(data.msg ?? JSON.stringify(res));
-                    } else {
-                        const data: Supabase.UserResponseSuccess = JSON.parse(res.responseText);
-                        resolve({
-                            user_id: data.id,
-                            email: data.email,
-                            access_token: accessToken,
-                        });
-                    }
-                },
-                onerror: (res) => {
-                    console.warn('Get user error - rejected');
-                    console.error(res.responseText);
-                    resolve(null);
-                },
-            })
-        );
+            });
 
-        if (userInfo) {
-            const userData = await downloadData(userInfo);
-            return { userInfo, userData };
+            if (res.status >= 400) {
+                console.warn('Get user error - status');
+                const data: Supabase.UserResponseError = JSON.parse(res.responseText);
+                alert(data.msg ?? JSON.stringify(res));
+            } else {
+                const data: Supabase.UserResponseSuccess = JSON.parse(res.responseText);
+                const userInfo = {
+                    user_id: data.id,
+                    email: data.email,
+                    username: data.user_metadata.preferred_username,
+                    access_token: accessToken,
+                };
+                if (userInfo) {
+                    const userData = await downloadData(userInfo);
+                    return { userInfo, userData };
+                }
+            }
+        } catch (e: unknown) {
+            console.warn('Get user error - rejected');
+            console.error((e as GM.Response<unknown>).responseText ?? JSON.stringify(e));
+            return null;
         }
     }
 

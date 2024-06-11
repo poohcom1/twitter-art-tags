@@ -23,7 +23,7 @@ import pencilIcon from '../../assets/pencil.svg';
 import trashIcon from '../../assets/trash.svg';
 import squareIcon from '../../assets/square.svg';
 import checkSquareIcon from '../../assets/check-square.svg';
-import LoginModal from '../loginModal/LoginModal';
+import LoginModal from '../syncModal/SyncModal';
 
 enum RenderKeys {
     TAGS = 'tags',

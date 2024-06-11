@@ -112,6 +112,7 @@ $modalHeight: 200px;
         justify-content: center;
         align-items: center;
         flex-grow: 2;
+        opacity: 0.7;
 
         h3 {
             width: fit-content;
@@ -120,29 +121,40 @@ $modalHeight: 200px;
 
     .sync {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column;
         flex-grow: 2;
 
-        button {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-
-            margin: 8px;
-            height: 80px;
-            width: 80px;
-
-            border-radius: 16px;
+        .syncInfo {
             font-size: 12px;
-            font-weight: 600;
+            opacity: 0.5;
+        }
 
-            svg {
-                stroke: currentColor;
+        .syncContainer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            // flex-grow: 2;
 
-                height: 50px;
-                width: 50px;
+            button {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+
+                margin: 8px;
+                height: 80px;
+                width: 80px;
+
+                border-radius: 16px;
+                font-size: 12px;
+                font-weight: 600;
+
+                svg {
+                    stroke: currentColor;
+
+                    height: 50px;
+                    width: 50px;
+                }
             }
         }
     }

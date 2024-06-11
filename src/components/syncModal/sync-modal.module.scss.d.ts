@@ -9,4 +9,6 @@ export declare const overlay: string;
 export declare const privacy: string;
 export declare const svg: string;
 export declare const sync: string;
+export declare const syncContainer: string;
+export declare const syncInfo: string;
 export declare const titleContainer: string;

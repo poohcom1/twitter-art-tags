@@ -89,3 +89,15 @@ export function normalizePosition(
 
     return { normalizedX, normalizedY };
 }
+
+export async function request(
+    params: Omit<GM.Request, 'onload' | 'onerror'>
+): Promise<GM.Response<unknown>> {
+    return new Promise((resolve, reject) => {
+        GM.xmlHttpRequest({
+            ...params,
+            onload: resolve,
+            onerror: reject,
+        });
+    });
+}

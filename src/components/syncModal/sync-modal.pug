@@ -11,11 +11,14 @@ div(class=styles.modalContainer)
         div(id=ids.loading class=styles.loading)
             h3(id=ids.loadingText) Syncing...
         div(id=ids.sync class=styles.sync)
-            button(id=ids.syncBtn)
-                | !{require("/src/assets/cloud-upload.svg")} Sync
-            button(id=ids.clearBtn)
-                | !{require("/src/assets/cloud-off.svg")} Clear data
-            button(id=ids.logoutBtn)
-                | !{require("/src/assets/logout.svg")} Log out
+            div(id=ids.syncInfoUser class=styles.syncInfo) Logged in as: poohcom1
+            div(id=ids.syncInfoData class=styles.syncInfo) Last synced: 2020-07-01
+            div(class=styles.syncContainer)
+                button(id=ids.syncBtn)
+                    | !{require("/src/assets/cloud-upload.svg")} Sync
+                button(id=ids.clearBtn)
+                    | !{require("/src/assets/cloud-off.svg")} Clear data
+                button(id=ids.logoutBtn)
+                    | !{require("/src/assets/logout.svg")} Log out
         div(class=styles.privacy)
             a(href='https://github.com/poohcom1/twitter-art-tags/blob/master/PRIVACY.md' target='_blank') Privacy Policy
