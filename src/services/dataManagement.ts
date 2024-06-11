@@ -1,5 +1,34 @@
-import { Tag, Tags, UserData } from '../models';
+import { Tag, Tags, Tweets, UserData, WithMetadata } from '../models';
 
+// Getters
+export function filterExists(data?: WithMetadata): boolean {
+    if (!data) {
+        return false;
+    }
+    return data.modifiedAt >= data.deletedAt;
+}
+
+export function getExistingTags(userData: UserData): Tags {
+    const existingTags: Tags = {};
+    for (const tagName in userData.tags) {
+        if (filterExists(userData.tags[tagName])) {
+            existingTags[tagName] = userData.tags[tagName];
+        }
+    }
+    return existingTags;
+}
+
+export function getExistingTweets(userData: UserData): Tweets {
+    const existingTweets: Tweets = {};
+    for (const tweetId in userData.tweets) {
+        if (filterExists(userData.tweets[tweetId])) {
+            existingTweets[tweetId] = userData.tweets[tweetId];
+        }
+    }
+    return existingTweets;
+}
+
+// Setters
 export function createTag(userData: UserData, tagName: string): UserData {
     const { tags, tweets } = structuredClone(userData);
     tags[tagName] = {
@@ -59,13 +88,12 @@ export function tagTweet(
         tag.tweets.push(tweetId);
     }
 
-    if (imagesCache.length > 0) {
-        tweets[tweetId] = {
-            images: imagesCache.map(stripeNameParam),
-            modifiedAt: Date.now(),
-            deletedAt: 0,
-        };
-    }
+    tweets[tweetId] = {
+        images: tweets[tweetId]?.images ?? imagesCache.map(stripeNameParam),
+        modifiedAt: Date.now(),
+        deletedAt: tweets[tweetId]?.deletedAt ?? 0,
+    };
+
     tweets[tweetId].modifiedAt = Date.now();
     return { tags, tweets };
 }
@@ -84,23 +112,22 @@ export function removeTag(userData: UserData, tweetId: string, tagName: string) 
 export function removeTweet(userData: UserData, tweetId: string) {
     let newData = structuredClone(userData);
 
-    newData.tweets[tweetId].deletedAt = Date.now();
-
     for (const tagName in newData.tags) {
+        if (!newData.tags[tagName].tweets.includes(tweetId)) {
+            continue;
+        }
         newData = removeTag(newData, tweetId, tagName);
     }
+    newData.tweets[tweetId].deletedAt = Date.now();
     return newData;
 }
+
 function stripeNameParam(url: string) {
     const urlObj = new URL(url);
     const searchParams = urlObj.searchParams;
     searchParams.delete('name');
     urlObj.search = searchParams.toString();
     return urlObj.toString();
-}
-
-export function tagExists(tags: Tags, tagName: string) {
-    return tagName in tags && (tags[tagName].modifiedAt ?? 0) >= (tags[tagName].deletedAt ?? 0);
 }
 
 export function mergeData(data1: UserData, data2: UserData): UserData {
@@ -173,7 +200,12 @@ export function mergeData(data1: UserData, data2: UserData): UserData {
         merged.tweets[tweet] = {
             modifiedAt: Math.max(tweet1.modifiedAt ?? 0, tweet2.modifiedAt ?? 0),
             deletedAt: Math.max(tweet1.deletedAt ?? 0, tweet2.deletedAt ?? 0),
-            images: [...new Set([...tweet1.images, ...tweet2.images].map(stripeNameParam))],
+            images: [
+                ...new Set([
+                    ...tweet1.images.map(stripeNameParam),
+                    ...tweet2.images.map(stripeNameParam),
+                ]),
+            ],
         };
     }
 

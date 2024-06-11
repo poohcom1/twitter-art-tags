@@ -1,6 +1,6 @@
 import { clearCache, gmGetWithCache, gmSetWithCache, reloadCache } from './cache';
 import { CUSTOM_PAGE_PATH, KEY_USER_DATA } from '../constants';
-import { UserDataSchema, WithMetadata, Tweet, Tweets, UserData, Tag, Tags } from '../models';
+import { UserDataSchema, Tweets, UserData, Tags } from '../models';
 import { safeParse } from 'valibot';
 import * as dataManagement from './dataManagement';
 
@@ -35,7 +35,7 @@ export async function createTag(tagName: string) {
 
     const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
-    if (dataManagement.tagExists(data.tags, tagName)) {
+    if (dataManagement.filterExists(data.tags[tagName])) {
         alert('Tag already exists');
         return;
     }
@@ -70,7 +70,7 @@ export async function renameTag(oldTagName: string, newTagName: string) {
         return;
     }
 
-    if (dataManagement.tagExists(data.tags, newTagName)) {
+    if (dataManagement.filterExists(data.tags[newTagName])) {
         alert('Tag already exists');
         return;
     }
@@ -129,44 +129,22 @@ export async function removeTag(tweetId: string, tagName: string) {
 }
 
 export async function removeTweet(tweetId: string) {
-    const { tags, tweets } = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
-
-    for (const tag of Object.values(tags)) {
-        tag.tweets = tag.tweets.filter((id) => id !== tweetId);
-    }
-
-    tweets[tweetId].deletedAt = Date.now();
-
-    await gmSetWithCache<UserData>(KEY_USER_DATA, { tags, tweets });
+    const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+    await gmSetWithCache<UserData>(KEY_USER_DATA, dataManagement.removeTweet(data, tweetId));
 }
 
 // Get data
-function filterExists(data: WithMetadata): boolean {
-    return data.modifiedAt >= data.deletedAt;
-}
 
 export async function getTags(): Promise<Tags> {
-    return gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA).then(({ tags }) => {
-        const filteredTags: Tags = {};
-        for (const [tagName, tag] of Object.entries<Tag>(tags)) {
-            if (filterExists(tag)) {
-                filteredTags[tagName] = tag;
-            }
-        }
-        return filteredTags;
-    });
+    return dataManagement.getExistingTags(
+        await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA)
+    );
 }
 
 export async function getTweets(): Promise<Tweets> {
-    return gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA).then(({ tweets }) => {
-        const filteredTweets: Tweets = {};
-        for (const [tweetId, tweet] of Object.entries<Tweet>(tweets)) {
-            if (filterExists(tweet)) {
-                filteredTweets[tweetId] = tweet;
-            }
-        }
-        return filteredTweets;
-    });
+    return dataManagement.getExistingTweets(
+        await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA)
+    );
 }
 
 // Store
@@ -192,7 +170,7 @@ export async function setImportData(jsonString: string, merge: boolean = false) 
 
             const now = Date.now();
             for (const tag of Object.keys(importedData.tags)) {
-                if (dataManagement.tagExists(tags, tag)) {
+                if (dataManagement.filterExists(tags[tag])) {
                     tags[tag].modifiedAt = now;
                 } else {
                     tags[tag].deletedAt = now;
@@ -204,7 +182,7 @@ export async function setImportData(jsonString: string, merge: boolean = false) 
             }
 
             for (const tweet of Object.keys(importedData.tweets)) {
-                if (filterExists(tweets[tweet])) {
+                if (dataManagement.filterExists(tweets[tweet])) {
                     tweets[tweet].modifiedAt = now;
                 } else {
                     tweets[tweet].deletedAt = now;
