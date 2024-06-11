@@ -2,6 +2,7 @@ import { clearCache, gmGetWithCache, gmSetWithCache, reloadCache } from './cache
 import { CUSTOM_PAGE_PATH, KEY_USER_DATA } from '../constants';
 import { UserDataSchema, WithMetadata, Tweet, Tweets, UserData, Tag, Tags } from '../models';
 import { safeParse } from 'valibot';
+import * as dataManagement from './dataManagement';
 
 const DEFAULT_USER_DATA: UserData = {
     tags: {},
@@ -22,13 +23,7 @@ function sanitizeTagName(tagName: string) {
     return tagName.trim().toLowerCase();
 }
 
-function stripQueryParameters(url: string) {
-    const urlObj = new URL(url);
-    const searchParams = urlObj.searchParams;
-    searchParams.delete('name');
-    urlObj.search = searchParams.toString();
-    return urlObj.toString();
-}
+// Management
 
 // Tag
 export async function createTag(tagName: string) {
@@ -38,32 +33,24 @@ export async function createTag(tagName: string) {
         return;
     }
 
-    const { tags, tweets } = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+    const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
-    if (tagExists(tags, tagName)) {
+    if (dataManagement.tagExists(data.tags, tagName)) {
         alert('Tag already exists');
         return;
     }
 
-    tags[tagName] = {
-        tweets: [],
-        modifiedAt: Date.now(),
-        deletedAt: 0,
-        tweetsModifiedAt: {},
-    };
-
-    await gmSetWithCache<UserData>(KEY_USER_DATA, { tags, tweets });
+    await gmSetWithCache<UserData>(KEY_USER_DATA, dataManagement.createTag(data, tagName));
 }
 
 export async function deleteTag(tagName: string) {
-    const { tags, tweets } = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+    const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
-    if (!(tagName in tags)) {
+    if (!(tagName in data.tags)) {
         return;
     }
 
-    tags[tagName].deletedAt = Date.now();
-    await gmSetWithCache<UserData>(KEY_USER_DATA, { tags, tweets });
+    await gmSetWithCache<UserData>(KEY_USER_DATA, dataManagement.deleteTag(data, tagName));
 }
 
 export async function renameTag(oldTagName: string, newTagName: string) {
@@ -77,26 +64,21 @@ export async function renameTag(oldTagName: string, newTagName: string) {
         return;
     }
 
-    const { tags, tweets } = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+    const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
-    if (!(oldTagName in tags)) {
+    if (!(oldTagName in data.tags)) {
         return;
     }
 
-    if (tagExists(tags, newTagName)) {
+    if (dataManagement.tagExists(data.tags, newTagName)) {
         alert('Tag already exists');
         return;
     }
 
-    tags[oldTagName].deletedAt = Date.now();
-    tags[newTagName] = tags[oldTagName];
-    tags[newTagName].modifiedAt = Date.now();
-    for (const tweetId of tags[newTagName].tweets) {
-        tags[newTagName].tweetsModifiedAt = tags[newTagName].tweetsModifiedAt ?? {};
-        tags[newTagName].tweetsModifiedAt![tweetId] = Date.now();
-    }
-
-    await gmSetWithCache<UserData>(KEY_USER_DATA, { tags, tweets });
+    await gmSetWithCache<UserData>(
+        KEY_USER_DATA,
+        dataManagement.renameTag(data, oldTagName, newTagName)
+    );
 }
 
 // Tweet
@@ -111,43 +93,17 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
         return;
     }
 
-    const { tags, tweets } = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+    const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
-    if (!(tweetId in tweets) && imagesCache.length === 0) {
+    if (!(tweetId in data.tweets) && imagesCache.length === 0) {
         console.error('New tweet being cached, but no images found');
         return;
     }
 
-    let tag: Tag = {
-        tweets: [],
-        modifiedAt: Date.now(),
-        deletedAt: 0,
-        tweetsModifiedAt: {},
-    };
-
-    if (tagName in tags) {
-        tag = tags[tagName];
-    } else {
-        tags[tagName] = tag;
-    }
-
-    tag.modifiedAt = Date.now();
-    tag.tweetsModifiedAt[tweetId] = Date.now();
-
-    if (!tag.tweets.includes(tweetId)) {
-        tag.tweets.push(tweetId);
-    }
-
-    if (imagesCache.length > 0) {
-        tweets[tweetId] = {
-            images: imagesCache.map(stripQueryParameters),
-            modifiedAt: Date.now(),
-            deletedAt: 0,
-        };
-    }
-    tweets[tweetId].modifiedAt = Date.now();
-
-    await gmSetWithCache<UserData>(KEY_USER_DATA, { tags, tweets });
+    await gmSetWithCache<UserData>(
+        KEY_USER_DATA,
+        dataManagement.tagTweet(data, tweetId, tagName, imagesCache)
+    );
 }
 
 export async function removeTag(tweetId: string, tagName: string) {
@@ -166,15 +122,10 @@ export async function removeTag(tweetId: string, tagName: string) {
     if (!(tagName in tags)) {
         return;
     }
-
-    tags[tagName].tweets = tags[tagName].tweets.filter((id) => id !== tweetId);
-    tags[tagName].modifiedAt = Date.now();
-    tags[tagName].tweetsModifiedAt[tweetId] = Date.now();
-    tags[tagName].tweets.forEach((id) => {
-        tweets[id].modifiedAt = Date.now();
-    });
-
-    await gmSetWithCache<UserData>(KEY_USER_DATA, { tags, tweets });
+    await gmSetWithCache<UserData>(
+        KEY_USER_DATA,
+        dataManagement.removeTag({ tags, tweets }, tweetId, tagName)
+    );
 }
 
 export async function removeTweet(tweetId: string) {
@@ -234,14 +185,14 @@ export async function setImportData(jsonString: string, merge: boolean = false) 
                 KEY_USER_DATA,
                 DEFAULT_USER_DATA
             );
-            importedData = mergeData(currentData, result.output);
+            importedData = dataManagement.mergeData(currentData, result.output);
         } else {
             // Update modifiedAt and deletedAt
             const { tags, tweets } = importedData;
 
             const now = Date.now();
             for (const tag of Object.keys(importedData.tags)) {
-                if (tagExists(tags, tag)) {
+                if (dataManagement.tagExists(tags, tag)) {
                     tags[tag].modifiedAt = now;
                 } else {
                     tags[tag].deletedAt = now;
@@ -326,91 +277,4 @@ export async function clearAllTags() {
     if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
         window.location.reload();
     }
-}
-
-// Sync
-function tagExists(tags: Tags, tagName: string) {
-    return tagName in tags && (tags[tagName].modifiedAt ?? 0) >= (tags[tagName].deletedAt ?? 0);
-}
-
-export function mergeData(data1: UserData, data2: UserData): UserData {
-    const merged: UserData = {
-        tags: {},
-        tweets: {},
-    };
-
-    // Tags
-    const tags1AndShared = Object.keys(data1.tags);
-    const tags2 = Object.keys(data2.tags).filter((tag) => !tags1AndShared.includes(tag));
-
-    // - Shared and unique to data1
-    for (const tag of tags1AndShared) {
-        if (!Object.keys(data2.tags).includes(tag)) {
-            merged.tags[tag] = data1.tags[tag];
-            continue;
-        }
-
-        // Shared
-        const tag1 = data1.tags[tag];
-        const tag2 = data2.tags[tag];
-
-        const mergedTweets = [...new Set([...tag1.tweets, ...tag2.tweets])];
-        const tweets: string[] = [];
-        const mergedTweetsModifiedAt: Record<string, number> = {};
-
-        for (const tweet of mergedTweets) {
-            const modifiedAt1 = tag1.tweetsModifiedAt?.[tweet] ?? 0;
-            const modifiedAt2 = tag2.tweetsModifiedAt?.[tweet] ?? 0;
-
-            if (modifiedAt1 > modifiedAt2 && !tag1.tweets.includes(tweet)) {
-                continue;
-            } else if (modifiedAt2 > modifiedAt1 && !tag2.tweets.includes(tweet)) {
-                continue;
-            }
-
-            tweets.push(tweet);
-            mergedTweetsModifiedAt[tweet] = Math.max(modifiedAt1, modifiedAt2);
-        }
-
-        merged.tags[tag] = {
-            modifiedAt: Math.max(tag1.modifiedAt ?? 0, tag2.modifiedAt ?? 0),
-            deletedAt: Math.max(tag1.deletedAt ?? 0, tag2.deletedAt ?? 0),
-            tweets,
-            tweetsModifiedAt: mergedTweetsModifiedAt,
-        };
-    }
-
-    // - Unique to data2
-    for (const tag of tags2) {
-        merged.tags[tag] = data2.tags[tag];
-    }
-
-    // Tweets
-    const tweets1 = Object.keys(data1.tweets);
-    const tweets2 = Object.keys(data2.tweets).filter((tweet) => !tweets1.includes(tweet));
-
-    // - Shared and unique to data1
-    for (const tweet of tweets1) {
-        if (!Object.keys(data2.tweets).includes(tweet)) {
-            merged.tweets[tweet] = data1.tweets[tweet];
-            continue;
-        }
-
-        // Shared
-        const tweet1 = data1.tweets[tweet];
-        const tweet2 = data2.tweets[tweet];
-
-        merged.tweets[tweet] = {
-            modifiedAt: Math.max(tweet1.modifiedAt ?? 0, tweet2.modifiedAt ?? 0),
-            deletedAt: Math.max(tweet1.deletedAt ?? 0, tweet2.deletedAt ?? 0),
-            images: [...new Set([...tweet1.images, ...tweet2.images].map(stripQueryParameters))],
-        };
-    }
-
-    // - Unique to data2
-    for (const tweet of tweets2) {
-        merged.tweets[tweet] = data2.tweets[tweet];
-    }
-
-    return merged;
 }

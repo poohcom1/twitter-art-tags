@@ -1,7 +1,8 @@
 import { gmSetWithCache } from './cache';
 import { KEY_USER_DATA } from '../constants';
 import { UserData } from '../models';
-import { getExportData, mergeData } from './storage';
+import { getExportData } from './storage';
+import { mergeData } from './dataManagement';
 
 export interface UserInfo {
     access_token: string;

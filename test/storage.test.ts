@@ -1,5 +1,7 @@
+import { KEY_USER_DATA } from '../src/constants';
 import { Tag, Tweet, UserData } from '../src/models';
-import { createTag, getTags, mergeData } from '../src/storage';
+import { createTag, getTags } from '../src/services/storage';
+import { tagsData } from './utils';
 
 global.alert = jest.fn();
 global.GM = {
@@ -9,23 +11,10 @@ global.GM = {
 
 const mockSetValue = jest.fn();
 const mockGetValue = jest.fn();
-jest.mock('../src/cache.ts', () => ({
+jest.mock('../src/services/cache.ts', () => ({
     gmSetWithCache: (...args: any[]) => mockSetValue(...args),
     gmGetWithCache: (...args: any[]) => mockGetValue(...args),
 }));
-
-const TAG_DEFAULT: Tag = {
-    deletedAt: 0,
-    modifiedAt: 1,
-    tweets: [],
-    tweetsModifiedAt: {},
-};
-
-const TWEET_DEFAULT: Tweet = {
-    deletedAt: 0,
-    modifiedAt: 1,
-    images: [],
-};
 
 describe('storage', () => {
     describe('createTag', () => {
@@ -34,28 +23,35 @@ describe('storage', () => {
         });
 
         it('should not fail if tag exists but is deleted', async () => {
-            mockGetValue.mockResolvedValueOnce({
-                tag1: { tweets: [], deletedAt: 123 },
-            });
+            mockGetValue.mockResolvedValueOnce(
+                tagsData({
+                    tag1: { tweets: [], deletedAt: 123 },
+                })
+            );
 
             await createTag('tag1');
 
             expect(alert).not.toHaveBeenCalled();
             expect(mockSetValue).toHaveBeenCalled();
-            expect(mockSetValue).toHaveBeenCalledWith('tags', {
-                tag1: {
-                    tweets: [],
-                    modifiedAt: expect.any(Number),
-                    deletedAt: 0,
-                    tweetsModifiedAt: {},
-                },
-            });
+            expect(mockSetValue).toHaveBeenCalledWith(
+                KEY_USER_DATA,
+                tagsData({
+                    tag1: {
+                        tweets: [],
+                        modifiedAt: expect.any(Number),
+                        deletedAt: 0,
+                        tweetsModifiedAt: {},
+                    },
+                })
+            );
         });
 
         it('should fail if tag exists', async () => {
-            mockGetValue.mockResolvedValueOnce({
-                tag1: { tweets: [] },
-            });
+            mockGetValue.mockResolvedValueOnce(
+                tagsData({
+                    tag1: { tweets: [] },
+                })
+            );
 
             await createTag('tag1');
 
@@ -66,113 +62,21 @@ describe('storage', () => {
 
     describe('getTags', () => {
         it('should not return deleted tags', async () => {
-            mockGetValue.mockResolvedValueOnce({
-                tag1: { ...TAG_DEFAULT, tweets: [], deletedAt: 2, modifiedAt: 1 },
-                tag2: { ...TAG_DEFAULT, tweets: [], deletedAt: 1, modifiedAt: 2 },
-                tag3: { ...TAG_DEFAULT, tweets: [] },
-            });
+            mockGetValue.mockResolvedValueOnce(
+                tagsData({
+                    tag1: { deletedAt: 2, modifiedAt: 1 },
+                    tag2: { deletedAt: 1, modifiedAt: 2 },
+                    tag3: {},
+                })
+            );
 
             const tags = await getTags();
-            expect(tags).toEqual({
-                tag2: { ...TAG_DEFAULT, tweets: [], deletedAt: 1, modifiedAt: 2 },
-                tag3: { ...TAG_DEFAULT, tweets: [] },
-            });
-        });
-    });
-
-    describe('sync', () => {
-        it('should merge normally if there are no overlaps', () => {
-            const data1: UserData = {
-                tags: {
-                    tag1: { ...TAG_DEFAULT, tweets: ['tweet1'] },
-                },
-                tweets: {
-                    tweet1: { ...TWEET_DEFAULT, images: [] },
-                },
-            };
-            const data2: UserData = {
-                tags: {
-                    tag2: { ...TAG_DEFAULT, tweets: ['tweet2'] },
-                },
-                tweets: {
-                    tweet2: { ...TWEET_DEFAULT, images: [] },
-                },
-            };
-
-            const result = mergeData(data1, data2);
-            expect(result).toEqual({
-                tags: {
-                    tag1: { ...TAG_DEFAULT, tweets: ['tweet1'] },
-                    tag2: { ...TAG_DEFAULT, tweets: ['tweet2'] },
-                },
-                tweets: {
-                    tweet1: { ...TWEET_DEFAULT, images: [] },
-                    tweet2: { ...TWEET_DEFAULT, images: [] },
-                },
-            });
-        });
-
-        it('should delete if deleted_at is newer', () => {
-            const data1: UserData = {
-                tags: {
-                    tag1: { ...TAG_DEFAULT, modifiedAt: 100, tweets: ['tweet1'] },
-                },
-                tweets: {
-                    tweet1: { ...TWEET_DEFAULT, deletedAt: 123, images: [] },
-                },
-            };
-            const data2: UserData = {
-                tags: {
-                    tag1: { ...TAG_DEFAULT, deletedAt: 123, tweets: ['tweet1'] },
-                },
-                tweets: {
-                    tweet1: { ...TWEET_DEFAULT, modifiedAt: 100, images: [] },
-                },
-            };
-
-            const result = mergeData(data1, data2);
-            expect(result).toEqual({
-                tags: {
-                    tag1: {
-                        deletedAt: 123,
-                        modifiedAt: 100,
-                        tweets: ['tweet1'],
-                        tweetsModifiedAt: {
-                            tweet1: 0,
-                        },
-                    },
-                },
-                tweets: {
-                    tweet1: { deletedAt: 123, modifiedAt: 100, images: [] },
-                },
-            });
-        });
-
-        it('should delete tweet if deleted_at is newer', () => {
-            const data1: UserData = {
-                tags: {
-                    tag1: {
-                        ...TAG_DEFAULT,
-                        tweets: ['tweet1'],
-                        tweetsModifiedAt: { tweet1: 100 },
-                    },
-                },
-                tweets: {},
-            };
-            const data2: UserData = {
-                tags: {
-                    tag1: { ...TAG_DEFAULT, tweets: [], tweetsModifiedAt: { tweet1: 123 } },
-                },
-                tweets: {},
-            };
-
-            const result = mergeData(data1, data2);
-            expect(result).toEqual({
-                tags: {
-                    tag1: { ...TAG_DEFAULT, tweets: [], tweetsModifiedAt: {} },
-                },
-                tweets: {},
-            });
+            expect(tags).toEqual(
+                tagsData({
+                    tag2: { deletedAt: 1, modifiedAt: 2 },
+                    tag3: {},
+                }).tags
+            );
         });
     });
 });
