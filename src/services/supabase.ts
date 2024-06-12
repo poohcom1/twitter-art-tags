@@ -14,7 +14,7 @@ export interface UserInfo {
 
 export interface UserInfoData {
     userInfo: UserInfo;
-    userData: UserData | null;
+    userDataExists: boolean;
     syncedAt: string;
 }
 
@@ -97,7 +97,7 @@ export async function getUserInfo(): Promise<UserInfoData | null> {
                     const userData = await downloadData(userInfo);
                     return {
                         userInfo,
-                        userData: userData?.data ?? null,
+                        userDataExists: !!userData?.data,
                         syncedAt: userData?.synced_at ?? '',
                     };
                 }

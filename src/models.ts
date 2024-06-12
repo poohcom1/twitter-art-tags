@@ -27,6 +27,11 @@ export type Tweet = InferOutput<typeof TweetSchema>;
 export type Tweets = InferOutput<typeof TweetsSchema>;
 export type Tag = InferOutput<typeof TagSchema>;
 export type Tags = InferOutput<typeof TagsSchema>;
+/**
+ * Schema for representing tags and tweets data.
+ * Existences of tags and image depends on metadata, so tags that are present in the tags object may have already been deleted.
+ * Use the dataManagement.ts module to interact with this data.
+ */
 export type UserData = InferOutput<typeof UserDataSchema>;
 
 export interface WithMetadata {

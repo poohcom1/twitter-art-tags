@@ -191,10 +191,10 @@ export default class LoginModal {
         this.allComponents.forEach((c) => (c.style.display = 'none'));
         this.syncComponent.style.display = 'flex';
 
-        this.clearDataBtn.disabled = !this.userInfoData?.userData;
+        this.clearDataBtn.disabled = !this.userInfoData?.userDataExists;
 
         this.syncInfoUser.textContent = `Logged in as: @${this.userInfoData?.userInfo.username}`;
-        if (this.userInfoData?.userData && this.userInfoData.syncedAt) {
+        if (this.userInfoData?.userDataExists && this.userInfoData.syncedAt) {
             const date = new Date(this.userInfoData.syncedAt);
 
             // Extract the individual components

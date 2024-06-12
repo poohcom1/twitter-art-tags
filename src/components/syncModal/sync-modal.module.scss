@@ -149,6 +149,10 @@ $modalHeight: 200px;
                 font-size: 12px;
                 font-weight: 600;
 
+                &:disabled {
+                    opacity: 0.3;
+                }
+
                 svg {
                     stroke: currentColor;
 
