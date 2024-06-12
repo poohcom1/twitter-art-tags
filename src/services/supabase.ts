@@ -2,7 +2,7 @@ import { gmSetWithCache } from './cache';
 import { KEY_USER_DATA } from '../constants';
 import { UserData } from '../models';
 import { getUserData } from './storage';
-import { mergeData } from './dataManagement';
+import { mergeData } from './dataManager';
 import { request } from '../utils';
 
 export interface UserInfo {

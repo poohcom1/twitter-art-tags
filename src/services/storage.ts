@@ -2,7 +2,7 @@ import { clearCache, gmGetWithCache, gmSetWithCache, reloadCache } from './cache
 import { KEY_USER_DATA } from '../constants';
 import { UserDataSchema, Tweets, UserData, Tags } from '../models';
 import { safeParse } from 'valibot';
-import * as dataManagement from './dataManagement';
+import * as dataManager from './dataManager';
 
 const DEFAULT_USER_DATA: UserData = {
     tags: {},
@@ -37,12 +37,12 @@ export async function createTag(tagName: string) {
 
     const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
-    if (dataManagement.filterExists(data.tags[tagName])) {
+    if (dataManager.filterExists(data.tags[tagName])) {
         alert('Tag already exists');
         return;
     }
 
-    await gmSetWithCache<UserData>(KEY_USER_DATA, dataManagement.createTag(data, tagName));
+    await gmSetWithCache<UserData>(KEY_USER_DATA, dataManager.createTag(data, tagName));
 }
 
 export async function deleteTag(tagName: string) {
@@ -52,7 +52,7 @@ export async function deleteTag(tagName: string) {
         return;
     }
 
-    await gmSetWithCache<UserData>(KEY_USER_DATA, dataManagement.deleteTag(data, tagName));
+    await gmSetWithCache<UserData>(KEY_USER_DATA, dataManager.deleteTag(data, tagName));
 }
 
 export async function renameTag(oldTagName: string, newTagName: string) {
@@ -72,14 +72,14 @@ export async function renameTag(oldTagName: string, newTagName: string) {
         return;
     }
 
-    if (dataManagement.filterExists(data.tags[newTagName])) {
+    if (dataManager.filterExists(data.tags[newTagName])) {
         alert('Tag already exists');
         return;
     }
 
     await gmSetWithCache<UserData>(
         KEY_USER_DATA,
-        dataManagement.renameTag(data, oldTagName, newTagName)
+        dataManager.renameTag(data, oldTagName, newTagName)
     );
 }
 
@@ -104,7 +104,7 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
 
     await gmSetWithCache<UserData>(
         KEY_USER_DATA,
-        dataManagement.tagTweet(data, tweetId, tagName, imagesCache)
+        dataManager.tagTweet(data, tweetId, tagName, imagesCache)
     );
 }
 
@@ -126,25 +126,25 @@ export async function removeTag(tweetId: string, tagName: string) {
     }
     await gmSetWithCache<UserData>(
         KEY_USER_DATA,
-        dataManagement.removeTag({ tags, tweets }, tweetId, tagName)
+        dataManager.removeTag({ tags, tweets }, tweetId, tagName)
     );
 }
 
 export async function removeTweet(tweetId: string) {
     const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
-    await gmSetWithCache<UserData>(KEY_USER_DATA, dataManagement.removeTweet(data, tweetId));
+    await gmSetWithCache<UserData>(KEY_USER_DATA, dataManager.removeTweet(data, tweetId));
 }
 
 // Get data
 
 export async function getTags(): Promise<Tags> {
-    return dataManagement.getExistingTags(
+    return dataManager.getExistingTags(
         await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA)
     );
 }
 
 export async function getTweets(): Promise<Tweets> {
-    return dataManagement.getExistingTweets(
+    return dataManager.getExistingTweets(
         await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA)
     );
 }
@@ -169,9 +169,9 @@ export async function setImportData(jsonString: string, merge: boolean = false) 
                 KEY_USER_DATA,
                 DEFAULT_USER_DATA
             );
-            importedData = dataManagement.mergeData(currentData, result.output);
+            importedData = dataManager.mergeData(currentData, result.output);
         } else {
-            importedData = dataManagement.updateTimeStamps(importedData);
+            importedData = dataManager.updateTimeStamps(importedData);
         }
 
         await gmSetWithCache(KEY_USER_DATA, importedData);
