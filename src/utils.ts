@@ -90,7 +90,10 @@ export function normalizePosition(
     return { normalizedX, normalizedY };
 }
 
-export async function request(
+/**
+ * Simple async wrapper around GM.xmlHttpRequest.
+ */
+export async function asyncXmlHttpRequest(
     params: Omit<GM.Request, 'onload' | 'onerror'>
 ): Promise<GM.Response<unknown>> {
     return new Promise((resolve, reject) => {

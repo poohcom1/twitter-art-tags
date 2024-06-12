@@ -3,7 +3,7 @@ import { KEY_USER_DATA } from '../constants';
 import { UserData } from '../models';
 import { getUserData } from './storage';
 import { mergeData } from './dataManager';
-import { request } from '../utils';
+import { asyncXmlHttpRequest } from '../utils';
 
 export interface UserInfo {
     user_id: string;
@@ -31,10 +31,9 @@ interface AccessTokenStore {
 
 const URL = process.env.SUPABASE_URL!;
 const API_KEY = process.env.SUPABASE_KEY!;
+const TABLE_NAME = 'user_data';
 
 const LOCAL_STORAGE_KEY = 'twitter-art-tags_access-token';
-
-export const TABLE_NAME = 'export_data';
 
 // Tasks
 export let loginRedirected = false;
@@ -72,7 +71,7 @@ export async function getUserInfo(): Promise<UserInfoData | null> {
 
     if (accessToken) {
         try {
-            const res = await request({
+            const res = await asyncXmlHttpRequest({
                 url: `${URL}/auth/v1/user`,
                 method: 'GET',
                 headers: {
@@ -135,25 +134,23 @@ export async function syncData(userInfo: UserInfo): Promise<boolean> {
 }
 
 // API
-export async function signIn(): Promise<UserInfo | null> {
-    return new Promise((resolve) =>
-        GM.xmlHttpRequest({
+export async function signIn(): Promise<void> {
+    try {
+        const res = await asyncXmlHttpRequest({
             url: `${URL}/auth/v1/authorize?provider=twitter`,
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 apikey: API_KEY,
             },
-            onload: async (res) => {
-                window.location.href = res.finalUrl;
-            },
-            onerror: (res) => {
-                console.warn('Sign in error - rejected');
-                alert('Something went wrong -- ' + res.responseText);
-                resolve(null);
-            },
-        })
-    );
+        });
+
+        window.location.href = res.finalUrl;
+    } catch (e: unknown) {
+        console.warn('Sign in error - rejected');
+        console.error(JSON.stringify(e));
+        alert('Failed to redirect to twitter login');
+    }
 }
 
 export async function signOut() {
@@ -167,8 +164,8 @@ export async function uploadData(userInfo: UserInfo, data: UserData): Promise<bo
         synced_at: new Date().toISOString(),
     };
 
-    return new Promise((resolve) =>
-        GM.xmlHttpRequest({
+    try {
+        const res = await asyncXmlHttpRequest({
             url: `${URL}/rest/v1/${TABLE_NAME}`,
             method: 'POST',
             headers: {
@@ -178,25 +175,28 @@ export async function uploadData(userInfo: UserInfo, data: UserData): Promise<bo
                 Prefer: 'resolution=merge-duplicates',
             },
             data: JSON.stringify(bodyJson),
-            onload: (res) => {
-                if (res.status >= 400) {
-                    console.error(JSON.stringify(res));
-                    resolve(false);
-                } else {
-                    resolve(true);
-                }
-            },
-            onerror: (res) => {
-                console.error(JSON.stringify(res));
-                resolve(false);
-            },
-        })
-    );
+        });
+
+        if (res.status >= 400) {
+            console.error(JSON.stringify(res));
+            return false;
+        }
+
+        if (res.status >= 400) {
+            console.error(JSON.stringify(res));
+            return false;
+        } else {
+            return true;
+        }
+    } catch (e) {
+        console.error(JSON.stringify(e));
+        return false;
+    }
 }
 
 async function downloadData(userInfo: UserInfo): Promise<UserDataRow | null> {
     try {
-        const res = await request({
+        const res = await asyncXmlHttpRequest({
             url: `${URL}/rest/v1/${TABLE_NAME}?user_id=eq.${userInfo.user_id}`,
             method: 'GET',
             headers: {
@@ -220,8 +220,8 @@ async function downloadData(userInfo: UserInfo): Promise<UserDataRow | null> {
 }
 
 export async function deleteData(userInfo: UserInfo): Promise<boolean> {
-    return new Promise((resolve) =>
-        GM.xmlHttpRequest({
+    try {
+        const res = await asyncXmlHttpRequest({
             url: `${URL}/rest/v1/${TABLE_NAME}?user_id=eq.${userInfo.user_id}`,
             method: 'DELETE',
             headers: {
@@ -229,18 +229,16 @@ export async function deleteData(userInfo: UserInfo): Promise<boolean> {
                 apikey: API_KEY,
                 Authorization: `Bearer ${userInfo.access_token}`,
             },
-            onload: (res) => {
-                if (res.status >= 400) {
-                    console.error(JSON.stringify(res));
-                    resolve(false);
-                } else {
-                    resolve(true);
-                }
-            },
-            onerror: (res) => {
-                console.error(JSON.stringify(res));
-                resolve(false);
-            },
-        })
-    );
+        });
+
+        if (res.status >= 400) {
+            console.error(JSON.stringify(res));
+            return false;
+        } else {
+            return true;
+        }
+    } catch (e: unknown) {
+        console.error(JSON.stringify(e));
+        return false;
+    }
 }
