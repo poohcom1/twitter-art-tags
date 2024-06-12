@@ -1,6 +1,6 @@
 # Twitter Art Tags
 
-A Greasemonkey script for caching and tagging images on Twitter.
+A Greasemonkey script for X/Twitter for caching and tagging images.
 
 ## Installation
 
