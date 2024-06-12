@@ -1,4 +1,4 @@
-import { waitForElement } from '../utils';
+import { assertUi, waitForElement } from '../utils';
 import tagIcon from '../assets/tag.svg';
 import tagGalleryIcon from '../assets/tags.svg';
 import { CUSTOM_PAGE_PATH, HOVER_COLOR_MAP } from '../constants';
@@ -11,7 +11,9 @@ function getTweetImages(tweetId: string): string[] {
         .map((img) => img.src);
 }
 
-export async function renderTweetDropdown(tagModal: TagModal) {
+export async function renderTweetDropdown() {
+    const tagModal = new TagModal();
+
     let tagButton: HTMLElement | null = null;
     let viewTagsButton: HTMLElement | null = null;
 
@@ -21,6 +23,8 @@ export async function renderTweetDropdown(tagModal: TagModal) {
             tagButton = dropdown.childNodes[0].cloneNode(true) as HTMLElement;
             viewTagsButton = tagButton.cloneNode(true)! as HTMLElement;
 
+            assertUi(tagButton.querySelector('svg'), 'Base menu button');
+            assertUi(tagButton.querySelector('span'), 'Base menu button');
             const svgClasslist = tagButton.querySelector('svg')!.classList;
             tagButton.querySelector('span')!.innerText = 'Tag Tweet';
             tagButton.querySelector('svg')!.outerHTML = tagIcon;
@@ -121,6 +125,7 @@ export async function renderTweetDropdown(tagModal: TagModal) {
                 const images = getTweetImages(id);
 
                 if (images.length === 0) {
+                    assertUi(null, 'Tweet image');
                     return;
                 }
 

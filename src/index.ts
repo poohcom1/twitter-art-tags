@@ -2,7 +2,6 @@ import { renderTweetDropdown } from './pages/tweetDropdown';
 import { renderTagsGallery } from './pages/tagsGallery';
 import { CUSTOM_PAGE_PATH } from './constants';
 import { renderNavButton } from './pages/navButton';
-import TagModal from './components/tagModal/TagModal';
 
 // Commands
 GM.registerMenuCommand(
@@ -11,10 +10,8 @@ GM.registerMenuCommand(
 );
 
 // Main
-const dropdownTagModal = new TagModal();
-
 renderNavButton();
-renderTweetDropdown(dropdownTagModal);
+renderTweetDropdown();
 
 if (window.location.href.includes(CUSTOM_PAGE_PATH)) {
     renderTagsGallery();

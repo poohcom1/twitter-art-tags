@@ -104,3 +104,13 @@ export async function asyncXmlHttpRequest(
         });
     });
 }
+
+export function assertUi<T extends Element>(element: T | null, context: string): T {
+    if (!element) {
+        alert(
+            `UI element (${context}) not found. Twitter's UI may have changed. Please report this issue.`
+        );
+        throw new Error('UI element not found');
+    }
+    return element;
+}
