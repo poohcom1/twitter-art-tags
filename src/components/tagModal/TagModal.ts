@@ -16,7 +16,6 @@ export default class TagModal {
     private tagsContainer: HTMLElement;
 
     private callbacks: Partial<TagModalCallbacks> = {};
-    private tagInputKeydownListener: ((ev: KeyboardEvent) => void) | null = null;
 
     constructor(classNames: string[] = []) {
         this.tagModal = parseHTML(

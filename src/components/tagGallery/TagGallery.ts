@@ -320,6 +320,7 @@ export default class TagGallery {
                         );
                     },
                 },
+                'hr',
                 {
                     label: 'Remove tweet',
                     iconHTML: createContextMenuIcon(trashIcon),
@@ -430,7 +431,7 @@ export default class TagGallery {
                         callback: modifySelection,
                     },
                     {
-                        label: 'Deselct all',
+                        label: 'Deselect all',
                         iconHTML: createNoIcon(),
                         callback: () => {
                             this.selectedTags = [];
