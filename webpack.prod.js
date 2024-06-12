@@ -51,7 +51,9 @@ module.exports = {
         ],
     },
     plugins: [
-        new Dotenv(),
+        new Dotenv({
+            systemvars: true,
+        }),
         new UserscriptPlugin({
             headers: {
                 name: 'Twitter Art Tags',

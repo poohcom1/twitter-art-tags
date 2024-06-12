@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Release
 
+    env:
+      SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ vars.SUPABASE_KEY }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
