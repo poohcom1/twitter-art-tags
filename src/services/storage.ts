@@ -14,11 +14,16 @@ const DEFAULT_USER_DATA: RawUserData = {
 // Cache
 export const cacheInvalidated = new Event('cacheInvalidated');
 if (process.env.NODE_ENV !== 'test') {
-    document.addEventListener('visibilitychange', () => {
-        clearCache(KEY_USER_DATA, DEFAULT_USER_DATA);
-        reloadCache(KEY_USER_DATA, DEFAULT_USER_DATA).then(() =>
-            document.dispatchEvent(cacheInvalidated)
-        );
+    document.addEventListener('visibilitychange', async () => {
+        const userData = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+        await clearCache(KEY_USER_DATA, DEFAULT_USER_DATA);
+        await reloadCache(KEY_USER_DATA, DEFAULT_USER_DATA);
+
+        const reloadedData = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+
+        if (!dataManager.equals(userData, reloadedData)) {
+            document.dispatchEvent(cacheInvalidated);
+        }
     });
 }
 
