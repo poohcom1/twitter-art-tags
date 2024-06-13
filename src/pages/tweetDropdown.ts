@@ -125,7 +125,6 @@ export async function renderTweetDropdown() {
                 const images = getTweetImages(id);
 
                 if (images.length === 0) {
-                    assertUi(null, 'Tweet image');
                     return;
                 }
 
