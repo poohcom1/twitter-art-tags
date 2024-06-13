@@ -129,6 +129,7 @@ export async function removeTag(tweetId: string, tagName: string) {
     const { tags, tweets } = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
     if (!(tagName in tags)) {
+        console.error('Tag does not exist');
         return;
     }
     await gmSetWithCache<RawUserData>(

@@ -15,11 +15,13 @@ import {
     clearAllTags,
     getArchiveConsent,
     setArchiveConsent,
+    removeTag,
 } from '../../services/storage';
 import TagModal from '../tagModal/TagModal';
 import tagIcon from '../../assets/tag.svg';
 import eyeIcon from '../../assets/eye.svg';
-import tagPlusIcon from '../../assets/file-plus.svg';
+import tagCheckIcon from '../../assets/file-check.svg';
+import tagMinusIcon from '../../assets/file-minus.svg';
 import externalLinkIcon from '../../assets/link-external.svg';
 import pencilIcon from '../../assets/pencil.svg';
 import trashIcon from '../../assets/trash.svg';
@@ -331,7 +333,7 @@ export default class TagGallery {
             const menuItems: MenuItem[] = [
                 {
                     label: 'Edit tags',
-                    iconHTML: createContextMenuIcon(tagPlusIcon),
+                    iconHTML: createContextMenuIcon(tagCheckIcon),
                     callback: async (_, currentEvent) => {
                         currentEvent.stopPropagation();
 
@@ -360,11 +362,26 @@ export default class TagGallery {
                         );
                     },
                 },
+            ];
+
+            if (this.selectedTags.length === 1) {
+                menuItems.push({
+                    label: `Untag "${formatTagName(this.selectedTags[0])}"`,
+                    iconHTML: createContextMenuIcon(tagMinusIcon),
+                    callback: async () => {
+                        await removeTag(image.tweetId, this.selectedTags[0]);
+                        this.rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+                        contextMenu.close();
+                    },
+                });
+            }
+
+            menuItems.push(
                 {
-                    label: 'Remove tweet',
+                    label: 'Delete tweet',
                     iconHTML: createContextMenuIcon(trashIcon),
                     callback: async () => {
-                        if (confirm('Are you sure you want to remove this tweet from all tags?')) {
+                        if (confirm('Are you sure you want to delete this tweet from all tags?')) {
                             await removeTweet(image.tweetId);
                             this.rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
                         }
@@ -387,8 +404,8 @@ export default class TagGallery {
                         window.open(image.image, '_blank');
                         contextMenu.close();
                     },
-                },
-            ];
+                }
+            );
 
             const tagsMenu: MenuItem[] = Object.keys(tags)
                 .filter((tag) => tags[tag].tweets.includes(image.tweetId))
