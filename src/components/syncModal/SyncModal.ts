@@ -63,7 +63,7 @@ export default class SyncModal {
         // Login
         const loginBtn = this.modalContainer.querySelector<HTMLButtonElement>(`#${IDS.loginBtn}`)!;
         loginBtn.onclick = async () => {
-            this.showLoading('Redirecting to twitter login...');
+            this.showLoading('Redirecting to X/Twitter login...');
             await signIn();
         };
 
@@ -201,9 +201,9 @@ export default class SyncModal {
 
             let syncText = 'Last synced: ';
             if (days === 0) {
-                syncText += 'today';
+                syncText += 'Today';
             } else if (days === 1) {
-                syncText += 'yesterday';
+                syncText += 'Yesterday';
             } else {
                 syncText += `${days} days ago`;
             }
@@ -212,6 +212,12 @@ export default class SyncModal {
         } else {
             this.syncInfoData.textContent = 'No data synced yet.';
             this.clearDataBtn.disabled = false;
+        }
+
+        if (this.syncBtn.disabled) {
+            this.syncBtn.querySelector('div')!.textContent = 'Up to date';
+        } else {
+            this.syncBtn.querySelector('div')!.textContent = 'Sync';
         }
     }
 }

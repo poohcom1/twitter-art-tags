@@ -7,7 +7,7 @@ div(class=styles.modalContainer)
                 | !{require("/src/assets/x-close.svg")}
         div(id=ids.login class=styles.login)
             div(class=styles.btnContainer)
-                button(id=ids.loginBtn) Log in via Twitter
+                button(id=ids.loginBtn) Log in with X/Twitter
         div(id=ids.loading class=styles.loading)
             h3(id=ids.loadingText) Syncing...
         div(id=ids.sync class=styles.sync)
@@ -15,7 +15,9 @@ div(class=styles.modalContainer)
             div(id=ids.syncInfoData class=styles.syncInfo) Last synced: 2020-07-01
             div(class=styles.syncContainer)
                 button(id=ids.syncBtn)
-                    | !{require("/src/assets/cloud-upload.svg")} Sync
+                    | !{require("/src/assets/cloud-upload.svg")} 
+                    div
+                        | Sync
                 button(id=ids.clearBtn)
                     | !{require("/src/assets/cloud-off.svg")} Clear data
                 button(id=ids.logoutBtn)
@@ -23,4 +25,4 @@ div(class=styles.modalContainer)
         div(class=styles.privacy)
             a(href='https://github.com/poohcom1/twitter-art-tags/blob/master/PRIVACY.md' target='_blank') Privacy Policy
             span &nbsp;
-            a(href='https://github.com/poohcom1/twitter-art-tags/blob/master/TOS.md' target='_blank') Terms of Service
+            a(href='https://github.com/poohcom1/twitter-art-tags/blob/master/TERMS_OF_SERVICE.md' target='_blank') Terms of Service

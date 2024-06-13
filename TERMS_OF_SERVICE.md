@@ -44,6 +44,6 @@ We reserve the right to terminate or suspend your access to the userscript at ou
 
 If you have any questions or concerns about these terms, please open an issue on our [GitHub repository](https://github.com/poohcom1/twitter-art-tags/issues).
 
-#### 9. No Affiliation with Twitter
+#### 9. No Affiliation with X/Twitter
 
 This userscript is not affiliated with, endorsed, or sponsored by X/Twitter. It is an independent project created by poohcom1.
