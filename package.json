@@ -2,7 +2,7 @@
     "name": "twitter-art-tags",
     "author": "poohcom1",
     "description": "",
-    "version": "2.1.1",
+    "version": "2.2.0",
     "private": true,
     "engines": {
         "node": ">=18.20.3"

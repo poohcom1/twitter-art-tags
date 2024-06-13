@@ -330,23 +330,6 @@ export default class TagGallery {
 
             const menuItems: MenuItem[] = [
                 {
-                    label: 'Open image',
-                    iconHTML: createContextMenuIcon(eyeIcon),
-                    callback: () => {
-                        window.open(image.image, '_blank');
-                        contextMenu.close();
-                    },
-                },
-                {
-                    label: 'Open tweet',
-                    iconHTML: createContextMenuIcon(externalLinkIcon),
-                    callback: () => {
-                        window.open(`/poohcom1/status/${image.tweetId}`, '_blank');
-                        contextMenu.close();
-                    },
-                },
-                'hr',
-                {
                     label: 'Edit tags',
                     iconHTML: createContextMenuIcon(tagPlusIcon),
                     callback: async (_, currentEvent) => {
@@ -377,7 +360,6 @@ export default class TagGallery {
                         );
                     },
                 },
-                'hr',
                 {
                     label: 'Remove tweet',
                     iconHTML: createContextMenuIcon(trashIcon),
@@ -386,6 +368,23 @@ export default class TagGallery {
                             await removeTweet(image.tweetId);
                             this.rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
                         }
+                        contextMenu.close();
+                    },
+                },
+                'hr',
+                {
+                    label: 'Open image',
+                    iconHTML: createContextMenuIcon(eyeIcon),
+                    callback: () => {
+                        window.open(image.image, '_blank');
+                        contextMenu.close();
+                    },
+                },
+                {
+                    label: 'Open tweet',
+                    iconHTML: createContextMenuIcon(externalLinkIcon),
+                    callback: () => {
+                        window.open(`/poohcom1/status/${image.tweetId}`, '_blank');
                         contextMenu.close();
                     },
                 },
