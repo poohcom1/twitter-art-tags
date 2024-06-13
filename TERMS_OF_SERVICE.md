@@ -1,6 +1,6 @@
-### Twitter Art Tags - Terms of Service
+# Twitter Art Tags - Terms of Service
 
-_Last updated: 6/12/24_
+_Last updated: 6/14/24_
 
 **Welcome to Twitter Art Tags!**
 
