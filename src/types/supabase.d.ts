@@ -36,4 +36,12 @@ declare namespace Supabase {
             name: string;
         };
     };
+
+    type JWTToken = {
+        sub: string;
+        email: string;
+        user_metadata: {
+            preferred_username: string;
+        };
+    };
 }

@@ -74,48 +74,32 @@ export async function getUserInfo(): Promise<UserInfoData | null> {
         }
     }
 
-    if (accessToken) {
-        try {
-            const res = await asyncXmlHttpRequest({
-                url: `${URL}/auth/v1/user`,
-                method: 'GET',
-                headers: {
-                    apiKey: API_KEY,
-                    Authorization: `Bearer ${accessToken}`,
-                },
-            });
-
-            if (res.status >= 400) {
-                console.warn('Get user error - status');
-                const data: Supabase.UserResponseError = JSON.parse(res.responseText);
-                alert(data.msg ?? JSON.stringify(res));
-            } else {
-                const data: Supabase.UserResponseSuccess = JSON.parse(res.responseText);
-                const userInfo = {
-                    user_id: data.id,
-                    email: data.email,
-                    username: data.user_metadata.preferred_username,
-                    access_token: accessToken,
-                };
-                if (userInfo) {
-                    const onlineUserData = await downloadData(userInfo);
-                    const localUserData = await getRawUserData();
-                    return {
-                        userInfo,
-                        userDataExists: !!onlineUserData?.data,
-                        userDataSynced:
-                            onlineUserData !== null
-                                ? dataManager.equals(localUserData, onlineUserData.data)
-                                : false,
-                        syncedAt: onlineUserData?.synced_at ?? '',
-                    };
-                }
-            }
-        } catch (e: unknown) {
-            console.warn('Get user error - rejected');
-            console.error((e as GM.Response<unknown>).responseText ?? JSON.stringify(e));
-            return null;
+    try {
+        if (accessToken) {
+            const encodedSession = accessToken.split('.')[1];
+            const data: Supabase.JWTToken = JSON.parse(atob(encodedSession));
+            const userInfo = {
+                user_id: data.sub,
+                email: data.email,
+                username: data.user_metadata.preferred_username,
+                access_token: accessToken,
+            };
+            const [onlineUserData, localUserData] = await Promise.all([
+                downloadData(userInfo),
+                getRawUserData(),
+            ]);
+            return {
+                userInfo,
+                userDataExists: !!onlineUserData?.data,
+                userDataSynced:
+                    onlineUserData !== null
+                        ? dataManager.equals(localUserData, onlineUserData.data)
+                        : false,
+                syncedAt: onlineUserData?.synced_at ?? '',
+            };
         }
+    } catch (e: unknown) {
+        console.log('Error getting user info: ' + JSON.stringify(e));
     }
 
     return null;
