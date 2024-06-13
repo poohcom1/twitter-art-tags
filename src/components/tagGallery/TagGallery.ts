@@ -373,18 +373,18 @@ export default class TagGallery {
                 },
                 'hr',
                 {
-                    label: 'Open image',
-                    iconHTML: createContextMenuIcon(eyeIcon),
-                    callback: () => {
-                        window.open(image.image, '_blank');
-                        contextMenu.close();
-                    },
-                },
-                {
                     label: 'Open tweet',
                     iconHTML: createContextMenuIcon(externalLinkIcon),
                     callback: () => {
                         window.open(`/poohcom1/status/${image.tweetId}`, '_blank');
+                        contextMenu.close();
+                    },
+                },
+                {
+                    label: 'Open image',
+                    iconHTML: createContextMenuIcon(eyeIcon),
+                    callback: () => {
+                        window.open(image.image, '_blank');
                         contextMenu.close();
                     },
                 },
