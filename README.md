@@ -31,11 +31,11 @@ yarn dev
 ```
 
 3. Compiled script will be at `dist/twitterArtTags.user.js`.
-4. If you need want to host your own supabase instance, checkout [SUPABASE_SETUP.md](SUPABASE_SETUP.md).
+4. If you want to host your own supabase instance, checkout [SUPABASE_SETUP.md](SUPABASE_SETUP.md).
 
 ### Dependencies
 
--   [vanilla-context-menu](https://github.com/poohcom1/vanilla-context-menu): Forked to support screen position normalization and hover with nested menu.
+-   [poohcom1/vanilla-context-menu](https://github.com/poohcom1/vanilla-context-menu): Forked to support screen position normalization and hover with nested menu.
 
 ## Attribution
 
