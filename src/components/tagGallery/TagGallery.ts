@@ -51,7 +51,7 @@ const IDS = {
 };
 
 export default class TagGallery {
-    private cleanup: (() => void)[] = [];
+    private cleanup: (() => void) | null = null;
 
     private tagModal: TagModal = new TagModal([styles.tagModal]);
     private imageModal: ImageModal = new ImageModal();
@@ -187,8 +187,8 @@ export default class TagGallery {
         const tagRender = this.renderTags(renderKeys);
         const imageRender = this.renderImages(renderKeys);
 
-        this.cleanup.forEach((fn) => fn());
-        this.cleanup.length = 0;
+        this.cleanup?.();
+        this.cleanup = null;
 
         await Promise.all([tagRender, imageRender]);
     }
@@ -261,16 +261,18 @@ export default class TagGallery {
         }
 
         // Menu item
+        const clearAll = () =>
+            document
+                .querySelectorAll('.' + styles.imageContainerHover)
+                .forEach((img) => img.classList.remove(styles.imageContainerHover));
+
         const onMouseEnter = (image: ImageData) => {
             actualSelected = image;
             if (this.lockHover) {
                 return;
             }
             const tweetImages = this.imageData.filter((img) => img.tweetId === image.tweetId);
-
-            document
-                .querySelectorAll('.' + styles.imageContainerHover)
-                .forEach((img) => img.classList.remove(styles.imageContainerHover));
+            clearAll();
             tweetImages.forEach((img) => img.element.classList.add(styles.imageContainerHover));
         };
 
@@ -290,12 +292,12 @@ export default class TagGallery {
             this.lockHover = false;
             if (actualSelected) {
                 onMouseEnter(actualSelected);
+            } else {
+                clearAll();
             }
         };
         document.addEventListener('click', onDocumentClick);
-        this.cleanup.push(() => {
-            document.removeEventListener('click', onDocumentClick);
-        });
+        this.cleanup = () => document.removeEventListener('click', onDocumentClick);
 
         this.imageData.forEach((image) => {
             // Hover fx
