@@ -205,7 +205,7 @@ async function refreshToken(tokenData: AccessTokenStore): Promise<AccessTokenSto
 
     const store: AccessTokenStore = {
         accessToken: data.access_token,
-        expiresAt: data.expires_at,
+        expiresAt: data.expires_at * 1000,
         refreshToken: data.refresh_token,
     };
 
