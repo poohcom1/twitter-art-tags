@@ -35,8 +35,6 @@ const URL = process.env.SUPABASE_URL!;
 const API_KEY = process.env.SUPABASE_KEY!;
 const TABLE_NAME = 'user_data';
 
-const LOCAL_STORAGE_KEY = 'twitter-art-tags_access-token';
-
 // Tasks
 export let loginRedirected = false;
 
@@ -166,7 +164,7 @@ export async function signIn(): Promise<void> {
 }
 
 export async function signOut(userInfo: UserInfo) {
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    await GM.deleteValue(KEY_USER_TOKEN);
 
     asyncXmlHttpRequest({
         url: `${URL}/auth/v1/logout`,
