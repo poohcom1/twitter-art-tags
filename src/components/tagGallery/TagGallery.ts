@@ -25,8 +25,9 @@ import pencilIcon from '../../assets/pencil.svg';
 import trashIcon from '../../assets/trash.svg';
 import squareIcon from '../../assets/square.svg';
 import checkSquareIcon from '../../assets/check-square.svg';
-import LoginModal from '../syncModal/SyncModal';
+import SyncModal from '../syncModal/SyncModal';
 import { createArchive, loginRedirected } from '../../services/supabase';
+import ImageModal from '../imageModal/ImageModal';
 
 enum RenderKeys {
     TAGS = 'tags',
@@ -52,7 +53,8 @@ const IDS = {
 export default class TagGallery {
     private cleanup: (() => void)[] = [];
 
-    private tagModal: TagModal;
+    private tagModal: TagModal = new TagModal([styles.tagModal]);
+    private imageModal: ImageModal = new ImageModal();
     private imageContainer: HTMLElement;
     private tagsContainer: HTMLElement;
 
@@ -65,7 +67,6 @@ export default class TagGallery {
     }
 
     constructor(parent: HTMLElement) {
-        this.tagModal = new TagModal([styles.tagModal]);
         parent.style.maxWidth = '100%';
         parent.innerHTML = template({
             styles,
@@ -111,7 +112,7 @@ export default class TagGallery {
         document.onclick = closeDropdown;
         dropdown.onclick = (e) => e.stopPropagation();
 
-        const tagSyncModal = new LoginModal({
+        const tagSyncModal = new SyncModal({
             onClose: closeDropdown,
             onTagsUpdate: () => this.rerender(),
         });
@@ -194,6 +195,7 @@ export default class TagGallery {
 
     private async renderImages(renderKeys: RenderKeys[]) {
         const previousImages = this.imageData;
+        let actualSelected: ImageData | null = null;
 
         if (renderKeys.includes(RenderKeys.IMAGES)) {
             this.imageContainer.innerHTML =
@@ -206,36 +208,47 @@ export default class TagGallery {
 
         // Images that have all selected tags
         if (renderKeys.includes(RenderKeys.IMAGES)) {
-            this.imageData = Object.keys(tags)
+            const tweetIds = Object.keys(tags)
                 .filter((tag) => this.selectedTags.includes(tag))
                 .reduce(
                     (acc, tag) => acc.filter((tweetId) => tags[tag].tweets.includes(tweetId)),
                     Object.keys(tweets)
                 )
                 .reverse()
-                .filter((tweetId) => tweetId in tweets)
-                .flatMap((tweetId, ind) =>
-                    tweets[tweetId].images.map((image, index) => {
-                        const atSamePos =
-                            previousImages[ind]?.tweetId === tweetId &&
-                            previousImages[ind]?.index === index;
+                .filter((tweetId) => tweetId in tweets);
 
-                        return {
-                            tweetId,
-                            image,
-                            index,
-                            element: parseHTML(
-                                imageTemplate({
-                                    className: `${styles.imageContainer} ${
-                                        !atSamePos && styles.imageContainerLoaded
-                                    }`,
-                                    href: `/poohcom1/status/${tweetId}`,
-                                    src: image,
-                                })
-                            ),
-                        };
-                    })
-                );
+            const allImages = tweetIds.flatMap((tweetId) => tweets[tweetId].images);
+
+            this.imageData = tweetIds.flatMap((tweetId, ind) =>
+                tweets[tweetId].images.map((image, index) => {
+                    const atSamePos =
+                        previousImages[ind]?.tweetId === tweetId &&
+                        previousImages[ind]?.index === index;
+
+                    const imageContainer = parseHTML(
+                        imageTemplate({
+                            className: `${styles.imageContainer} ${
+                                !atSamePos && styles.imageContainerLoaded
+                            }`,
+                            src: image,
+                        })
+                    );
+                    imageContainer.onclick = () => {
+                        if (this.lockHover) {
+                            return;
+                        }
+
+                        this.imageModal.show(allImages, allImages.indexOf(image));
+                    };
+
+                    return {
+                        tweetId,
+                        image,
+                        index,
+                        element: imageContainer,
+                    };
+                })
+            );
             this.imageContainer.innerHTML = '';
             this.imageContainer.append(...this.imageData.map((e) => e.element));
         }
@@ -248,48 +261,52 @@ export default class TagGallery {
         }
 
         // Menu item
-        this.imageData.forEach((image) => {
-            // Hover fx
+        const onMouseEnter = (image: ImageData) => {
+            actualSelected = image;
+            if (this.lockHover) {
+                return;
+            }
             const tweetImages = this.imageData.filter((img) => img.tweetId === image.tweetId);
 
-            const hoverFx = () => {
-                if (this.lockHover) {
-                    return;
-                }
+            document
+                .querySelectorAll('.' + styles.imageContainerHover)
+                .forEach((img) => img.classList.remove(styles.imageContainerHover));
+            tweetImages.forEach((img) => img.element.classList.add(styles.imageContainerHover));
+        };
 
-                document
-                    .querySelectorAll('.' + styles.imageContainerHover)
-                    .forEach((img) => img.classList.remove(styles.imageContainerHover));
-                tweetImages.forEach((img) => img.element.classList.add(styles.imageContainerHover));
-            };
-            const unhoverFx = () => {
-                if (this.lockHover) {
-                    return;
-                }
+        const onMouseLeave = (image: ImageData) => {
+            if (actualSelected === image) {
+                actualSelected = null;
+            }
+            if (this.lockHover) {
+                return;
+            }
 
-                tweetImages.forEach((img) =>
-                    img.element.classList.remove(styles.imageContainerHover)
-                );
-            };
+            const tweetImages = this.imageData.filter((img) => img.tweetId === image.tweetId);
+            tweetImages.forEach((img) => img.element.classList.remove(styles.imageContainerHover));
+        };
 
-            const onDocumentClick = () => {
-                this.lockHover = false;
-                unhoverFx();
-            };
+        const onDocumentClick = () => {
+            this.lockHover = false;
+            if (actualSelected) {
+                onMouseEnter(actualSelected);
+            }
+        };
+        document.addEventListener('click', onDocumentClick);
+        this.cleanup.push(() => {
+            document.removeEventListener('click', onDocumentClick);
+        });
 
-            image.element.addEventListener('mouseover', hoverFx);
-            image.element.addEventListener('mouseout', unhoverFx);
+        this.imageData.forEach((image) => {
+            // Hover fx
+            image.element.addEventListener('mouseover', () => onMouseEnter(image));
+            image.element.addEventListener('mouseout', () => onMouseLeave(image));
 
             image.element.addEventListener('contextmenu', () => {
                 this.lockHover = false;
-                hoverFx();
+                onMouseEnter(image);
                 this.lockHover = true;
                 this.tagModal.hide();
-            });
-            document.addEventListener('click', onDocumentClick);
-
-            this.cleanup.push(() => {
-                document.removeEventListener('click', onDocumentClick);
             });
 
             // Menu item

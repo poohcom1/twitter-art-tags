@@ -40,3 +40,48 @@
         background-color: $bg-color-hover;
     }
 }
+
+@mixin modal-container {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    &___show {
+        display: block;
+    }
+}
+
+@mixin document-modal-open {
+    height: 100vh;
+    width: 100vw;
+    touch-action: none;
+    -webkit-overflow-scrolling: none;
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+$overlay-index: 30000;
+@mixin overlay {
+    width: 100vw;
+    height: 100vh;
+
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    z-index: $overlay-index;
+}
+
+@mixin modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: $overlay-index + 1;
+}

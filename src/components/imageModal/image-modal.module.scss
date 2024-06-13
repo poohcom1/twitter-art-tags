@@ -1,0 +1,55 @@
+@use '../../scss/_mixins' as mixins;
+
+// Modal
+.modalContainer {
+    @include mixins.modal-container;
+}
+
+.modal-open {
+    @include mixins.document-modal-open;
+}
+
+.overlay {
+    @include mixins.overlay;
+}
+
+// Image
+.image {
+    @include mixins.modal;
+
+    height: 90vh;
+    object-fit: fill;
+    z-index: mixins.$overlay-index + 1;
+}
+
+// Arrow
+.arrowContainer {
+    height: 100vh;
+    width: 10vw;
+    position: absolute;
+
+    background-color: rgba(0, 0, 0, 0.756);
+
+    &:hover {
+        background-color: rgba(89, 89, 89, 0.626);
+    }
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: mixins.$overlay-index + 2;
+
+    &__left {
+        left: 0;
+    }
+
+    &__right {
+        right: 0;
+    }
+
+    svg {
+        stroke: white;
+        height: 50px;
+        width: 50px;
+    }
+}

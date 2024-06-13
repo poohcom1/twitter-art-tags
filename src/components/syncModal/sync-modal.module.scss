@@ -1,42 +1,21 @@
-.modalContainer {
-    display: none;
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
+@use '../../scss/_mixins' as mixins;
 
-    &___show {
-        display: block;
-    }
+.modalContainer {
+    @include mixins.modal-container;
 }
 
 .modal-open {
-    height: 100vh;
-    width: 100vw;
-    touch-action: none;
-    -webkit-overflow-scrolling: none;
-    overflow: hidden;
-    overscroll-behavior: none;
+    @include mixins.document-modal-open;
 }
 
 .overlay {
-    width: 100vw;
-    height: 100vh;
-
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
-
-    position: fixed;
-    top: 0;
-    left: 0;
-
-    z-index: 30000;
+    @include mixins.overlay;
 }
 
 $modalHeight: 200px;
 
 .modal {
+    @include mixins.modal;
     display: flex;
     flex-direction: column;
 
@@ -49,13 +28,9 @@ $modalHeight: 200px;
 
     font-family: TwitterChirp;
 
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     pointer-events: auto;
 
     background-color: rgb(19, 18, 18);
-    position: fixed;
 
     .titleContainer {
         display: flex;

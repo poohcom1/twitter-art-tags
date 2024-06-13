@@ -31,7 +31,7 @@ interface ShowOptions {
     onClose?: () => void;
 }
 
-export default class LoginModal {
+export default class SyncModal {
     private modalContainer: HTMLElement;
 
     private loginComponent: HTMLElement;
