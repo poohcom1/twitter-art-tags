@@ -32,18 +32,20 @@ export async function waitForElement(selector: string, root: ParentNode = docume
                 resolve(element as HTMLElement);
             }
         }
+        const timeout = setTimeout(() => {
+            clearInterval(interval);
+            console.error(`Element not found: ${selector}`);
+            resolve(null);
+        }, 10000);
+
         const interval = setInterval(() => {
             const element = root.querySelector(selector);
             if (element) {
+                clearTimeout(timeout);
                 clearInterval(interval);
                 resolve(element as HTMLElement);
             }
         }, 10);
-
-        setTimeout(() => {
-            clearInterval(interval);
-            resolve(null);
-        }, 5000);
     });
 }
 
