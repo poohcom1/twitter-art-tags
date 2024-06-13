@@ -30,6 +30,7 @@ export async function waitForElement(selector: string, root: ParentNode = docume
             const element = root.querySelector(selector);
             if (element) {
                 resolve(element as HTMLElement);
+                return;
             }
         }
         const timeout = setTimeout(() => {
