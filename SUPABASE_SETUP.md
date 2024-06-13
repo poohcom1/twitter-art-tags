@@ -52,7 +52,7 @@ using (
 
 ## Code setup
 
-Copy `.env.sample` to `.env` and add the correct values.
+Copy `.env.example` to `.env` and add the correct values.
 
 ## Functions setup
 
