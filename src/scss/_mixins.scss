@@ -55,12 +55,6 @@
 }
 
 @mixin document-modal-open {
-    height: 100vh;
-    width: 100vw;
-    touch-action: none;
-    -webkit-overflow-scrolling: none;
-    overflow: hidden;
-    overscroll-behavior: none;
 }
 
 $overlay-index: 30000;
