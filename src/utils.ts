@@ -47,8 +47,11 @@ export async function waitForElement(selector: string, root: ParentNode = docume
     });
 }
 
-const parser = new DOMParser();
+let parser: DOMParser | undefined;
 export function parseHTML<T extends HTMLElement>(html: string): T {
+    if (!parser) {
+        parser = new DOMParser();
+    }
     return parser.parseFromString(html, 'text/html').body.firstChild as T;
 }
 
