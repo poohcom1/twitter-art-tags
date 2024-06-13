@@ -542,7 +542,12 @@ export default class TagGallery {
                                 return;
                             }
                             await deleteTag(tag);
-                            this.rerender([RenderKeys.TAGS]);
+                            if (this.selectedTags.includes(tag)) {
+                                this.selectedTags = [];
+                                this.rerender([RenderKeys.TAGS, RenderKeys.IMAGES]);
+                            } else {
+                                this.rerender([RenderKeys.TAGS]);
+                            }
                         },
                     },
                 ],
