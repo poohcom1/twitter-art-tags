@@ -49,11 +49,15 @@ export default class ImageModal {
         }
 
         this.modalContainer.classList.add(styles.modalContainerShow);
-        document.body.classList.add(styles.modalOpen);
+        document.body.addEventListener('wheel', this.disableBodyScroll, { passive: false });
     }
 
     public hide() {
         this.modalContainer.classList.remove(styles.modalContainerShow);
-        document.body.classList.remove(styles.modalOpen);
+        document.body.removeEventListener('wheel', this.disableBodyScroll);
+    }
+
+    private disableBodyScroll(e: MouseEvent) {
+        e.preventDefault();
     }
 }
