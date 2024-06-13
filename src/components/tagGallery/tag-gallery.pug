@@ -12,17 +12,19 @@ div(class=styles.tagsGallery)
         div(class=styles.dotMenu style="margin-left: auto")
             | !{require("/src/assets/dot-menu.svg")}
             div(class=styles.dotMenuDropdown)
-                div(id=ids.tagExport)
+                div(class=styles.dropdownItem id=ids.tagExport)
                     | Export
-                div(id=ids.tagImport)
+                div(class=styles.dropdownItem id=ids.tagImport)
                     | Import
-                div(id=ids.tagImportMerge)
+                div(class=styles.dropdownItem id=ids.tagImportMerge)
                     | Import & Merge
                 hr
-                div(id=ids.tagSync)
+                div(class=styles.dropdownItem id=ids.tagSync)
                     | Sync...
+                div(class=styles.dropdownItem id=ids.downloadImages)
+                    | Download images
                 hr
-                div(id=ids.tagClear)
+                div(class=styles.dropdownItem id=ids.tagClear)
                     | Delete all tags
 
     hr

@@ -6,6 +6,8 @@ export declare const contextMenuWide: string;
 export declare const dotMenu: string;
 export declare const dotMenuDropdown: string;
 export declare const dotMenuDropdownVisible: string;
+export declare const dropdownItem: string;
+export declare const dropdownItemDisabled: string;
 export declare const fadeIn: string;
 export declare const github: string;
 export declare const help: string;

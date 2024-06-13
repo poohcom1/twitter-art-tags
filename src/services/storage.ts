@@ -1,10 +1,12 @@
 import { clearCache, gmGetWithCache, gmSetWithCache, reloadCache } from './cache';
 import { KEY_USER_DATA } from '../constants';
-import { UserDataSchema, Tweets, UserData, Tags } from '../models';
+import { RawUserData, Tags, Tweets, UserData, UserDataSchema } from '../models';
 import { safeParse } from 'valibot';
 import * as dataManager from './dataManager';
+import { KEY_CREATE_ARCHIVE_CONSENT } from '../constants';
+import { saveFile } from '../utils';
 
-const DEFAULT_USER_DATA: UserData = {
+const DEFAULT_USER_DATA: RawUserData = {
     tags: {},
     tweets: {},
 };
@@ -35,24 +37,24 @@ export async function createTag(tagName: string) {
         return;
     }
 
-    const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+    const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
     if (dataManager.filterExists(data.tags[tagName])) {
         alert('Tag already exists');
         return;
     }
 
-    await gmSetWithCache<UserData>(KEY_USER_DATA, dataManager.createTag(data, tagName));
+    await gmSetWithCache<RawUserData>(KEY_USER_DATA, dataManager.createTag(data, tagName));
 }
 
 export async function deleteTag(tagName: string) {
-    const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+    const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
     if (!(tagName in data.tags)) {
         return;
     }
 
-    await gmSetWithCache<UserData>(KEY_USER_DATA, dataManager.deleteTag(data, tagName));
+    await gmSetWithCache<RawUserData>(KEY_USER_DATA, dataManager.deleteTag(data, tagName));
 }
 
 export async function renameTag(oldTagName: string, newTagName: string) {
@@ -66,7 +68,7 @@ export async function renameTag(oldTagName: string, newTagName: string) {
         return;
     }
 
-    const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+    const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
     if (!(oldTagName in data.tags)) {
         return;
@@ -77,7 +79,7 @@ export async function renameTag(oldTagName: string, newTagName: string) {
         return;
     }
 
-    await gmSetWithCache<UserData>(
+    await gmSetWithCache<RawUserData>(
         KEY_USER_DATA,
         dataManager.renameTag(data, oldTagName, newTagName)
     );
@@ -95,14 +97,14 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
         return;
     }
 
-    const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+    const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
     if (!(tweetId in data.tweets) && imagesCache.length === 0) {
         console.error('New tweet being cached, but no images found');
         return;
     }
 
-    await gmSetWithCache<UserData>(
+    await gmSetWithCache<RawUserData>(
         KEY_USER_DATA,
         dataManager.tagTweet(data, tweetId, tagName, imagesCache)
     );
@@ -119,41 +121,45 @@ export async function removeTag(tweetId: string, tagName: string) {
         return;
     }
 
-    const { tags, tweets } = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+    const { tags, tweets } = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
     if (!(tagName in tags)) {
         return;
     }
-    await gmSetWithCache<UserData>(
+    await gmSetWithCache<RawUserData>(
         KEY_USER_DATA,
         dataManager.removeTag({ tags, tweets }, tweetId, tagName)
     );
 }
 
 export async function removeTweet(tweetId: string) {
-    const data = await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
-    await gmSetWithCache<UserData>(KEY_USER_DATA, dataManager.removeTweet(data, tweetId));
+    const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+    await gmSetWithCache<RawUserData>(KEY_USER_DATA, dataManager.removeTweet(data, tweetId));
 }
 
 // Get data
 
 export async function getTags(): Promise<Tags> {
     return dataManager.getExistingTags(
-        await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA)
+        await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA)
     );
 }
 
 export async function getTweets(): Promise<Tweets> {
     return dataManager.getExistingTweets(
-        await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA)
+        await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA)
     );
 }
 
-export async function getUserData(): Promise<UserData> {
-    return await gmGetWithCache<UserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+export async function getRawUserData(): Promise<RawUserData> {
+    return await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 }
 
-export function isDataEmpty(data: UserData): boolean {
+export async function getUserData(): Promise<UserData> {
+    return dataManager.removeMetadata(await getRawUserData());
+}
+
+export function isDataEmpty(data: RawUserData): boolean {
     return data === DEFAULT_USER_DATA;
 }
 
@@ -165,7 +171,7 @@ export async function setImportData(jsonString: string, merge: boolean = false) 
     if (result.success) {
         let importedData = result.output;
         if (merge) {
-            const currentData: UserData = await gmGetWithCache<UserData>(
+            const currentData: RawUserData = await gmGetWithCache<RawUserData>(
                 KEY_USER_DATA,
                 DEFAULT_USER_DATA
             );
@@ -193,15 +199,9 @@ const exportFilename = () => {
 };
 
 export async function exportDataToFile() {
-    const tags = JSON.stringify(await getUserData(), null, 2);
+    const tags = JSON.stringify(await getRawUserData(), null, 2);
     const blob = new Blob([tags], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-
-    a.download = exportFilename();
-    a.click();
-    URL.revokeObjectURL(url);
+    saveFile(blob, exportFilename());
 }
 
 export function importDataFromFile(merge: boolean): Promise<void> {
@@ -218,7 +218,7 @@ export function importDataFromFile(merge: boolean): Promise<void> {
                     ? 'This will merge the data with the current data. Are you sure you want to proceed?'
                     : 'Are you sure you want to overwrite all tags?';
 
-                const userData = await getUserData();
+                const userData = await getRawUserData();
 
                 if (!(isDataEmpty(userData) || confirm(warning))) {
                     resolve();
@@ -237,4 +237,13 @@ export function importDataFromFile(merge: boolean): Promise<void> {
 export async function clearAllTags() {
     clearCache(KEY_USER_DATA, DEFAULT_USER_DATA);
     await GM.deleteValue(KEY_USER_DATA);
+}
+
+// Archive consent
+export async function getArchiveConsent(): Promise<boolean> {
+    return await GM.getValue(KEY_CREATE_ARCHIVE_CONSENT, false);
+}
+
+export async function setArchiveConsent(consent: boolean) {
+    await GM.setValue(KEY_CREATE_ARCHIVE_CONSENT, consent);
 }

@@ -13,6 +13,8 @@ import {
     exportDataToFile,
     importDataFromFile,
     clearAllTags,
+    getArchiveConsent,
+    setArchiveConsent,
 } from '../../services/storage';
 import TagModal from '../tagModal/TagModal';
 import tagIcon from '../../assets/tag.svg';
@@ -24,7 +26,7 @@ import trashIcon from '../../assets/trash.svg';
 import squareIcon from '../../assets/square.svg';
 import checkSquareIcon from '../../assets/check-square.svg';
 import LoginModal from '../syncModal/SyncModal';
-import { loginRedirected } from '../../services/supabase';
+import { createArchive, loginRedirected } from '../../services/supabase';
 
 enum RenderKeys {
     TAGS = 'tags',
@@ -44,6 +46,7 @@ const IDS = {
     tagImportMerge: 'tagImportMerge',
     tagSync: 'tagSync',
     tagClear: 'tagClear',
+    downloadImages: 'downloadImages',
 };
 
 export default class TagGallery {
@@ -95,6 +98,7 @@ export default class TagGallery {
         const tagImportMerge = document.querySelector<HTMLElement>(`#${IDS.tagImportMerge}`)!;
         const tagClear = document.querySelector<HTMLElement>(`#${IDS.tagClear}`)!;
         const tagSyncBtn = document.querySelector<HTMLElement>(`#${IDS.tagSync}`)!;
+        const downloadImages = document.querySelector<HTMLElement>(`#${IDS.downloadImages}`)!;
 
         const dropdown = document.querySelector<HTMLElement>(`.${styles.dotMenuDropdown}`)!;
         const closeDropdown = () => dropdown.classList.remove(styles.dotMenuDropdownVisible);
@@ -136,6 +140,40 @@ export default class TagGallery {
         tagSyncBtn.onclick = () => {
             closeDropdown();
             tagSyncModal.show();
+        };
+
+        let creatingArchive = false;
+        const downloadText = downloadImages.textContent;
+        downloadImages.onclick = async () => {
+            if (creatingArchive) {
+                return;
+            }
+
+            const consent = await getArchiveConsent();
+            if (!consent) {
+                if (
+                    !confirm(
+                        'Due to limitations on a userscript, the download feature uses an API to create a zip file of all images. This does not store any data.\n\nDo you want to proceed?'
+                    )
+                ) {
+                    return;
+                }
+                setArchiveConsent(true);
+            }
+
+            creatingArchive = true;
+            downloadImages.textContent = 'Creating archive...';
+            downloadImages.classList.add(styles.dropdownItemDisabled);
+
+            const success = await createArchive();
+
+            if (!success) {
+                alert('Failed to create archive!');
+            }
+
+            downloadImages.textContent = downloadText;
+            downloadImages.classList.remove(styles.dropdownItemDisabled);
+            creatingArchive = false;
         };
 
         // Render

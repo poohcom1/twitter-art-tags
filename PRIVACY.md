@@ -12,6 +12,8 @@ When you opt-in to use the sync feature, the following data is collected:
 -   **Tags and Images**: The tags you create and the images they are associated with.
 -   **Image Links**: The URLs of the images you tag.
 
+The **Download images** feature does not store any data.
+
 ## Data Usage
 
 The data collected is used solely for the purpose of providing the sync feature. This includes:
@@ -42,4 +44,4 @@ We may update this privacy policy from time to time. Any changes will be posted 
 
 If you have any questions or concerns about this privacy policy, please create an issue on the [GitHub Issues page](https://github.com/poohcom1/twitter-art-tags/issues).
 
-Last updated: 6/11/24
+Last updated: 6/13/24

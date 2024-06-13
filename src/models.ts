@@ -1,4 +1,4 @@
-import { object, array, record, number, string, InferOutput } from 'valibot';
+import { array, InferOutput, number, object, record, string } from 'valibot';
 
 const TweetSchema = object({
     images: array(string()),
@@ -23,16 +23,26 @@ export const UserDataSchema = object({
 });
 
 // Type definitions
-export type Tweet = InferOutput<typeof TweetSchema>;
-export type Tweets = InferOutput<typeof TweetsSchema>;
-export type Tag = InferOutput<typeof TagSchema>;
-export type Tags = InferOutput<typeof TagsSchema>;
+export type RawTweet = InferOutput<typeof TweetSchema>;
+export type RawTweets = InferOutput<typeof TweetsSchema>;
+export type RawTag = InferOutput<typeof TagSchema>;
+export type RawTags = InferOutput<typeof TagsSchema>;
 /**
  * Schema for representing tags and tweets data.
  * Existences of tags and image depends on metadata, so tags that are present in the tags object may have already been deleted.
  * Use the dataManager.ts module to interact with this data.
  */
-export type UserData = InferOutput<typeof UserDataSchema>;
+export type RawUserData = InferOutput<typeof UserDataSchema>;
+
+export type Tweet = Omit<RawTweet, keyof WithMetadata>;
+export type Tweets = Record<string, Tweet>;
+export type Tag = Omit<RawTag, keyof WithMetadata | 'tweetsModifiedAt'>;
+export type Tags = Record<string, Tag>;
+
+export interface UserData {
+    tweets: Tweets;
+    tags: Tags;
+}
 
 export interface WithMetadata {
     modifiedAt: number;

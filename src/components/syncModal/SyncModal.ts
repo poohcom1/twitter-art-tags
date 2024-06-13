@@ -39,6 +39,7 @@ export default class LoginModal {
     private syncComponent: HTMLElement;
     private allComponents: HTMLElement[] = [];
 
+    private syncBtn: HTMLButtonElement;
     private clearDataBtn: HTMLButtonElement;
     private syncInfoData: HTMLElement;
     private syncInfoUser: HTMLElement;
@@ -72,7 +73,7 @@ export default class LoginModal {
         overlay.onclick = () => this.hide();
 
         // Sync
-        const syncBtn = this.modalContainer.querySelector<HTMLButtonElement>(`#${IDS.syncBtn}`)!;
+        this.syncBtn = this.modalContainer.querySelector<HTMLButtonElement>(`#${IDS.syncBtn}`)!;
         this.clearDataBtn = this.modalContainer.querySelector<HTMLButtonElement>(
             `#${IDS.clearBtn}`
         )!;
@@ -82,7 +83,7 @@ export default class LoginModal {
         this.syncInfoData = this.modalContainer.querySelector<HTMLElement>(`#${IDS.syncInfoData}`)!;
         this.syncInfoUser = this.modalContainer.querySelector<HTMLElement>(`#${IDS.syncInfoUser}`)!;
 
-        syncBtn.onclick = async () => {
+        this.syncBtn.onclick = async () => {
             if (!this.userInfoData) {
                 alert("You're not logged in!");
                 this.showLogin();
@@ -139,7 +140,12 @@ export default class LoginModal {
         };
 
         logOutBtn.onclick = () => {
-            signOut();
+            if (!this.userInfoData) {
+                alert("You're not logged in!");
+                this.showLogin();
+                return;
+            }
+            signOut(this.userInfoData.userInfo);
             this.showLogin();
         };
 
@@ -166,11 +172,6 @@ export default class LoginModal {
         this.initialLoad();
     }
 
-    public signOut() {
-        signOut();
-        this.userInfoData = null;
-    }
-
     public hide() {
         this.modalContainer.classList.remove(styles.modalContainerShow);
         document.body.classList.remove(styles.modalOpen);
@@ -191,22 +192,26 @@ export default class LoginModal {
         this.allComponents.forEach((c) => (c.style.display = 'none'));
         this.syncComponent.style.display = 'flex';
 
-        this.clearDataBtn.disabled = !this.userInfoData?.userDataExists;
-
         this.syncInfoUser.textContent = `Logged in as: @${this.userInfoData?.userInfo.username}`;
         if (this.userInfoData?.userDataExists && this.userInfoData.syncedAt) {
-            const date = new Date(this.userInfoData.syncedAt);
+            this.clearDataBtn.disabled = !this.userInfoData?.userDataExists;
+            this.syncBtn.disabled = this.userInfoData.userDataSynced;
+            const delta = Date.now() - new Date(this.userInfoData.syncedAt).getTime();
+            const days = Math.floor(delta / (1000 * 60 * 60 * 24));
 
-            // Extract the individual components
-            const year = date.getFullYear().toString().slice(-2); // Get last two digits of year
-            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
+            let syncText = 'Last synced: ';
+            if (days === 0) {
+                syncText += 'today';
+            } else if (days === 1) {
+                syncText += 'yesterday';
+            } else {
+                syncText += `${days} days ago`;
+            }
 
-            this.syncInfoData.textContent = `Last synced: ${year}/${month}/${day} ${hours}:${minutes}`;
+            this.syncInfoData.textContent = syncText;
         } else {
             this.syncInfoData.textContent = 'No data synced yet.';
+            this.clearDataBtn.disabled = false;
         }
     }
 }

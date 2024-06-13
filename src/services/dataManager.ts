@@ -1,4 +1,12 @@
-import { Tag, Tags, Tweets, UserData, WithMetadata } from '../models';
+import {
+    RawTag,
+    RawTags,
+    RawTweet,
+    RawTweets,
+    RawUserData,
+    UserData,
+    WithMetadata,
+} from '../models';
 
 // Getters
 export function filterExists(data?: WithMetadata): boolean {
@@ -8,8 +16,8 @@ export function filterExists(data?: WithMetadata): boolean {
     return data.modifiedAt >= data.deletedAt;
 }
 
-export function getExistingTags(userData: UserData): Tags {
-    const existingTags: Tags = {};
+export function getExistingTags(userData: RawUserData): RawTags {
+    const existingTags: RawTags = {};
     for (const tagName in userData.tags) {
         if (filterExists(userData.tags[tagName])) {
             existingTags[tagName] = userData.tags[tagName];
@@ -18,8 +26,8 @@ export function getExistingTags(userData: UserData): Tags {
     return existingTags;
 }
 
-export function getExistingTweets(userData: UserData): Tweets {
-    const existingTweets: Tweets = {};
+export function getExistingTweets(userData: RawUserData): RawTweets {
+    const existingTweets: RawTweets = {};
     for (const tweetId in userData.tweets) {
         if (filterExists(userData.tweets[tweetId])) {
             existingTweets[tweetId] = userData.tweets[tweetId];
@@ -29,7 +37,7 @@ export function getExistingTweets(userData: UserData): Tweets {
 }
 
 // Setters
-export function createTag(userData: UserData, tagName: string): UserData {
+export function createTag(userData: RawUserData, tagName: string): RawUserData {
     const { tags, tweets } = structuredClone(userData);
     tags[tagName] = {
         tweets: [],
@@ -40,7 +48,7 @@ export function createTag(userData: UserData, tagName: string): UserData {
     return { tags, tweets };
 }
 
-export function deleteTag(userData: UserData, tagName: string): UserData {
+export function deleteTag(userData: RawUserData, tagName: string): RawUserData {
     const { tags, tweets } = structuredClone(userData);
     tags[tagName] = {
         ...tags[tagName],
@@ -49,7 +57,11 @@ export function deleteTag(userData: UserData, tagName: string): UserData {
     return { tags, tweets };
 }
 
-export function renameTag(userData: UserData, oldTagName: string, newTagName: string): UserData {
+export function renameTag(
+    userData: RawUserData,
+    oldTagName: string,
+    newTagName: string
+): RawUserData {
     const { tags, tweets } = structuredClone(userData);
     tags[oldTagName].deletedAt = Date.now();
     tags[newTagName] = tags[oldTagName];
@@ -62,13 +74,13 @@ export function renameTag(userData: UserData, oldTagName: string, newTagName: st
 }
 
 export function tagTweet(
-    userData: UserData,
+    userData: RawUserData,
     tweetId: string,
     tagName: string,
     imagesCache: string[]
-): UserData {
+): RawUserData {
     const { tags, tweets } = structuredClone(userData);
-    let tag: Tag = {
+    let tag: RawTag = {
         tweets: [],
         modifiedAt: Date.now(),
         deletedAt: 0,
@@ -98,7 +110,7 @@ export function tagTweet(
     return { tags, tweets };
 }
 
-export function removeTag(userData: UserData, tweetId: string, tagName: string) {
+export function removeTag(userData: RawUserData, tweetId: string, tagName: string) {
     const { tags, tweets } = structuredClone(userData);
     tags[tagName].tweets = tags[tagName].tweets.filter((id) => id !== tweetId);
     tags[tagName].modifiedAt = Date.now();
@@ -109,7 +121,7 @@ export function removeTag(userData: UserData, tweetId: string, tagName: string) 
     return { tags, tweets };
 }
 
-export function removeTweet(userData: UserData, tweetId: string) {
+export function removeTweet(userData: RawUserData, tweetId: string) {
     let newData = structuredClone(userData);
 
     for (const tagName in newData.tags) {
@@ -131,7 +143,7 @@ function stripeNameParam(url: string) {
     return urlObj.toString();
 }
 
-export function updateTimeStamps(userData: UserData): UserData {
+export function updateTimeStamps(userData: RawUserData): RawUserData {
     const { tags, tweets } = userData;
 
     const now = Date.now();
@@ -158,8 +170,8 @@ export function updateTimeStamps(userData: UserData): UserData {
     return userData;
 }
 
-export function mergeData(data1: UserData, data2: UserData): UserData {
-    const merged: UserData = {
+export function mergeData(data1: RawUserData, data2: RawUserData): RawUserData {
+    const merged: RawUserData = {
         tags: {},
         tweets: {},
     };
@@ -243,4 +255,91 @@ export function mergeData(data1: UserData, data2: UserData): UserData {
     }
 
     return merged;
+}
+
+export function removeMetadata(userData: RawUserData): UserData {
+    const { tags, tweets } = userData;
+
+    const pureData: UserData = {
+        tags: {},
+        tweets: {},
+    };
+
+    for (const tag in tags) {
+        if (filterExists(tags[tag])) {
+            pureData.tags[tag] = {
+                tweets: tags[tag].tweets,
+            };
+        }
+    }
+
+    for (const tweet in tweets) {
+        if (filterExists(tweets[tweet])) {
+            pureData.tweets[tweet] = {
+                images: tweets[tweet].images,
+            };
+        }
+    }
+
+    return pureData;
+}
+
+export function equals(data1: RawUserData, data2: RawUserData): boolean {
+    const data1Tags = Object.keys(data1.tags);
+    const data2Tags = Object.keys(data2.tags);
+
+    if (data1Tags.length !== data2Tags.length) {
+        return false;
+    }
+
+    for (const tag of data1Tags) {
+        if (!data2Tags.includes(tag)) {
+            return false;
+        }
+
+        if (!eqTag(data1.tags[tag], data2.tags[tag])) {
+            return false;
+        }
+    }
+
+    const data1Tweets = Object.keys(data1.tweets);
+    const data2Tweets = Object.keys(data2.tweets);
+
+    if (data1Tweets.length !== data2Tweets.length) {
+        return false;
+    }
+
+    for (const tweet of data1Tweets) {
+        if (!data2Tweets.includes(tweet)) {
+            return false;
+        }
+
+        if (!eqTweet(data1.tweets[tweet], data2.tweets[tweet])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function eqTag(tag1: RawTag, tag2: RawTag) {
+    const dateEqual = tag1.modifiedAt === tag2.modifiedAt && tag1.deletedAt === tag2.deletedAt;
+    const tweetsEqual = eqSet(new Set(tag1.tweets), new Set(tag2.tweets));
+    const tweetsModifiedAtEqual = eqSet(
+        new Set(Object.keys(tag1.tweetsModifiedAt ?? {})),
+        new Set(Object.keys(tag2.tweetsModifiedAt ?? {}))
+    );
+    return dateEqual && tweetsEqual && tweetsModifiedAtEqual;
+}
+
+function eqTweet(tweet1: RawTweet, tweet2: RawTweet) {
+    return (
+        tweet1.modifiedAt === tweet2.modifiedAt &&
+        tweet1.deletedAt === tweet2.deletedAt &&
+        eqSet(new Set(tweet1.images), new Set(tweet2.images))
+    );
+}
+
+function eqSet<T>(xs: Set<T>, ys: Set<T>) {
+    return xs.size === ys.size && [...xs].every((x) => ys.has(x));
 }

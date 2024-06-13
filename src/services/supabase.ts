@@ -1,9 +1,9 @@
 import { gmSetWithCache } from './cache';
-import { KEY_USER_DATA } from '../constants';
-import { UserData } from '../models';
-import { getUserData } from './storage';
-import { mergeData } from './dataManager';
-import { asyncXmlHttpRequest } from '../utils';
+import { KEY_USER_DATA, KEY_USER_TOKEN } from '../constants';
+import { RawUserData } from '../models';
+import { getRawUserData, getUserData } from './storage';
+import * as dataManager from './dataManager';
+import { asyncXmlHttpRequest, saveFile } from '../utils';
 
 export interface UserInfo {
     user_id: string;
@@ -15,18 +15,20 @@ export interface UserInfo {
 export interface UserInfoData {
     userInfo: UserInfo;
     userDataExists: boolean;
+    userDataSynced: boolean;
     syncedAt: string;
 }
 
 interface UserDataRow {
     user_id: string;
-    data: UserData;
+    data: RawUserData;
     synced_at: string;
 }
 
 interface AccessTokenStore {
     accessToken: string;
     expiresAt: number;
+    refreshToken: string;
 }
 
 const URL = process.env.SUPABASE_URL!;
@@ -45,12 +47,13 @@ export let loginRedirected = false;
 
         const date = new Date();
         date.setTime(date.getTime() + Number.parseInt(params.get('expires_in') ?? '0') * 1000);
-        const store = {
+        const userStore = {
             accessToken: params.get('access_token') ?? '',
+            refreshToken: params.get('refresh_token') ?? '',
             expiresAt: date.getTime(),
         };
 
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(store));
+        GM.setValue(KEY_USER_TOKEN, userStore);
 
         window.history.replaceState({}, document.title, window.location.pathname);
 
@@ -61,11 +64,15 @@ export let loginRedirected = false;
 export async function getUserInfo(): Promise<UserInfoData | null> {
     let accessToken = '';
 
-    const storeString = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (storeString) {
-        const store: AccessTokenStore = JSON.parse(storeString);
-        if (store.expiresAt > Date.now()) {
-            accessToken = store.accessToken;
+    const userStore = await GM.getValue<AccessTokenStore>(KEY_USER_TOKEN, null);
+    if (userStore) {
+        if (userStore.expiresAt > Date.now()) {
+            accessToken = userStore.accessToken;
+        } else {
+            const refreshedData = await refreshToken(userStore);
+            if (refreshedData) {
+                accessToken = refreshedData.accessToken;
+            }
         }
     }
 
@@ -93,11 +100,16 @@ export async function getUserInfo(): Promise<UserInfoData | null> {
                     access_token: accessToken,
                 };
                 if (userInfo) {
-                    const userData = await downloadData(userInfo);
+                    const onlineUserData = await downloadData(userInfo);
+                    const localUserData = await getRawUserData();
                     return {
                         userInfo,
-                        userDataExists: !!userData?.data,
-                        syncedAt: userData?.synced_at ?? '',
+                        userDataExists: !!onlineUserData?.data,
+                        userDataSynced:
+                            onlineUserData !== null
+                                ? dataManager.equals(localUserData, onlineUserData.data)
+                                : false,
+                        syncedAt: onlineUserData?.synced_at ?? '',
                     };
                 }
             }
@@ -116,10 +128,10 @@ export async function syncData(userInfo: UserInfo): Promise<boolean> {
     const onlineData = await downloadData(userInfo);
     console.log('Data found: ' + !!onlineData);
 
-    let data = await getUserData();
+    let data = await getRawUserData();
 
     if (onlineData) {
-        data = mergeData(data, onlineData.data);
+        data = dataManager.mergeData(data, onlineData.data);
     }
 
     console.log('Uploading data...');
@@ -153,11 +165,58 @@ export async function signIn(): Promise<void> {
     }
 }
 
-export async function signOut() {
+export async function signOut(userInfo: UserInfo) {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
+
+    asyncXmlHttpRequest({
+        url: `${URL}/auth/v1/logout`,
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            apikey: API_KEY,
+            Authorization: `Bearer ${userInfo.access_token}`,
+        },
+    });
 }
 
-export async function uploadData(userInfo: UserInfo, data: UserData): Promise<boolean> {
+async function refreshToken(tokenData: AccessTokenStore): Promise<AccessTokenStore | null> {
+    let res: GM.Response<unknown>;
+    try {
+        // https://github.com/supabase/auth-js/blob/5c43ca5ffda8b9cccc493a47a4d3a6194a057ad2/src/GoTrueClient.ts#L838
+        res = await asyncXmlHttpRequest({
+            url: `${URL}/auth/v1/token?grant_type=refresh_token`,
+            method: 'POST',
+            headers: {
+                apiKey: API_KEY,
+            },
+            data: JSON.stringify({
+                refresh_token: tokenData.refreshToken,
+            }),
+        });
+    } catch (e) {
+        console.error('Refresh token error -- ' + JSON.stringify(e));
+        return null;
+    }
+
+    if (res.status >= 400) {
+        console.error('Refresh token status error -- ' + JSON.stringify(res));
+        return null;
+    }
+
+    const data: Supabase.TokenResponseSuccess = JSON.parse(res.responseText);
+
+    const store: AccessTokenStore = {
+        accessToken: data.access_token,
+        expiresAt: data.expires_at,
+        refreshToken: data.refresh_token,
+    };
+
+    await GM.setValue(KEY_USER_TOKEN, store);
+
+    return store;
+}
+
+export async function uploadData(userInfo: UserInfo, data: RawUserData): Promise<boolean> {
     const bodyJson: UserDataRow = {
         user_id: userInfo.user_id,
         data,
@@ -240,5 +299,37 @@ export async function deleteData(userInfo: UserInfo): Promise<boolean> {
     } catch (e: unknown) {
         console.error(JSON.stringify(e));
         return false;
+    }
+}
+
+export async function createArchive(): Promise<boolean> {
+    const userData = await getUserData();
+
+    let res: GM.Response<unknown>;
+
+    try {
+        res = await asyncXmlHttpRequest({
+            url: `${URL}/functions/v1/create-image-archive`,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${API_KEY}`,
+            },
+            data: JSON.stringify(userData),
+            binary: true,
+            responseType: 'blob',
+        });
+    } catch (e) {
+        console.error(`Create archive reject error -- ${JSON.stringify(e)}`);
+        return false;
+    }
+
+    if (res.status >= 400) {
+        console.error(`Create archive status error -- ${JSON.stringify(res)}`);
+        return false;
+    } else {
+        const blob = new Blob([res.response], { type: 'application/octet-stream' });
+        saveFile(blob, 'twitter-art-tags_images.zip');
+        return true;
     }
 }

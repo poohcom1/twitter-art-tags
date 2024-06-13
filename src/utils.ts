@@ -114,3 +114,14 @@ export function assertUi<T extends Element>(element: T | null, context: string):
     }
     return element;
 }
+
+export function saveFile(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+}
