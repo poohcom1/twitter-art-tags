@@ -10,10 +10,24 @@
 
 $modalHeight: 200px;
 
+@mixin modal-button {
+    color: white;
+    background-color: #3b3a42;
+
+    &:hover {
+        background-color: #4b4a52;
+    }
+
+    &:disabled {
+        opacity: 0.3;
+    }
+}
+
 .modal {
     @include mixins.modal;
     display: flex;
     flex-direction: column;
+    color: white;
 
     width: 300px;
     min-height: $modalHeight;
@@ -65,6 +79,7 @@ $modalHeight: 200px;
             height: 100px;
 
             button {
+                @include modal-button;
                 width: 200px;
                 height: 50px;
                 border-radius: 50px;
@@ -107,6 +122,7 @@ $modalHeight: 200px;
             // flex-grow: 2;
 
             button {
+                @include modal-button;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -119,10 +135,6 @@ $modalHeight: 200px;
                 border-radius: 16px;
                 font-size: 12px;
                 font-weight: 600;
-
-                &:disabled {
-                    opacity: 0.3;
-                }
 
                 svg {
                     stroke: currentColor;
