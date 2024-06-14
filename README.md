@@ -6,7 +6,7 @@ This is a rework of [Twitter Art Collections](https://github.com/poohcom1/twitte
 
 ## Installation
 
-1. Install Greasemonkey or Violentmonkey extension on Firefox if not already added.
+1. Install Greasemonkey or Violentmonkey extension on Firefox if not already installed.
 2. Find the latest [release](https://github.com/poohcom1/twitter-art-tags/releases/latest).
 3. Copy the script from the release and add it to Greasemonkey.
 
