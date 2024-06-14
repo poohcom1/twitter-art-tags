@@ -16,7 +16,7 @@ The sync feature uses a simple supabase backend with Twitter oauth.
     1. `user_id: uuid` (Primary key)
     2. `data: json`
     3. `created_at: timestamptz`
-    4. `synced_at: teimstamptz`
+    4. `synced_at: timestamptz`
 2. Set the following 4 RLS policies:
 
 ```sql
