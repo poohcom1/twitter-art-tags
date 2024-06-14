@@ -228,6 +228,14 @@
     hr {
         margin: 3px;
     }
+
+    div {
+        span:nth-of-type(2) {
+            overflow: hidden;
+            text-wrap: nowrap;
+            text-overflow: ellipsis;
+        }
+    }
 }
 
 .contextMenuIcon {

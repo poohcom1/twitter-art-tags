@@ -366,7 +366,7 @@ export default class TagGallery {
 
             if (this.selectedTags.length === 1) {
                 menuItems.push({
-                    label: `Untag "${formatTagName(this.selectedTags[0])}"`,
+                    label: `Untag ${formatTagName(this.selectedTags[0])}`,
                     iconHTML: createContextMenuIcon(tagMinusIcon),
                     callback: async () => {
                         await removeTag(image.tweetId, this.selectedTags[0]);

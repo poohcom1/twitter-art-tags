@@ -166,7 +166,6 @@ export default class SyncModal {
 
     public async show() {
         this.modalContainer.classList.add(styles.modalContainerShow);
-        document.body.classList.add(styles.modalOpen);
 
         this.showLoading('Loading...');
         this.initialLoad();
@@ -175,7 +174,6 @@ export default class SyncModal {
 
     public hide() {
         this.modalContainer.classList.remove(styles.modalContainerShow);
-        document.body.classList.remove(styles.modalOpen);
         document.body.removeEventListener('wheel', this.disableBodyScroll);
     }
 

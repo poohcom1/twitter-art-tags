@@ -4,5 +4,4 @@ export declare const arrowContainerRight: string;
 export declare const image: string;
 export declare const modalContainer: string;
 export declare const modalContainerShow: string;
-export declare const modalOpen: string;
 export declare const overlay: string;

@@ -4,10 +4,6 @@
     @include mixins.modal-container;
 }
 
-.modal-open {
-    @include mixins.document-modal-open;
-}
-
 .overlay {
     @include mixins.overlay;
 }
