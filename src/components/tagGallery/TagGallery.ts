@@ -484,19 +484,17 @@ export default class TagGallery {
             return;
         }
 
-        if (renderKeys.includes(RenderKeys.TAGS)) {
-            const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
-            this.tagData = Object.keys(tags).map((tag) => {
-                const tweetCount = tags[tag].tweets
-                    .map((tweetId) => tweets[tweetId]?.images.length)
-                    .reduce((a, b) => a + b, 0);
+        const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
+        this.tagData = Object.keys(tags).map((tag) => {
+            const tweetCount = tags[tag].tweets
+                .map((tweetId) => tweets[tweetId]?.images.length)
+                .reduce((a, b) => a + b, 0);
 
-                return {
-                    tagName: tag,
-                    displayText: `${formatTagName(tag)} (${tweetCount})`,
-                };
-            });
-        }
+            return {
+                tagName: tag,
+                displayText: `${formatTagName(tag)} (${tweetCount})`,
+            };
+        });
 
         const tagList = this.tagData.filter(
             (tag) =>
