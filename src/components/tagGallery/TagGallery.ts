@@ -66,9 +66,9 @@ export default class TagGallery {
     private imageModal: ImageModal = new ImageModal();
     private imageContainer: HTMLElement;
     private tagsContainer: HTMLElement;
+    private addTagInput: HTMLInputElement;
 
     private selectedTags: string[] = [];
-    private tagFilter: string = '';
 
     private lockHover = false;
 
@@ -91,10 +91,10 @@ export default class TagGallery {
 
         // Add tag
 
-        const addTagInput = document.querySelector<HTMLInputElement>(`.${styles.addTag}`)!;
+        this.addTagInput = document.querySelector<HTMLInputElement>(`.${styles.addTag}`)!;
         const addTagClear = document.querySelector<HTMLElement>(`.${styles.addTagClear}`)!;
         addTagClear.style.display = 'none';
-        addTagInput.onkeydown = async (event) => {
+        this.addTagInput.onkeydown = async (event) => {
             const target = event.target as HTMLInputElement;
             if (verifyEvent(event)) {
                 if (event.key === 'Enter') {
@@ -113,18 +113,17 @@ export default class TagGallery {
                 event.preventDefault();
             }
         };
-        addTagInput.oninput = async (event) => {
+        this.addTagInput.oninput = async (event) => {
             const target = event.target as HTMLInputElement;
             addTagClear.style.display = target.value === '' ? 'none' : 'block';
-            this.tagFilter = target.value.toLocaleLowerCase();
+            this.addTagInput.value = target.value.toLocaleLowerCase();
 
             this.rerender([RenderKeys.TAGS_FILTER]);
         };
         addTagClear.onclick = () => {
-            addTagInput.value = '';
+            this.addTagInput.value = '';
             addTagClear.style.display = 'none';
-            this.tagFilter = '';
-            addTagInput.focus();
+            this.addTagInput.focus();
             this.rerender([RenderKeys.TAGS]);
         };
 
@@ -294,9 +293,10 @@ export default class TagGallery {
 
         if (Object.keys(tags).length === 0) {
             this.imageContainer.innerHTML =
-                '<div>No tags yet! Create one by clicking on the "..." menu of a tweet with images and selecting "Tag Tweet"</div>';
+                '<div><h3 style="margin: 0">No tags yet!</h3><br/>Create one by clicking on the ... menu of a tweet with images and selecting "Tag Tweet"</div>';
         } else if (this.imageData.length === 0) {
-            this.imageContainer.innerHTML = '<h3>Nothing to see here!</h3>';
+            this.imageContainer.innerHTML =
+                '<div><h3 style="margin: 0">This tag has no images!</h3><br/>Add one by clicking on the ... menu of a tweet with images and selecting "Tag Tweet"</div>';
         }
 
         // Menu item
@@ -498,8 +498,8 @@ export default class TagGallery {
 
         const tagList = this.tagData.filter(
             (tag) =>
-                this.tagFilter === '' ||
-                tag.displayText.toLocaleLowerCase().includes(this.tagFilter)
+                this.addTagInput.value === '' ||
+                tag.displayText.toLocaleLowerCase().includes(this.addTagInput.value)
         );
 
         tagList.sort((a, b) => a.tagName.localeCompare(b.tagName));
@@ -614,16 +614,32 @@ export default class TagGallery {
         this.tagsContainer.innerHTML = '';
         this.tagsContainer.append(...tagElements);
 
-        if (this.tagFilter !== '' && !tagList.find((tag) => tag.tagName === this.tagFilter)) {
-            let text = `Press Enter to create&nbsp;<strong>${formatTagName(
-                this.tagFilter
+        // Hint
+        const createTagHint = document.querySelector(`.${styles.createTagHint}`)!; // The one next to the input bar
+
+        if (
+            this.addTagInput.value !== '' &&
+            !tagList.find((tag) => tag.tagName === this.addTagInput.value)
+        ) {
+            createTagHint.innerHTML = `<span>Press Enter to new tag:</span>&nbsp;<strong>${formatTagName(
+                this.addTagInput.value
             )}</strong>`;
+        } else {
+            createTagHint.innerHTML = '';
+        }
 
-            if (tagElements.length > 0) {
-                text = 'or ' + text;
-            }
-
-            this.tagsContainer.innerHTML += `<div class=${styles.empty}>${text}</div>`;
+        // No tags hint
+        if (this.tagData.length > 0 && tagElements.length === 0 && this.addTagInput.value !== '') {
+            const noTagsHint = parseHTML(
+                `<div class=${styles.empty}>Nothing to see here!&nbsp;</div>`
+            );
+            const clearBtn = parseHTML(`<div class=${styles.emptyclear}>Clear filter</div>`);
+            clearBtn.onclick = () => {
+                this.addTagInput.value = '';
+                this.rerender([RenderKeys.TAGS]);
+            };
+            noTagsHint.appendChild(clearBtn);
+            this.tagsContainer.appendChild(noTagsHint);
         }
     }
 }

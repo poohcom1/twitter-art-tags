@@ -184,6 +184,17 @@
     }
 }
 
+.createTagHint {
+    display: flex;
+    align-items: center;
+    span {
+        opacity: 0.7;
+    }
+    strong {
+        opacity: 1;
+    }
+}
+
 .tagsContainer {
     display: flex;
     flex-wrap: wrap;
@@ -196,6 +207,14 @@
 
         display: flex;
         align-items: center;
+
+        &clear {
+            color: rgb(52, 114, 248);
+            &:hover {
+                text-decoration: underline;
+                cursor: pointer;
+            }
+        }
     }
 }
 
