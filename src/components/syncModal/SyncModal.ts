@@ -169,16 +169,12 @@ export default class SyncModal {
 
         this.showLoading('Loading...');
         this.initialLoad();
-        document.body.addEventListener('wheel', this.disableBodyScroll, { passive: false });
+        document.documentElement.style.overflowY = 'hidden';
     }
 
     public hide() {
         this.modalContainer.classList.remove(styles.modalContainerShow);
-        document.body.removeEventListener('wheel', this.disableBodyScroll);
-    }
-
-    private disableBodyScroll(e: MouseEvent) {
-        e.preventDefault();
+        document.documentElement.style.overflowY = 'scroll';
     }
 
     private showLoading(text: string) {
