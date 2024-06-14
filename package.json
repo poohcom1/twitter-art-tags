@@ -17,7 +17,10 @@
         "lint": "eslint",
         "test": "jest",
         "scss:types": "typed-scss-modules src",
-        "scss:types:watch": "typed-scss-modules src --watch"
+        "scss:types:watch": "typed-scss-modules src --watch",
+        "bump:patch": "npm version patch",
+        "bump:minor": "npm version minor",
+        "bump:major": "npm version major"
     },
     "devDependencies": {
         "@eslint/js": "^9.4.0",
