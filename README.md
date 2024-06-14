@@ -1,20 +1,23 @@
 # Twitter Art Tags
 
-A Greasemonkey script for X/Twitter for caching and tagging images.
+A Greasemonkey script for organizing artwork on Twitter.
+
+This is a rework of [Twitter Art Collections](https://github.com/poohcom1/twitter-art-collection), which was shut down due to Twitter's new API costs.
 
 ## Installation
 
-0. Install Greasemonkey or Violentmonkey extension on Firefox if not already added.
-1. Find the latest [release](https://github.com/poohcom1/twitter-art-tags/releases/latest).
-2. Copy the script from the release and add it to Greasemonkey.
+1. Install Greasemonkey or Violentmonkey extension on Firefox if not already added.
+2. Find the latest [release](https://github.com/poohcom1/twitter-art-tags/releases/latest).
+3. Copy the script from the release and add it to Greasemonkey.
 
-## Usage
+## Features
 
--   Only tweets with images can be tagged.
--   Images are cached for fast load.
--   Use the sync feature to sync tags across different machines. This is completely optional; everything is stored locally otherwise.
+-   Tag tweets with photos to organize them into useful categories
+-   View tagged tweets in a gallery, images are cached so you can view them all quickly
+-   Download images as a zip archive
+-   Sync tags so you can access them from different machines
 
-![twitter-art-tags_example](https://github.com/poohcom1/twitter-art-tags/assets/74857873/dcf52dd9-2334-4c7c-a982-ab66bf759585)
+![twitter-art-tags_example](https://github.com/poohcom1/twitter-art-tags/assets/74857873/f6ed7de0-01a2-4a4e-b1ce-11355a804b1e)
 
 ## Development
 
