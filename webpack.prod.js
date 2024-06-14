@@ -66,7 +66,6 @@ module.exports = {
                     'GM.setValue',
                     'GM.getValue',
                     'GM.deleteValue',
-                    'GM.listValues',
                     'GM.registerMenuCommand',
                     'GM.xmlHttpRequest',
                 ],
