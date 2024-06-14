@@ -16,6 +16,7 @@ import {
     getArchiveConsent,
     setArchiveConsent,
     removeTag,
+    tagExists,
 } from '../../services/storage';
 import TagModal from '../tagModal/TagModal';
 import tagIcon from '../../assets/tag.svg';
@@ -33,7 +34,13 @@ import ImageModal from '../imageModal/ImageModal';
 
 enum RenderKeys {
     TAGS = 'tags',
+    TAGS_FILTER = 'tagsFilter',
     IMAGES = 'images',
+}
+
+interface TagData {
+    tagName: string;
+    displayText: string;
 }
 
 interface ImageData {
@@ -61,8 +68,13 @@ export default class TagGallery {
     private tagsContainer: HTMLElement;
 
     private selectedTags: string[] = [];
-    private imageData: ImageData[] = [];
+    private tagFilter: string = '';
+
     private lockHover = false;
+
+    // Cache for faster render
+    private imageData: ImageData[] = [];
+    private tagData: TagData[] = [];
 
     public static exists() {
         return !!document.querySelector(`.${styles.tagsGallery}`);
@@ -78,22 +90,43 @@ export default class TagGallery {
         this.tagsContainer = document.querySelector<HTMLElement>(`.${styles.tagsContainer}`)!;
 
         // Add tag
-        document
-            .querySelector<HTMLInputElement>(`.${styles.addTag}`)!
-            .addEventListener('keydown', async (event) => {
-                const target = event.target as HTMLInputElement;
-                if (verifyEvent(event)) {
-                    if (event.key === 'Enter') {
+
+        const addTagInput = document.querySelector<HTMLInputElement>(`.${styles.addTag}`)!;
+        const addTagClear = document.querySelector<HTMLElement>(`.${styles.addTagClear}`)!;
+        addTagClear.style.display = 'none';
+        addTagInput.onkeydown = async (event) => {
+            const target = event.target as HTMLInputElement;
+            if (verifyEvent(event)) {
+                if (event.key === 'Enter') {
+                    if (await tagExists(target.value)) {
+                        this.selectedTags = [target.value];
+                        this.rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
+                    } else {
                         const tagName = target.value;
                         await createTag(tagName);
                         target.value = '';
-
                         this.rerender([RenderKeys.TAGS]);
                     }
-                } else {
-                    event.preventDefault();
+                    return;
                 }
-            });
+            } else {
+                event.preventDefault();
+            }
+        };
+        addTagInput.oninput = async (event) => {
+            const target = event.target as HTMLInputElement;
+            addTagClear.style.display = target.value === '' ? 'none' : 'block';
+            this.tagFilter = target.value.toLocaleLowerCase();
+
+            this.rerender([RenderKeys.TAGS_FILTER]);
+        };
+        addTagClear.onclick = () => {
+            addTagInput.value = '';
+            addTagClear.style.display = 'none';
+            this.tagFilter = '';
+            addTagInput.focus();
+            this.rerender([RenderKeys.TAGS]);
+        };
 
         // Menu
         const tagExport = document.querySelector<HTMLElement>(`#${IDS.tagExport}`)!;
@@ -196,6 +229,10 @@ export default class TagGallery {
     }
 
     private async renderImages(renderKeys: RenderKeys[]) {
+        if (!renderKeys.includes(RenderKeys.IMAGES) && !renderKeys.includes(RenderKeys.TAGS)) {
+            return;
+        }
+
         const previousImages = this.imageData;
         let actualSelected: ImageData | null = null;
 
@@ -439,42 +476,59 @@ export default class TagGallery {
     }
 
     private async renderTags(renderKeys: RenderKeys[]) {
-        if (!renderKeys.includes(RenderKeys.TAGS) && !renderKeys.includes(RenderKeys.IMAGES)) {
+        if (
+            !renderKeys.includes(RenderKeys.TAGS) &&
+            !renderKeys.includes(RenderKeys.IMAGES) &&
+            !renderKeys.includes(RenderKeys.TAGS_FILTER)
+        ) {
             return;
         }
 
-        const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
-        const tagList = Object.keys(tags);
+        if (renderKeys.includes(RenderKeys.TAGS)) {
+            const [tags, tweets] = await Promise.all([getTags(), getTweets()]);
+            this.tagData = Object.keys(tags).map((tag) => {
+                const tweetCount = tags[tag].tweets
+                    .map((tweetId) => tweets[tweetId]?.images.length)
+                    .reduce((a, b) => a + b, 0);
 
-        tagList.sort((a, b) => a.localeCompare(b));
+                return {
+                    tagName: tag,
+                    displayText: `${formatTagName(tag)} (${tweetCount})`,
+                };
+            });
+        }
 
-        const tagElements = tagList.map((tag) => {
-            const active = this.selectedTags.includes(tag);
-            const tweetCount = tags[tag].tweets
-                .map((tweetId) => tweets[tweetId]?.images.length)
-                .reduce((a, b) => a + b, 0);
+        const tagList = this.tagData.filter(
+            (tag) =>
+                this.tagFilter === '' ||
+                tag.displayText.toLocaleLowerCase().includes(this.tagFilter)
+        );
 
+        tagList.sort((a, b) => a.tagName.localeCompare(b.tagName));
+
+        const tagElements = tagList.map((tagData) => {
+            const active = this.selectedTags.includes(tagData.tagName);
             const button = parseHTML(
                 tagButtonTemplate({
                     className: `${styles.tag} ${!active && styles.tagInactive}`,
                     icon: active ? checkSquareIcon : squareIcon,
-                    text: `${formatTagName(tag)} (${tweetCount})`,
+                    text: tagData.displayText,
                 })
             );
             const select = () => {
-                if (this.selectedTags.length === 1 && this.selectedTags[0] === tag) {
+                if (this.selectedTags.length === 1 && this.selectedTags[0] === tagData.tagName) {
                     this.selectedTags = [];
                 } else {
-                    this.selectedTags = [tag];
+                    this.selectedTags = [tagData.tagName];
                 }
                 this.rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
             };
 
             const modifySelection = () => {
                 if (active) {
-                    this.selectedTags = this.selectedTags.filter((t) => t !== tag);
+                    this.selectedTags = this.selectedTags.filter((t) => t !== tagData.tagName);
                 } else {
-                    this.selectedTags.push(tag);
+                    this.selectedTags.push(tagData.tagName);
                 }
                 this.rerender([RenderKeys.IMAGES, RenderKeys.TAGS]);
             };
@@ -518,7 +572,10 @@ export default class TagGallery {
                         callback: async () => {
                             let newTagName;
                             while (true) {
-                                newTagName = prompt('Enter new tag name:', formatTagName(tag));
+                                newTagName = prompt(
+                                    'Enter new tag name:',
+                                    formatTagName(tagData.tagName)
+                                );
                                 if (!newTagName) {
                                     return;
                                 }
@@ -530,7 +587,7 @@ export default class TagGallery {
                                     );
                                 }
                             }
-                            await renameTag(tag, newTagName);
+                            await renameTag(tagData.tagName, newTagName);
                             this.rerender([RenderKeys.TAGS]);
                         },
                     },
@@ -541,8 +598,8 @@ export default class TagGallery {
                             if (!confirm('Are you sure you want to delete this tag?')) {
                                 return;
                             }
-                            await deleteTag(tag);
-                            if (this.selectedTags.includes(tag)) {
+                            await deleteTag(tagData.tagName);
+                            if (this.selectedTags.includes(tagData.tagName)) {
                                 this.selectedTags = [];
                                 this.rerender([RenderKeys.TAGS, RenderKeys.IMAGES]);
                             } else {
@@ -558,6 +615,18 @@ export default class TagGallery {
 
         this.tagsContainer.innerHTML = '';
         this.tagsContainer.append(...tagElements);
+
+        if (this.tagFilter !== '' && !tagList.find((tag) => tag.tagName === this.tagFilter)) {
+            let text = `Press Enter to create&nbsp;<strong>${formatTagName(
+                this.tagFilter
+            )}</strong>`;
+
+            if (tagElements.length > 0) {
+                text = 'or ' + text;
+            }
+
+            this.tagsContainer.innerHTML += `<div class=${styles.empty}>${text}</div>`;
+        }
     }
 }
 

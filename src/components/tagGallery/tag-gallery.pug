@@ -8,7 +8,10 @@ div(class=styles.tagsGallery)
                 | !{require("/src/assets/github.svg")}
     div(class=styles.optionsPanel)
         | !{require("/src/assets/tag.svg")}
-        input(class=`${styles.addTag}`, type="text" placeholder="Press enter to create a tag...")
+        div(class=styles.addTagContainer)
+            input(class=styles.addTag type="text" placeholder="Press enter to create a tag...")
+            button(class=styles.addTagClear)
+                | !{require("/src/assets/delete.svg")}
         div(class=styles.dotMenu style="margin-left: auto")
             | !{require("/src/assets/dot-menu.svg")}
             div(class=styles.dotMenuDropdown)
@@ -28,5 +31,6 @@ div(class=styles.tagsGallery)
                     | Delete all tags
 
     hr
+    // Injected by JS
     div(class=styles.tagsContainer)
     div(class=styles.imageGallery)

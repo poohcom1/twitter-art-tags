@@ -35,6 +35,11 @@ function sanitizeTagName(tagName: string) {
 // Management
 
 // Tag
+export async function tagExists(tagName: string): Promise<boolean> {
+    const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
+    return dataManager.filterExists(data.tags[sanitizeTagName(tagName)]);
+}
+
 export async function createTag(tagName: string) {
     tagName = sanitizeTagName(tagName);
     if (tagName === '') {

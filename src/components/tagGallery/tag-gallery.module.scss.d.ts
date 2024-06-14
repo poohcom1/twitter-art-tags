@@ -1,4 +1,6 @@
 export declare const addTag: string;
+export declare const addTagClear: string;
+export declare const addTagContainer: string;
 export declare const buttonIcon: string;
 export declare const contextMenu: string;
 export declare const contextMenuIcon: string;
@@ -8,6 +10,7 @@ export declare const dotMenuDropdown: string;
 export declare const dotMenuDropdownVisible: string;
 export declare const dropdownItem: string;
 export declare const dropdownItemDisabled: string;
+export declare const empty: string;
 export declare const fadeIn: string;
 export declare const github: string;
 export declare const help: string;
