@@ -8,8 +8,8 @@
         "node": ">=18.20.3"
     },
     "scripts": {
-        "build:prod": "webpack --config webpack.prod.js",
-        "build:prod:watch": "webpack --config webpack.prod.js --watch",
+        "build:prod": "webpack --config webpack.config.js",
+        "build:prod:watch": "webpack --config webpack.config.js --watch",
         "build:dev": "webpack --config webpack.dev.js",
         "build:dev:watch": "webpack --config webpack.dev.js --watch",
         "dev": "npm-run-all -p scss:types:watch build:prod:watch",

@@ -1,7 +1,7 @@
 /**
  * Types from https://github.com/poohcom1/vanilla-context-menu
  * Library is included via @require in user script, so this file needs to be kept in sync with the library.
- * This is set in webpack.prod.js.
+ * This is set in webpack.config.js.
  */
 
 /* eslint-disable no-unused-private-class-members */

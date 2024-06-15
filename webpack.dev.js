@@ -1,6 +1,6 @@
 const { merge } = require('webpack-merge');
 const path = require('path');
-const prod = require('./webpack.prod.js');
+const prod = require('./webpack.config.js');
 
 module.exports = merge(prod, {
     mode: 'development',
