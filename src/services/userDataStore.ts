@@ -1,7 +1,7 @@
 import { createStore } from 'solid-js/store';
 import { RawUserData, UserData } from '../models';
 import { createEffect } from 'solid-js';
-import * as dataManager from '../services/dataManager';
+import { dataManager } from '../services/dataManager';
 import { KEY_USER_DATA } from '../constants';
 import { CACHE_UPDATE_EVENT, CacheUpdateEvent, gmGetWithCache } from './cache';
 

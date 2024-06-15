@@ -9,14 +9,14 @@ import {
 } from '../models';
 
 // Getters
-export function filterExists(data?: WithMetadata): boolean {
+function filterExists(data?: WithMetadata): boolean {
     if (!data) {
         return false;
     }
     return data.modifiedAt >= data.deletedAt;
 }
 
-export function getExistingTags(userData: RawUserData): RawTags {
+function getExistingTags(userData: RawUserData): RawTags {
     const existingTags: RawTags = {};
     for (const tagName in userData.tags) {
         if (filterExists(userData.tags[tagName])) {
@@ -26,7 +26,7 @@ export function getExistingTags(userData: RawUserData): RawTags {
     return existingTags;
 }
 
-export function getExistingTweets(userData: RawUserData): RawTweets {
+function getExistingTweets(userData: RawUserData): RawTweets {
     const existingTweets: RawTweets = {};
     for (const tweetId in userData.tweets) {
         if (filterExists(userData.tweets[tweetId])) {
@@ -37,7 +37,7 @@ export function getExistingTweets(userData: RawUserData): RawTweets {
 }
 
 // Setters
-export function createTag(userData: RawUserData, tagName: string): RawUserData {
+function createTag(userData: RawUserData, tagName: string): RawUserData {
     const { tags, tweets } = structuredClone(userData);
     tags[tagName] = {
         tweets: [],
@@ -48,7 +48,7 @@ export function createTag(userData: RawUserData, tagName: string): RawUserData {
     return { tags, tweets };
 }
 
-export function deleteTag(userData: RawUserData, tagName: string): RawUserData {
+function deleteTag(userData: RawUserData, tagName: string): RawUserData {
     const { tags, tweets } = structuredClone(userData);
     tags[tagName] = {
         ...tags[tagName],
@@ -57,11 +57,7 @@ export function deleteTag(userData: RawUserData, tagName: string): RawUserData {
     return { tags, tweets };
 }
 
-export function renameTag(
-    userData: RawUserData,
-    oldTagName: string,
-    newTagName: string
-): RawUserData {
+function renameTag(userData: RawUserData, oldTagName: string, newTagName: string): RawUserData {
     const { tags, tweets } = structuredClone(userData);
     tags[oldTagName].deletedAt = Date.now();
     tags[newTagName] = structuredClone(tags[oldTagName]);
@@ -74,7 +70,7 @@ export function renameTag(
     return { tags, tweets };
 }
 
-export function tagTweet(
+function tagTweet(
     userData: RawUserData,
     tweetId: string,
     tagName: string,
@@ -111,7 +107,7 @@ export function tagTweet(
     return { tags, tweets };
 }
 
-export function removeTag(userData: RawUserData, tweetId: string, tagName: string) {
+function removeTag(userData: RawUserData, tweetId: string, tagName: string) {
     const { tags, tweets } = structuredClone(userData);
     tags[tagName].tweets = tags[tagName].tweets.filter((id) => id !== tweetId);
     tags[tagName].modifiedAt = Date.now();
@@ -122,7 +118,7 @@ export function removeTag(userData: RawUserData, tweetId: string, tagName: strin
     return { tags, tweets };
 }
 
-export function removeTweet(userData: RawUserData, tweetId: string) {
+function removeTweet(userData: RawUserData, tweetId: string) {
     let newData = structuredClone(userData);
 
     for (const tagName in newData.tags) {
@@ -144,7 +140,7 @@ function stripeNameParam(url: string) {
     return urlObj.toString();
 }
 
-export function updateTimeStamps(userData: RawUserData): RawUserData {
+function updateTimeStamps(userData: RawUserData): RawUserData {
     const { tags, tweets } = userData;
 
     const now = Date.now();
@@ -171,7 +167,7 @@ export function updateTimeStamps(userData: RawUserData): RawUserData {
     return userData;
 }
 
-export function mergeData(data1: RawUserData, data2: RawUserData): RawUserData {
+function mergeData(data1: RawUserData, data2: RawUserData): RawUserData {
     const merged: RawUserData = {
         tags: {},
         tweets: {},
@@ -258,7 +254,7 @@ export function mergeData(data1: RawUserData, data2: RawUserData): RawUserData {
     return merged;
 }
 
-export function removeMetadata(userData: RawUserData): UserData {
+function removeMetadata(userData: RawUserData): UserData {
     const { tags, tweets } = userData;
 
     const pureData: UserData = {
@@ -285,7 +281,7 @@ export function removeMetadata(userData: RawUserData): UserData {
     return pureData;
 }
 
-export function equals(data1: RawUserData, data2: RawUserData): boolean {
+function equals(data1: RawUserData, data2: RawUserData): boolean {
     const data1Tags = Object.keys(data1.tags);
     const data2Tags = Object.keys(data2.tags);
 
@@ -344,3 +340,19 @@ function eqTweet(tweet1: RawTweet, tweet2: RawTweet) {
 function eqSet<T>(xs: Set<T>, ys: Set<T>) {
     return xs.size === ys.size && [...xs].every((x) => ys.has(x));
 }
+
+export const dataManager = {
+    filterExists,
+    getExistingTags,
+    getExistingTweets,
+    createTag,
+    deleteTag,
+    renameTag,
+    tagTweet,
+    removeTag,
+    removeTweet,
+    updateTimeStamps,
+    mergeData,
+    removeMetadata,
+    equals,
+};

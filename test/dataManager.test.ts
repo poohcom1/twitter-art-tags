@@ -1,4 +1,4 @@
-import * as dataManager from '../src/services/dataManager';
+import { dataManager } from '../src/services/dataManager';
 import { userData } from './utils';
 
 jest.useFakeTimers();

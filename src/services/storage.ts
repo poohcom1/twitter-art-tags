@@ -8,7 +8,7 @@ import {
 import { KEY_USER_DATA } from '../constants';
 import { RawUserData, Tags, Tweets, UserData, UserDataSchema } from '../models';
 import { safeParse } from 'valibot';
-import * as dataManager from './dataManager';
+import { dataManager } from './dataManager';
 import { KEY_CREATE_ARCHIVE_CONSENT } from '../constants';
 import { saveFile } from '../utils';
 

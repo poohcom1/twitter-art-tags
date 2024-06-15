@@ -2,7 +2,7 @@ import { gmSetWithCache } from './cache';
 import { KEY_USER_DATA, KEY_USER_TOKEN } from '../constants';
 import { RawUserData } from '../models';
 import { getRawUserData, getUserData } from './storage';
-import * as dataManager from './dataManager';
+import { dataManager } from './dataManager';
 import { asyncXmlHttpRequest, saveFile } from '../utils';
 
 export interface UserInfo {
