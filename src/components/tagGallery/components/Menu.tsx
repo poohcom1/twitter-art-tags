@@ -68,7 +68,7 @@ export const Menu = () => {
         const success = await createArchive();
 
         if (!success) {
-            alert('Failed to create archive!');
+            alert('Failed to create archive! Please try again later.');
         }
         setDownloadingImages(false);
     };

@@ -64,7 +64,8 @@ export function renameTag(
 ): RawUserData {
     const { tags, tweets } = structuredClone(userData);
     tags[oldTagName].deletedAt = Date.now();
-    tags[newTagName] = tags[oldTagName];
+    tags[newTagName] = structuredClone(tags[oldTagName]);
+    tags[newTagName].deletedAt = 0;
     tags[newTagName].modifiedAt = Date.now();
     for (const tweetId of tags[newTagName].tweets) {
         tags[newTagName].tweetsModifiedAt = tags[newTagName].tweetsModifiedAt ?? {};

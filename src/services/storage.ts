@@ -248,6 +248,7 @@ export function importDataFromFile(merge: boolean): Promise<void> {
 export async function clearAllTags() {
     clearCache(KEY_USER_DATA, DEFAULT_USER_DATA);
     await GM.deleteValue(KEY_USER_DATA);
+    gmSetWithCache(KEY_USER_DATA, DEFAULT_USER_DATA);
 }
 
 // Archive consent
