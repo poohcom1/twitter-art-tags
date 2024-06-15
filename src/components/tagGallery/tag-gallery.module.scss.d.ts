@@ -24,6 +24,8 @@ export declare const imageGallery: string;
 export declare const loading: string;
 export declare const optionsPanel: string;
 export declare const tag: string;
+export declare const tagCount: string;
+export declare const tagCountContainer: string;
 export declare const tagInactive: string;
 export declare const tagModal: string;
 export declare const tagsContainer: string;

@@ -1,5 +1,7 @@
 @use '../../scss/_mixins' as mixins;
 
+$grey: rgb(59, 58, 66);
+
 @mixin menu-style-base {
     background-color: #0b0b0ce0;
     backdrop-filter: blur(10px);
@@ -141,7 +143,7 @@
 }
 
 .tag {
-    @include mixins.tag-base(rgb(59, 58, 66), rgb(81, 81, 91), 1, 0.75);
+    @include mixins.tag-base($grey, rgb(81, 81, 91), 1, 0.75);
 }
 
 .imageGallery {
@@ -220,6 +222,7 @@
 }
 
 .imageContainer {
+    position: relative; // For children
     width: 200px;
     height: 200px;
     overflow: hidden;
@@ -228,6 +231,9 @@
     border-radius: 5px;
 
     img {
+        position: absolute;
+        top: 0;
+        left: 0;
         object-fit: cover;
         width: 100%;
         height: 100%;
@@ -276,6 +282,38 @@
         background-position-x: 180%;
         animation: 0.5s loading linear infinite;
         opacity: 0.2;
+    }
+
+    // Tag count
+    .tagCountContainer {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        padding: 2px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        color: white;
+        background-color: $grey;
+        border-radius: 10px;
+
+        z-index: 10;
+        width: fit-content;
+        min-width: 30px;
+
+        .tagCount {
+            color: white;
+        }
+
+        svg {
+            margin-right: 3px;
+            width: 10px;
+            height: 10px;
+            stroke: white;
+            fill: none;
+        }
     }
 }
 

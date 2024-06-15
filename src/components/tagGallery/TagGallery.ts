@@ -51,6 +51,7 @@ interface ImageData {
 }
 
 const IDS = {
+    // Menu
     tagExport: 'tagExport',
     tagImport: 'tagImport',
     tagImportMerge: 'tagImportMerge',
@@ -268,6 +269,7 @@ export default class TagGallery {
                             className: `${styles.imageContainer} ${
                                 !atSamePos && styles.imageContainerLoaded
                             }`,
+                            styles,
                             src: image,
                         })
                     );
@@ -291,12 +293,13 @@ export default class TagGallery {
             this.imageContainer.append(...this.imageData.map((e) => e.element));
         }
 
-        if (Object.keys(tags).length === 0) {
-            this.imageContainer.innerHTML =
-                '<div><h3 style="margin: 0">No tags yet!</h3><br/>Create one by clicking on the ... menu of a tweet with images and selecting "Tag Tweet"</div>';
-        } else if (this.imageData.length === 0) {
-            this.imageContainer.innerHTML =
-                '<div><h3 style="margin: 0">This tag has no images!</h3><br/>Add one by clicking on the ... menu of a tweet with images and selecting "Tag Tweet"</div>';
+        if (renderKeys.includes(RenderKeys.TAGS)) {
+            this.imageData.forEach((image) => {
+                const tagCount = Object.keys(tags).filter((tag) =>
+                    tags[tag].tweets.includes(image.tweetId)
+                ).length;
+                image.element.querySelector(`.${styles.tagCount}`)!.textContent = `${tagCount}`;
+            });
         }
 
         // Menu item
@@ -473,6 +476,14 @@ export default class TagGallery {
 
             contextMenu.updateOptions({ ...contextMenu.options, menuItems });
         });
+
+        if (Object.keys(tags).length === 0) {
+            this.imageContainer.innerHTML =
+                '<div><h3 style="margin: 0">No tags yet!</h3><br/>Create one by clicking on the ... menu of a tweet with images and selecting "Tag Tweet"</div>';
+        } else if (this.imageData.length === 0) {
+            this.imageContainer.innerHTML =
+                '<div><h3 style="margin: 0">This tag has no images!</h3><br/>Add one by clicking on the ... menu of a tweet with images and selecting "Tag Tweet"</div>';
+        }
     }
 
     private async renderTags(renderKeys: RenderKeys[]) {
