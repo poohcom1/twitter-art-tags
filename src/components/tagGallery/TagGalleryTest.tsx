@@ -2,9 +2,7 @@ import { Component, createEffect, createMemo, createSignal, onMount } from 'soli
 import styles from './tag-gallery.module.scss';
 import { Title } from './components/Title';
 
-import { template } from 'solid-js/web';
 import { Menu } from './components/Menu';
-import { userDataStore } from '../../services/userDataStore';
 import { createTag } from '../../services/storage';
 import { Svg } from '../templates/Svg';
 import tagIcon from '/src/assets/tag.svg';
@@ -14,15 +12,49 @@ import checkSquareIcon from '../../assets/check-square.svg';
 import { formatTagName } from '../../utils';
 import { Tag } from './components/Tag';
 import { ImageContainer } from './components/ImageContainer';
+import TagModal from '../tagModal/TagModal';
+import { createStore, reconcile } from 'solid-js/store';
+import { KEY_USER_DATA } from '../../constants';
+import { UserData, RawUserData } from '../../models';
+import { CACHE_UPDATE_EVENT, CacheUpdateEvent, gmGetWithCache } from '../../services/cache';
+import { dataManager } from '../../services/dataManager';
+
+const DEFAULT_USER_DATA: RawUserData = {
+    tags: {},
+    tweets: {},
+};
 
 const TagGalleryTest = () => {
     const [getSelectedTags, setSelectedTags] = createSignal<string[]>([]);
+    const [userData, setUserData] = createStore<UserData>(DEFAULT_USER_DATA);
+
+    createEffect(() => {
+        GM.getValue<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA).then((data) => {
+            if (data) {
+                setUserData(reconcile(dataManager.removeMetadata(data)));
+            }
+        });
+
+        document.addEventListener(CACHE_UPDATE_EVENT, async (e) => {
+            if ((e as CacheUpdateEvent).detail.key === KEY_USER_DATA) {
+                setUserData(
+                    reconcile(
+                        dataManager.removeMetadata(
+                            await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA)
+                        )
+                    )
+                );
+            }
+        });
+    });
+
+    const getTagModal = createMemo(() => new TagModal([styles.tagModal]));
 
     const tagElements = createMemo(() =>
-        Object.keys(userDataStore.tags)
+        Object.keys(userData.tags)
             .sort()
             .map((tag) => {
-                const tweetsCount = Object.keys(userDataStore.tags[tag].tweets).length;
+                const tweetsCount = Object.keys(userData.tags[tag].tweets).length;
                 const active = getSelectedTags().includes(tag);
                 return (
                     <Tag
@@ -44,7 +76,7 @@ const TagGalleryTest = () => {
     );
 
     const imageElements = createMemo(() => {
-        const { tweets, tags } = userDataStore;
+        const { tweets, tags } = userData;
         const tweetIds = Object.keys(tags)
             .filter((tag) => getSelectedTags().includes(tag))
             .reduce(
@@ -55,11 +87,23 @@ const TagGalleryTest = () => {
             .filter((tweetId) => tweetId in tweets);
 
         const allImages = tweetIds.flatMap((tweetId) => tweets[tweetId].images);
-        return tweetIds.flatMap((tweetId) => {
-            return tweets[tweetId].images.map((src, ind) => {
-                return <ImageContainer tweetId={tweetId} src={src} />;
-            });
-        });
+        return tweetIds.flatMap((tweetId) =>
+            tweets[tweetId].images.map((src, ind) => {
+                const tweetTags = createMemo(() =>
+                    Object.keys(userData.tags).filter((tag) => tags[tag].tweets.includes(tweetId))
+                );
+                return (
+                    <ImageContainer
+                        tags={tweetTags()}
+                        tweetId={tweetId}
+                        src={src}
+                        tagModal={getTagModal()}
+                        selectedTags={getSelectedTags()}
+                        setLockHover={() => {}} // TODO
+                    />
+                );
+            })
+        );
     });
 
     return (

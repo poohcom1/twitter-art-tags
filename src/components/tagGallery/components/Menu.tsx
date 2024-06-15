@@ -11,7 +11,6 @@ import {
     importDataFromFile,
     setArchiveConsent,
 } from '../../../services/storage';
-import { set } from 'valibot';
 
 const DotMenuSvg = template(dotMenuIcon);
 
