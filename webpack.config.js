@@ -17,7 +17,15 @@ module.exports = {
         rules: [
             {
                 test: /\.tsx?$/,
-                use: 'ts-loader',
+                use: [
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['solid'],
+                        },
+                    },
+                    { loader: 'ts-loader' },
+                ],
                 exclude: [/node_modules/, /vanilla-context-menu/],
             },
             {

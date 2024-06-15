@@ -2,6 +2,8 @@ import { CUSTOM_PAGE_TITLE } from '../constants';
 import { waitForElement } from '../utils';
 import TagGallery from '../components/tagGallery/TagGallery';
 import { cacheInvalidated } from '../services/storage';
+import { render } from 'solid-js/web';
+import TagGalleryTest from '../components/tagGallery/TagGalleryTest';
 
 export async function renderTagsGallery() {
     if (TagGallery.exists()) {
@@ -9,7 +11,6 @@ export async function renderTagsGallery() {
     }
     // Render page
     const main = (await waitForElement('div[data-testid="error-detail"]'))!.parentElement!;
-    const tagGallery = new TagGallery(main);
 
     // Render title
     document.title = CUSTOM_PAGE_TITLE;
@@ -30,7 +31,7 @@ export async function renderTagsGallery() {
     titleObserver.observe(document.querySelector('title')!, { childList: true });
 
     // First load
-    document.addEventListener(cacheInvalidated.type, () => {
-        tagGallery.rerender();
-    });
+    main.innerHTML = '';
+    main.style.maxWidth = '100%';
+    render(TagGalleryTest, main);
 }

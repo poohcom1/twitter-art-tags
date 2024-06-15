@@ -8,7 +8,9 @@
         "sourceMap": true,
         "esModuleInterop": true,
         "moduleResolution": "node",
-        "types": ["node", "jest"]
+        "types": ["node", "jest"],
+        "jsx": "preserve",
+        "jsxImportSource": "solid-js"
     },
     "include": ["./src/**/*"],
     "exclude": ["node_modules", "vanilla-context-menu", "./test/**/*"]
