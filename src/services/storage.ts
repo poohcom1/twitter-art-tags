@@ -1,4 +1,10 @@
-import { clearCache, gmGetWithCache, gmSetWithCache, reloadCache } from './cache';
+import {
+    CACHE_UPDATE_EVENT,
+    clearCache,
+    gmGetWithCache,
+    gmSetWithCache,
+    reloadCache,
+} from './cache';
 import { KEY_USER_DATA } from '../constants';
 import { RawUserData, Tags, Tweets, UserData, UserDataSchema } from '../models';
 import { safeParse } from 'valibot';
@@ -22,7 +28,9 @@ if (process.env.NODE_ENV !== 'test') {
         const reloadedData = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
         if (!dataManager.equals(userData, reloadedData)) {
-            document.dispatchEvent(cacheInvalidated);
+            document.dispatchEvent(
+                new CustomEvent(CACHE_UPDATE_EVENT, { detail: { key: KEY_USER_DATA } })
+            );
         }
     });
 }

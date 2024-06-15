@@ -2,7 +2,7 @@
 const cache: Record<string, unknown> = {};
 
 export const CACHE_UPDATE_EVENT = 'cache-update';
-export type CacheUpdateEvent = CustomEvent<{ key: string; value: unknown }>;
+export type CacheUpdateEvent = CustomEvent<{ key: string }>;
 
 const pendingPromises: Record<string, Promise<void> | undefined> = {};
 export async function gmSetWithCache<T>(key: string, value: T) {
@@ -14,7 +14,7 @@ export async function gmSetWithCache<T>(key: string, value: T) {
 
     pendingPromises[key] = GM.setValue(key, value);
 
-    document.dispatchEvent(new CustomEvent(CACHE_UPDATE_EVENT, { detail: { key, value } }));
+    document.dispatchEvent(new CustomEvent(CACHE_UPDATE_EVENT, { detail: { key } }));
 }
 
 export async function gmGetWithCache<T>(key: string, defVal: T): Promise<T> {
