@@ -1,4 +1,13 @@
-import { For, createEffect, createMemo, createSelector, createSignal } from 'solid-js';
+import {
+    For,
+    Match,
+    Show,
+    Switch,
+    createEffect,
+    createMemo,
+    createSelector,
+    createSignal,
+} from 'solid-js';
 import styles from './tag-gallery.module.scss';
 import { Title } from './components/Title';
 
@@ -157,8 +166,26 @@ export const TagGallery = () => {
                         />
                     )}
                 </For>
+                <Switch>
+                    <Match
+                        when={
+                            viewModel.tags.length > 0 &&
+                            viewModel.tags.filter(isTagFiltered).length === 0
+                        }
+                    >
+                        <div class={styles.clearFilters}>
+                            Nothing to see here!{' '}
+                            <span
+                                class={styles.clearFiltersButton}
+                                onClick={() => setTagFilter('')}
+                            >
+                                Clear filters
+                            </span>
+                        </div>
+                    </Match>
+                </Switch>
             </div>
-            <div class={styles.imageGallery}>
+            <div class={styles.imagesContainer}>
                 <For each={viewModel.images.filter(isImageSelected)}>
                     {(imageView, index) => (
                         <ImageContainer
@@ -194,6 +221,25 @@ export const TagGallery = () => {
                         />
                     )}
                 </For>
+                <div class={styles.noImages}>
+                    <Switch>
+                        <Match when={viewModel.tags.length === 0}>
+                            <h3>No tags yet!</h3>
+                            <br />
+                            <div>
+                                Tag a tweet by clicking on the ... menu and selected{' '}
+                                <strong>Tag Tweet</strong>
+                            </div>
+                        </Match>
+                        <Match when={viewModel.images.filter(isImageSelected).length === 0}>
+                            <h3>Nothing to see here!</h3>
+                            <br />
+                            <div class={styles.clearButton} onClick={() => setSelectedTags([])}>
+                                Clear Tags
+                            </div>
+                        </Match>
+                    </Switch>
+                </div>
             </div>
         </div>
     );

@@ -14,6 +14,16 @@ $grey: rgb(59, 58, 66);
     box-shadow: rgba(255, 255, 255, 0.2) 0px 0px 15px 0px, rgba(255, 255, 255, 0.3) 0px 0px 3px 1px;
 }
 
+@mixin clear-button {
+    color: rgb(52, 114, 248);
+    cursor: pointer;
+    font-weight: 700;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
 // Root type
 .tagsGallery {
     padding: 40px 0;
@@ -34,330 +44,334 @@ $grey: rgb(59, 58, 66);
         height: 20px;
         margin-right: 5px;
     }
-}
 
-.title {
-    display: flex;
-    align-items: center;
-
-    .help {
-        margin-left: 10px;
-        height: 50px;
+    .title {
         display: flex;
         align-items: center;
-        justify-content: center;
+
+        .help {
+            margin-left: 10px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            svg {
+                width: 20px;
+                height: 20px;
+                opacity: 0.5;
+            }
+        }
+
+        .github {
+            margin-left: auto;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            a {
+                display: block;
+                width: 30px;
+                height: 30px;
+            }
+
+            svg {
+                width: 100%;
+                height: 100%;
+                fill: currentColor;
+                stroke: none;
+            }
+        }
+    }
+
+    .addTagContainer {
+        position: relative;
+
+        .addTag {
+            @include mixins.tag-input-base;
+            width: 300px;
+
+            display: flex;
+            justify-content: right;
+        }
+
+        .addTagClear {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            height: 30px;
+
+            background-color: transparent;
+            border: none;
+            outline: none;
+
+            :hover {
+                opacity: 0.7;
+            }
+
+            svg {
+                stroke: currentColor;
+                height: 100%;
+            }
+        }
+    }
+
+    .optionsPanel {
+        display: flex;
+        gap: 10px;
 
         svg {
             width: 20px;
-            height: 20px;
-            opacity: 0.5;
         }
-    }
 
-    .github {
-        margin-left: auto;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        a {
-            display: block;
+        .dotMenu {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             width: 30px;
             height: 30px;
-        }
-
-        svg {
-            width: 100%;
-            height: 100%;
-            fill: currentColor;
-            stroke: none;
-        }
-    }
-}
-
-.optionsPanel {
-    display: flex;
-    gap: 10px;
-
-    svg {
-        width: 20px;
-    }
-}
-
-.dotMenu {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    cursor: pointer;
-
-    &:hover {
-        background-color: #565656;
-    }
-}
-
-.dotMenuDropdown {
-    @include menu-style-base;
-    @include box-shadow-base;
-    font-weight: 500;
-    position: absolute;
-    width: 160px;
-    z-index: 9999;
-    display: none;
-    top: 0;
-    right: 0;
-    cursor: default;
-    color: white;
-
-    &__visible {
-        display: block;
-    }
-
-    .dropdownItem {
-        padding: 8px 10px;
-        cursor: pointer;
-
-        &:hover {
-            background-color: #565656;
-        }
-
-        &__disabled {
-            opacity: 0.7;
-            cursor: wait;
+            border-radius: 50%;
+            cursor: pointer;
 
             &:hover {
-                background-color: inherit;
+                background-color: #565656;
+            }
+
+            .dotMenuDropdown {
+                @include menu-style-base;
+                @include box-shadow-base;
+                font-weight: 500;
+                position: absolute;
+                width: 160px;
+                z-index: 9999;
+                display: none;
+                top: 0;
+                right: 0;
+                cursor: default;
+                color: white;
+
+                &__visible {
+                    display: block;
+                }
+
+                .dropdownItem {
+                    padding: 8px 10px;
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: #565656;
+                    }
+
+                    &__disabled {
+                        opacity: 0.7;
+                        cursor: wait;
+
+                        &:hover {
+                            background-color: inherit;
+                        }
+                    }
+                }
+
+                hr {
+                    cursor: default;
+                    margin: 3px;
+                }
             }
         }
     }
 
-    hr {
-        cursor: default;
-        margin: 3px;
-    }
-}
-
-.tag {
-    @include mixins.tag-base($grey, rgb(81, 81, 91), 1, 0.75);
-}
-
-.imageGallery {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.addTagContainer {
-    position: relative;
-
-    .addTag {
-        @include mixins.tag-input-base;
-        width: 300px;
-
-        display: flex;
-        justify-content: right;
-    }
-
-    .addTagClear {
-        position: absolute;
-        right: 5px;
-        top: 5px;
-        cursor: pointer;
+    .createTagHint {
         display: flex;
         align-items: center;
-        height: 30px;
-
-        background-color: transparent;
-        border: none;
-        outline: none;
-
-        :hover {
+        span {
             opacity: 0.7;
         }
-
-        svg {
-            stroke: currentColor;
-            height: 100%;
-        }
-    }
-}
-
-.createTagHint {
-    display: flex;
-    align-items: center;
-    span {
-        opacity: 0.7;
-    }
-    strong {
-        opacity: 1;
-    }
-}
-
-.tagsContainer {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin: 10px 0;
-
-    .empty {
-        height: 30px;
-        margin: 0;
-
-        display: flex;
-        align-items: center;
-
-        &clear {
-            color: rgb(52, 114, 248);
-            &:hover {
-                text-decoration: underline;
-                cursor: pointer;
-            }
-        }
-    }
-}
-
-.imageContainer {
-    position: relative; // For children
-    width: 200px;
-    height: 200px;
-    overflow: hidden;
-    padding: 0px;
-    margin: 0px;
-    border-radius: 5px;
-
-    img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        object-fit: cover;
-        width: 100%;
-        height: 100%;
-        transition: filter 0.2s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0.2;
-        }
-        to {
+        strong {
             opacity: 1;
         }
     }
 
-    &__loaded {
-        background-color: #aaaaaa;
-        animation: 0.1s fadeIn ease-in-out;
-    }
-
-    &__hover {
-        outline: 4px solid #8ca3ff;
-        background-color: transparent;
-
-        img {
-            filter: brightness(0.6);
-        }
-    }
-
-    @keyframes loading {
-        to {
-            background-position-x: -20%;
-        }
-    }
-
-    &__skeleton {
-        background-color: #aaaaaa;
-        background: linear-gradient(
-                100deg,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.7) 50%,
-                rgba(255, 255, 255, 0) 70%
-            )
-            #aaaaaa;
-        background-size: 200% 100%;
-        background-position-x: 180%;
-        animation: 0.5s loading linear infinite;
-        opacity: 0.2;
-    }
-
-    // Tag count
-    .tagCountContainer {
-        position: absolute;
-        top: 5px;
-        left: 5px;
-        padding: 2px;
-
+    .tagsContainer {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        justify-content: center;
+        gap: 6px;
+        margin: 10px 0;
 
-        color: white;
-        background-color: $grey;
-        border-radius: 10px;
-
-        z-index: 10;
-        width: fit-content;
-        min-width: 30px;
-
-        .tagCount {
-            color: white;
-            cursor: default;
+        .tag {
+            @include mixins.tag-base($grey, rgb(81, 81, 91), 1, 0.75);
         }
 
-        svg {
-            margin-right: 3px;
-            width: 10px;
-            height: 10px;
-            stroke: white;
-            fill: none;
+        .clearFilters {
+            min-height: 30px;
+            .clearFiltersButton {
+                @include clear-button;
+            }
         }
     }
-}
 
-// Context menu
-@mixin context-menu-base {
-    @include menu-style-base;
+    .imagesContainer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
 
-    hr {
-        margin: 3px;
-    }
+        .noImages {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            width: 100%;
 
-    div {
-        span:nth-of-type(2) {
+            .clearButton {
+                @include clear-button;
+            }
+        }
+
+        .imageContainer {
+            position: relative; // For children
+            width: 200px;
+            height: 200px;
             overflow: hidden;
-            text-wrap: nowrap;
-            text-overflow: ellipsis;
+            padding: 0px;
+            margin: 0px;
+            border-radius: 5px;
+
+            img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                object-fit: cover;
+                width: 100%;
+                height: 100%;
+                transition: filter 0.2s ease-in-out;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0.2;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+
+            &__loaded {
+                background-color: #aaaaaa;
+                animation: 0.1s fadeIn ease-in-out;
+            }
+
+            &__hover {
+                outline: 4px solid #8ca3ff;
+                background-color: transparent;
+
+                img {
+                    filter: brightness(0.6);
+                }
+            }
+
+            @keyframes loading {
+                to {
+                    background-position-x: -20%;
+                }
+            }
+
+            &__skeleton {
+                background-color: #aaaaaa;
+                background: linear-gradient(
+                        100deg,
+                        rgba(255, 255, 255, 0) 0%,
+                        rgba(255, 255, 255, 0.7) 50%,
+                        rgba(255, 255, 255, 0) 70%
+                    )
+                    #aaaaaa;
+                background-size: 200% 100%;
+                background-position-x: 180%;
+                animation: 0.5s loading linear infinite;
+                opacity: 0.2;
+            }
+
+            // Tag count
+            .tagCountContainer {
+                position: absolute;
+                top: 5px;
+                left: 5px;
+                padding: 2px;
+
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                color: white;
+                background-color: $grey;
+                border-radius: 10px;
+
+                z-index: 10;
+                width: fit-content;
+                min-width: 30px;
+
+                .tagCount {
+                    color: white;
+                    cursor: default;
+                }
+
+                svg {
+                    margin-right: 3px;
+                    width: 10px;
+                    height: 10px;
+                    stroke: white;
+                    fill: none;
+                }
+            }
         }
     }
-}
 
-.contextMenuIcon {
-    width: 14px;
-    height: 14px;
-    stroke: currentcolor;
-    opacity: 0.9;
-    margin-right: 2px;
-}
+    // Context menu
+    @mixin context-menu-base {
+        @include menu-style-base;
 
-.contextMenu {
-    @include context-menu-base;
-    width: 160px;
-}
+        hr {
+            margin: 3px;
+        }
 
-.contextMenuWide {
-    @include context-menu-base;
-    width: 200px;
-}
+        div {
+            span:nth-of-type(2) {
+                overflow: hidden;
+                text-wrap: nowrap;
+                text-overflow: ellipsis;
+            }
+        }
+    }
 
-/* Override to match context menu style */
-.tagModal {
-    @include menu-style-base;
-    @include box-shadow-base;
-    color: '#eee';
-    padding: 12px;
-    border-radius: '5px';
+    .contextMenuIcon {
+        width: 14px;
+        height: 14px;
+        stroke: currentcolor;
+        opacity: 0.9;
+        margin-right: 2px;
+    }
+
+    .contextMenu {
+        @include context-menu-base;
+        width: 160px;
+    }
+
+    .contextMenuWide {
+        @include context-menu-base;
+        width: 200px;
+    }
+
+    /* Override to match context menu style */
+    .tagModal {
+        @include menu-style-base;
+        @include box-shadow-base;
+        color: '#eee';
+        padding: 12px;
+        border-radius: '5px';
+    }
 }

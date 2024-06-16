@@ -18,7 +18,6 @@ const DEFAULT_USER_DATA: RawUserData = {
 };
 
 // Cache
-export const cacheInvalidated = new Event('cacheInvalidated');
 if (process.env.NODE_ENV !== 'test') {
     document.addEventListener('visibilitychange', async () => {
         const userData = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
