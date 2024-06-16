@@ -227,7 +227,7 @@ export const TagGallery = () => {
                             <h3>No tags yet!</h3>
                             <br />
                             <div>
-                                Tag a tweet by clicking on the ... menu and selected{' '}
+                                Tag a tweet by clicking on the ... menu and selecting{' '}
                                 <strong>Tag Tweet</strong>
                             </div>
                         </Match>
