@@ -3,7 +3,7 @@ import styles from '../tag-gallery.module.scss';
 import dotMenuIcon from '/src/assets/dot-menu.svg';
 import { createMemo, createSignal, on, onCleanup, onMount } from 'solid-js';
 import SyncModal from '../../syncModal/SyncModal';
-import { createArchive, loginRedirected } from '../../../services/supabase';
+import { loginRedirected } from '../../../services/supabase';
 import {
     clearAllTags,
     exportDataToFile,

@@ -25,8 +25,5 @@
     },
     "[jade]": {
         "editor.defaultFormatter": "ducfilan.pug-formatter"
-    },
-    "deno.enable": true,
-    "deno.unstable": true,
-    "deno.enablePaths": ["supabase/functions"]
+    }
 }

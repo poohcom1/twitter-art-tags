@@ -1,9 +1,9 @@
 import { gmSetWithCache } from './cache';
 import { KEY_USER_DATA, KEY_USER_TOKEN } from '../constants';
 import { RawUserData } from '../models';
-import { getRawUserData, getUserData } from './storage';
+import { getRawUserData } from './storage';
 import { dataManager } from './dataManager';
-import { asyncXmlHttpRequest, saveFile } from '../utils';
+import { asyncXmlHttpRequest } from '../utils';
 
 export interface UserInfo {
     user_id: string;
@@ -281,48 +281,5 @@ export async function deleteData(userInfo: UserInfo): Promise<boolean> {
     } catch (e: unknown) {
         console.error(JSON.stringify(e));
         return false;
-    }
-}
-
-export async function createArchive(): Promise<boolean> {
-    const userData = await getUserData();
-
-    let res: GM.Response<unknown>;
-
-    try {
-        res = await asyncXmlHttpRequest({
-            url: `${URL}/functions/v1/create-image-archive`,
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${API_KEY}`,
-            },
-            data: JSON.stringify(userData),
-            binary: true,
-            responseType: 'blob',
-            timeout: 30000,
-        });
-    } catch (e) {
-        console.error(`Create archive reject error -- ${JSON.stringify(e)}`);
-        return false;
-    }
-
-    if (res.status >= 400) {
-        console.error(`Create archive status error -- ${JSON.stringify(res)}`);
-        return false;
-    } else {
-        const blob = new Blob([res.response], { type: 'application/octet-stream' });
-        saveFile(blob, 'twitter-art-tags_images.zip');
-
-        const headers = res.responseHeaders.split('\r\n');
-        const failedImagesHeader = headers.find((header) => header.startsWith('x-failed-images: '));
-        if (failedImagesHeader) {
-            const count = Number.parseInt(failedImagesHeader.split(': ')[1]);
-            if (count > 0) {
-                alert(`${count} images failed to load. They will not be included in the archive.`);
-            }
-        }
-
-        return true;
     }
 }

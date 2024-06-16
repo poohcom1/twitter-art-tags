@@ -53,11 +53,3 @@ using (
 ## Code setup
 
 Copy `.env.example` to `.env` and add the correct values.
-
-## Functions setup
-
-Edge functions are used only for one feature: creating the image archive. This is due to issues with using jszip in a userscript.
-
-To develop edge functions, you'll need to install Deno and activate the `denoland.vscode-deno` extension.
-
-Follow https://supabase.com/docs/guides/functions/quickstart for deployment steps.
