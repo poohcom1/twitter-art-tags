@@ -168,6 +168,7 @@ export const TagGallery = () => {
                 </For>
                 <Show
                     when={
+                        viewModel.tags.length > 0 &&
                         viewModel.tags.filter(isTagFiltered).length === 0 &&
                         !viewModel.tags.map((t) => t.tag).includes(getTagFilter())
                     }
