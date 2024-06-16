@@ -16,6 +16,7 @@ import { RawUserData } from '../../models';
 import { CACHE_UPDATE_EVENT, CacheUpdateEvent, gmGetWithCache } from '../../services/cache';
 import { dataManager } from '../../services/dataManager';
 import ImageModal from '../imageModal/ImageModal';
+import { createTag, sanitizeTagName, tagExists } from '../../services/storage';
 
 const DEFAULT_USER_DATA: RawUserData = {
     tags: {},
@@ -44,6 +45,7 @@ export const TagGallery = () => {
     const [getSelectedTags, setSelectedTags] = createSignal<string[]>([]);
     const [getOutlinedTweet, setOutlinedTweet] = createSignal<string | null>(null);
     const [getOutlineLocked, setOutlineLocked] = createSignal<boolean>(false);
+    const [getTagFilter, setTagFilter] = createSignal<string>('');
 
     const getTagModal = createMemo(() => new TagModal([styles.tagModal]));
     const getImageModal = createMemo(() => new ImageModal());
@@ -86,6 +88,11 @@ export const TagGallery = () => {
         tags.includes(tag)
     );
     const isImageOutlined = createSelector(getOutlinedTweet);
+
+    const isTagFiltered = createSelector<string, TagView>(
+        getTagFilter,
+        (tag, filter) => tag.tag === '' || tag.tag.toLowerCase().includes(filter.toLowerCase())
+    );
     const isImageSelected = createSelector<string[], ImageView>(
         getSelectedTags,
         (image, tags) => tags.length === 0 || tags.every((tag) => image.tags.includes(tag))
@@ -98,11 +105,28 @@ export const TagGallery = () => {
                 <Svg svg={tagIcon} />
                 <div class={styles.addTagContainer}>
                     <input
+                        value={getTagFilter()}
+                        onInput={(e) => setTagFilter((e.target as HTMLInputElement).value)}
+                        onKeyDown={async (e) => {
+                            if (e.key === 'Enter') {
+                                const tagFilter = sanitizeTagName(getTagFilter());
+                                if (viewModel.tags.map((t) => t.tag).includes(tagFilter)) {
+                                    setSelectedTags([tagFilter]);
+                                    setTagFilter('');
+                                    return;
+                                } else {
+                                    createTag(tagFilter);
+                                    setTagFilter('');
+                                }
+                            } else if (e.key === 'Escape') {
+                                setTagFilter('');
+                            }
+                        }}
                         class={styles.addTag}
                         type="text"
                         placeholder="Press enter to create a tag..."
                     />
-                    <button class={styles.addTagClear}>
+                    <button onClick={() => setTagFilter('')} class={styles.addTagClear}>
                         <Svg svg={deleteIcon} />
                     </button>
                 </div>
@@ -111,7 +135,7 @@ export const TagGallery = () => {
             </div>
             <hr />
             <div class={styles.tagsContainer}>
-                <For each={viewModel.tags}>
+                <For each={viewModel.tags.filter(isTagFiltered)}>
                     {(tagView) => (
                         <TagButton
                             tag={tagView.tag}
@@ -192,5 +216,5 @@ function mapViewModel(rawUserData: RawUserData): GalleryView {
             ),
         }))
     );
-    return { tags: [...tags].sort(), images };
+    return { tags: [...tags].sort((a, b) => a.tag.localeCompare(b.tag)), images };
 }

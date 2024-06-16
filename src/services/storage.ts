@@ -36,7 +36,7 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Sanitize
-function sanitizeTagName(tagName: string) {
+export function sanitizeTagName(tagName: string) {
     return tagName.trim().toLowerCase();
 }
 
