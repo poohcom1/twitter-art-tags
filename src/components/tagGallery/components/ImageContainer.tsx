@@ -1,4 +1,4 @@
-import { createEffect, createMemo, on } from 'solid-js';
+import { Show, createEffect, createMemo, on } from 'solid-js';
 import styles from '../tag-gallery.module.scss';
 import TagModal from '../../tagModal/TagModal';
 import tagIcon from '/src/assets/tag.svg';
@@ -17,6 +17,7 @@ export interface ImageProps {
     tagModal: TagModal;
     selectedTags: string[];
     tags: string[];
+    showTagCount: boolean;
     outlined: boolean;
     onClick?: () => void;
     setLockHover: (lock: boolean) => void;
@@ -148,10 +149,12 @@ export const ImageContainer = (props: ImageProps) => {
             target="_blank"
             rel="noreferrer"
         >
-            <div class={styles.tagCountContainer}>
-                <Svg svg={tagIcon} />
-                <span class={styles.tagCount}>{props.tags.length}</span>
-            </div>
+            <Show when={props.showTagCount}>
+                <div class={styles.tagCountContainer}>
+                    <Svg svg={tagIcon} />
+                    <span class={styles.tagCount}>{props.tags.length}</span>
+                </div>
+            </Show>
             <img src={props.src} loading="lazy" />
         </a>
     );

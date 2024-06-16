@@ -40,6 +40,7 @@ type ImageView = {
     src: string;
     tweetId: string;
     tags: string[];
+    index: number;
 };
 type GalleryView = {
     tags: TagView[];
@@ -193,6 +194,7 @@ export const TagGallery = () => {
                             tweetId={imageView.tweetId}
                             selectedTags={getSelectedTags()}
                             tags={imageView.tags}
+                            showTagCount={imageView.index === 0}
                             tagModal={getTagModal()}
                             onClick={() => {
                                 if (getOutlineLocked()) return;
@@ -265,13 +267,16 @@ function mapViewModel(rawUserData: RawUserData): GalleryView {
     }));
     const images = Object.keys(userData.tweets)
         .flatMap((tweetId) =>
-            userData.tweets[tweetId].images.map((src) => ({
-                tweetId: tweetId,
-                src,
-                tags: Object.keys(userData.tags).filter((tag) =>
-                    userData.tags[tag].tweets.includes(tweetId)
-                ),
-            }))
+            userData.tweets[tweetId].images
+                .map((src, index) => ({
+                    tweetId: tweetId,
+                    src,
+                    tags: Object.keys(userData.tags).filter((tag) =>
+                        userData.tags[tag].tweets.includes(tweetId)
+                    ),
+                    index,
+                }))
+                .reverse()
         )
         .reverse();
     return { tags: [...tags].sort((a, b) => a.tag.localeCompare(b.tag)), images };
