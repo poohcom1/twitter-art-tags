@@ -166,24 +166,20 @@ export const TagGallery = () => {
                         />
                     )}
                 </For>
-                <Switch>
-                    <Match
-                        when={
-                            viewModel.tags.length > 0 &&
-                            viewModel.tags.filter(isTagFiltered).length === 0
-                        }
-                    >
-                        <div class={styles.clearFilters}>
-                            Nothing to see here!{' '}
-                            <span
-                                class={styles.clearFiltersButton}
-                                onClick={() => setTagFilter('')}
-                            >
-                                Clear filters
-                            </span>
-                        </div>
-                    </Match>
-                </Switch>
+                <Show
+                    when={
+                        viewModel.tags.filter(isTagFiltered).length === 0 &&
+                        !viewModel.tags.map((t) => t.tag).includes(getTagFilter())
+                    }
+                >
+                    <div class={styles.clearFilters}>
+                        <span class={styles.clearFiltersButton} onClick={() => setTagFilter('')}>
+                            Clear filters
+                        </span>
+                        <span>or Press Enter to create tag:</span>
+                        <strong>{formatTagName(getTagFilter())}</strong>
+                    </div>
+                </Show>
             </div>
             <div class={styles.imagesContainer}>
                 <For each={viewModel.images.filter(isImageSelected)}>

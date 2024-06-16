@@ -209,7 +209,13 @@ $grey: rgb(59, 58, 66);
         }
 
         .clearFilters {
+            display: flex;
+            flex-direction: row;
+            justify-content: left;
+            align-items: center;
             min-height: 30px;
+            gap: 4px;
+
             .clearFiltersButton {
                 @include clear-button;
             }
@@ -330,48 +336,48 @@ $grey: rgb(59, 58, 66);
             }
         }
     }
+}
 
-    // Context menu
-    @mixin context-menu-base {
-        @include menu-style-base;
+// Context menu
+@mixin context-menu-base {
+    @include menu-style-base;
 
-        hr {
-            margin: 3px;
+    hr {
+        margin: 3px;
+    }
+
+    div {
+        span:nth-of-type(2) {
+            overflow: hidden;
+            text-wrap: nowrap;
+            text-overflow: ellipsis;
         }
-
-        div {
-            span:nth-of-type(2) {
-                overflow: hidden;
-                text-wrap: nowrap;
-                text-overflow: ellipsis;
-            }
-        }
     }
+}
 
-    .contextMenuIcon {
-        width: 14px;
-        height: 14px;
-        stroke: currentcolor;
-        opacity: 0.9;
-        margin-right: 2px;
-    }
+.contextMenuIcon {
+    width: 14px;
+    height: 14px;
+    stroke: currentcolor;
+    opacity: 0.9;
+    margin-right: 2px;
+}
 
-    .contextMenu {
-        @include context-menu-base;
-        width: 160px;
-    }
+.contextMenu {
+    @include context-menu-base;
+    width: 160px;
+}
 
-    .contextMenuWide {
-        @include context-menu-base;
-        width: 200px;
-    }
+.contextMenuWide {
+    @include context-menu-base;
+    width: 200px;
+}
 
-    /* Override to match context menu style */
-    .tagModal {
-        @include menu-style-base;
-        @include box-shadow-base;
-        color: '#eee';
-        padding: 12px;
-        border-radius: '5px';
-    }
+/* Override to match context menu style */
+.tagModal {
+    @include menu-style-base;
+    @include box-shadow-base;
+    color: '#eee';
+    padding: 12px;
+    border-radius: '5px';
 }
