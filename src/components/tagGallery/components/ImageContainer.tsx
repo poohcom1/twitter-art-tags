@@ -1,19 +1,15 @@
 import { createEffect, createMemo } from 'solid-js';
-import styles, { tag } from '../tag-gallery.module.scss';
+import styles from '../tag-gallery.module.scss';
 import TagModal from '../../tagModal/TagModal';
 import tagIcon from '/src/assets/tag.svg';
 import eyeIcon from '/src/assets/eye.svg';
 import tagCheckIcon from '/src/assets/file-check.svg';
 import tagMinusIcon from '/src/assets/file-minus.svg';
 import externalLinkIcon from '/src/assets/link-external.svg';
-import pencilIcon from '/src/assets/pencil.svg';
 import trashIcon from '/src/assets/trash.svg';
-import squareIcon from '/src/assets/square.svg';
-import checkSquareIcon from '/src/assets/check-square.svg';
 import { formatTagName, parseHTML } from '../../../utils';
 import { removeTag, removeTweet } from '../../../services/storage';
-import { image } from '../../imageModal/image-modal.module.scss';
-import { UserData } from '../../../models';
+import { Svg } from '../../templates/Svg';
 
 export interface ImageProps {
     tweetId: string;
@@ -153,6 +149,10 @@ export const ImageContainer = (props: ImageProps) => {
             target="_blank"
             rel="noreferrer"
         >
+            <div class={styles.tagCountContainer}>
+                <Svg svg={tagIcon} />
+                <span class={styles.tagCount}>{props.tags.length}</span>
+            </div>
             <img src={props.src} loading="lazy" />
         </a>
     );

@@ -1,29 +1,18 @@
-import {
-    Component,
-    For,
-    createEffect,
-    createMemo,
-    createSelector,
-    createSignal,
-    onMount,
-} from 'solid-js';
-import styles, { tag } from './tag-gallery.module.scss';
+import { For, createEffect, createMemo, createSelector, createSignal } from 'solid-js';
+import styles from './tag-gallery.module.scss';
 import { Title } from './components/Title';
 
 import { Menu } from './components/Menu';
-import { createTag } from '../../services/storage';
 import { Svg } from '../templates/Svg';
 import tagIcon from '/src/assets/tag.svg';
 import deleteIcon from '/src/assets/delete.svg';
-import squareIcon from '../../assets/square.svg';
-import checkSquareIcon from '../../assets/check-square.svg';
 import { formatTagName } from '../../utils';
 import { TagButton as TagButton } from './components/TagButton';
-import { ImageContainer, ImageProps } from './components/ImageContainer';
+import { ImageContainer } from './components/ImageContainer';
 import TagModal from '../tagModal/TagModal';
 import { createStore, reconcile } from 'solid-js/store';
 import { KEY_USER_DATA } from '../../constants';
-import { UserData, RawUserData, Tag } from '../../models';
+import { RawUserData } from '../../models';
 import { CACHE_UPDATE_EVENT, CacheUpdateEvent, gmGetWithCache } from '../../services/cache';
 import { dataManager } from '../../services/dataManager';
 import ImageModal from '../imageModal/ImageModal';
@@ -188,12 +177,14 @@ function mapViewModel(rawUserData: RawUserData): GalleryView {
         tag,
         displayText: `${formatTagName(tag)} (${userData.tags[tag].tweets.length})`,
     }));
-    const images = Object.keys(userData.tweets).map((tweetId) => ({
-        tweetId: tweetId,
-        src: userData.tweets[tweetId].images[0],
-        tags: Object.keys(userData.tags).filter((tag) =>
-            userData.tags[tag].tweets.includes(tweetId)
-        ),
-    }));
+    const images = Object.keys(userData.tweets).flatMap((tweetId) =>
+        userData.tweets[tweetId].images.map((src) => ({
+            tweetId: tweetId,
+            src,
+            tags: Object.keys(userData.tags).filter((tag) =>
+                userData.tags[tag].tweets.includes(tweetId)
+            ),
+        }))
+    );
     return { tags: [...tags].sort(), images };
 }
