@@ -24,8 +24,8 @@ import { KEY_USER_DATA } from '../../constants';
 import { RawUserData } from '../../models';
 import { CACHE_UPDATE_EVENT, CacheUpdateEvent, gmGetWithCache } from '../../services/cache';
 import { dataManager } from '../../services/dataManager';
-import ImageModal from '../imageModal/ImageModal';
 import { createTag, sanitizeTagName, tagExists } from '../../services/storage';
+import { ImageModal } from '../imageModal/ImageModal';
 
 const DEFAULT_USER_DATA: RawUserData = {
     tags: {},
@@ -55,9 +55,9 @@ export const TagGallery = () => {
     const [getOutlinedTweet, setOutlinedTweet] = createSignal<string | null>(null);
     const [getOutlineLocked, setOutlineLocked] = createSignal<boolean>(false);
     const [getTagFilter, setTagFilter] = createSignal<string>('');
+    const [getCurrentModalImage, setCurrentModalImage] = createSignal<number>(-1);
 
     const getTagModal = createMemo(() => new TagModal([styles.tagModal]));
-    const getImageModal = createMemo(() => new ImageModal());
 
     let actualHoverElement: ImageView | null = null;
 
@@ -193,10 +193,7 @@ export const TagGallery = () => {
                             tagModal={getTagModal()}
                             onClick={() => {
                                 if (getOutlineLocked()) return;
-                                getImageModal().show(
-                                    viewModel.images.map((i) => i.src),
-                                    index()
-                                );
+                                setCurrentModalImage(index);
                             }}
                             onMouseEnter={() => {
                                 actualHoverElement = imageView;
@@ -237,7 +234,19 @@ export const TagGallery = () => {
                         </Match>
                     </Switch>
                 </div>
-            </div>
+            </div>{' '}
+            <ImageModal
+                visible={getCurrentModalImage() >= 0}
+                images={viewModel.images.map((i) => i.src)}
+                index={getCurrentModalImage()}
+                onClose={() => setCurrentModalImage(-1)}
+                onLeft={() => setCurrentModalImage(Math.max(0, getCurrentModalImage() - 1))}
+                onRight={() =>
+                    setCurrentModalImage(
+                        Math.min(viewModel.images.length - 1, getCurrentModalImage() + 1)
+                    )
+                }
+            />
         </div>
     );
 };

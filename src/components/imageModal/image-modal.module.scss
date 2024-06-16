@@ -14,8 +14,24 @@
     @include mixins.modal;
 
     height: 90vh;
-    object-fit: fill;
+    max-width: 60vw;
+    object-fit: contain;
     z-index: mixins.$overlay-index + 1;
+}
+
+.closeButton {
+    position: absolute;
+    stroke: grey;
+    opacity: 0.7;
+    height: 50px;
+    width: 50px;
+    right: 10vw;
+    top: 5vh;
+    z-index: mixins.$overlay-index + 1;
+    cursor: pointer;
+    &:hover {
+        stroke: white;
+    }
 }
 
 // Arrow
