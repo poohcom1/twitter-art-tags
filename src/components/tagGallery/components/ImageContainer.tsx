@@ -22,9 +22,11 @@ export interface ImageProps {
     selectedTags: string[];
     tags: string[];
     outlined: boolean;
+    onClick?: () => void;
     setLockHover: (lock: boolean) => void;
     onMouseEnter?: () => void;
     onMouseLeave?: () => void;
+    onContextMenu?: () => void;
     key?: string;
 }
 
@@ -137,13 +139,17 @@ export const ImageContainer = (props: ImageProps) => {
         contextMenu.updateOptions({ ...contextMenu.options, menuItems });
     });
 
+    createEffect(() => {
+        ref.addEventListener('contextmenu', () => props.onContextMenu?.());
+    });
+
     return (
         <a
+            ref={(el) => (ref = el)}
+            onClick={props.onClick}
             onMouseEnter={props.onMouseEnter}
             onMouseLeave={props.onMouseLeave}
-            ref={(el) => (ref = el)}
             class={`${styles.imageContainer} ${props.outlined && styles.imageContainerHover}`}
-            // href={`https://x.com/x/status/${tweetId}`}
             target="_blank"
             rel="noreferrer"
         >

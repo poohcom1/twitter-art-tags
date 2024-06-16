@@ -26,6 +26,7 @@ import { KEY_USER_DATA } from '../../constants';
 import { UserData, RawUserData, Tag } from '../../models';
 import { CACHE_UPDATE_EVENT, CacheUpdateEvent, gmGetWithCache } from '../../services/cache';
 import { dataManager } from '../../services/dataManager';
+import ImageModal from '../imageModal/ImageModal';
 
 const DEFAULT_USER_DATA: RawUserData = {
     tags: {},
@@ -51,7 +52,14 @@ const TagGalleryTest = () => {
 
     const [getSelectedTags, setSelectedTags] = createSignal<string[]>([]);
     const [getOutlinedTweet, setOutlinedTweet] = createSignal<string | null>(null);
+    const [getOutlineLocked, setOutlineLocked] = createSignal<boolean>(false);
 
+    const getTagModal = createMemo(() => new TagModal([styles.tagModal]));
+    const getImageModal = createMemo(() => new ImageModal());
+
+    let actualHoverElement: ImageView | null = null;
+
+    // Store update
     createEffect(() => {
         GM.getValue<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA).then((data) => {
             if (data) {
@@ -69,7 +77,19 @@ const TagGalleryTest = () => {
         });
     });
 
-    const getTagModal = createMemo(() => new TagModal([styles.tagModal]));
+    // Outline/Hover lock
+    createEffect(() => {
+        const onDocumentClick = () => {
+            setOutlineLocked(false);
+            if (actualHoverElement) {
+                setOutlinedTweet(actualHoverElement.tweetId);
+            } else {
+                setOutlinedTweet(null);
+            }
+        };
+        document.addEventListener('click', onDocumentClick);
+        return () => document.removeEventListener('click', onDocumentClick);
+    });
 
     const isTagActive = createSelector<string[], string>(getSelectedTags, (tag, tags) =>
         tags.includes(tag)
@@ -121,17 +141,37 @@ const TagGalleryTest = () => {
             </div>
             <div class={styles.imageGallery}>
                 <For each={viewModel.images}>
-                    {(imageView) => (
+                    {(imageView, index) => (
                         <ImageContainer
                             src={imageView.src}
                             tweetId={imageView.tweetId}
                             selectedTags={getSelectedTags()}
                             tags={imageView.tags}
                             tagModal={getTagModal()}
-                            onMouseEnter={() => setOutlinedTweet(imageView.tweetId)}
-                            onMouseLeave={() => setOutlinedTweet(null)}
+                            onClick={() => {
+                                if (getOutlineLocked()) return;
+                                getImageModal().show(
+                                    viewModel.images.map((i) => i.src),
+                                    index()
+                                );
+                            }}
+                            onMouseEnter={() => {
+                                actualHoverElement = imageView;
+                                if (getOutlineLocked()) return;
+                                setOutlinedTweet(imageView.tweetId);
+                            }}
+                            onMouseLeave={() => {
+                                if (actualHoverElement === imageView) actualHoverElement = null;
+                                if (getOutlineLocked()) return;
+                                setOutlinedTweet(null);
+                            }}
+                            onContextMenu={() => {
+                                setOutlinedTweet(imageView.tweetId);
+                                setOutlineLocked(true);
+                                getTagModal().hide();
+                            }}
                             outlined={isImageOutlined(imageView.tweetId)}
-                            setLockHover={() => {}} // TODO
+                            setLockHover={setOutlineLocked}
                         />
                     )}
                 </For>
