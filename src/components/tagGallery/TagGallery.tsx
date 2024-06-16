@@ -263,14 +263,16 @@ function mapViewModel(rawUserData: RawUserData): GalleryView {
         tag,
         displayText: `${formatTagName(tag)} (${userData.tags[tag].tweets.length})`,
     }));
-    const images = Object.keys(userData.tweets).flatMap((tweetId) =>
-        userData.tweets[tweetId].images.map((src) => ({
-            tweetId: tweetId,
-            src,
-            tags: Object.keys(userData.tags).filter((tag) =>
-                userData.tags[tag].tweets.includes(tweetId)
-            ),
-        }))
-    );
+    const images = Object.keys(userData.tweets)
+        .flatMap((tweetId) =>
+            userData.tweets[tweetId].images.map((src) => ({
+                tweetId: tweetId,
+                src,
+                tags: Object.keys(userData.tags).filter((tag) =>
+                    userData.tags[tag].tweets.includes(tweetId)
+                ),
+            }))
+        )
+        .reverse();
     return { tags: [...tags].sort((a, b) => a.tag.localeCompare(b.tag)), images };
 }
