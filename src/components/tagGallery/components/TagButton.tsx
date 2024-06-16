@@ -1,4 +1,4 @@
-import { createEffect, createMemo, splitProps } from 'solid-js';
+import { Show, createEffect, createMemo, splitProps } from 'solid-js';
 import styles from '../tag-gallery.module.scss';
 import pencilIcon from '/src/assets/pencil.svg';
 import trashIcon from '/src/assets/trash.svg';
@@ -12,23 +12,29 @@ interface TagProps {
     tag: string;
     displayText: string;
     active: boolean;
-    onSelect: () => void;
-    onShiftSelect: () => void;
-    onDeselectAll: () => void;
+    showIcon?: boolean;
+    useContextMenu?: boolean;
+    onSelect?: () => void;
+    onShiftSelect?: () => void;
+    onDeselectAll?: () => void;
 }
 
 export const TagButton = (props: TagProps) => {
     const onClick = (e: MouseEvent) => {
         if (e.shiftKey) {
-            props.onShiftSelect();
+            props.onShiftSelect?.();
         } else {
-            props.onSelect();
+            props.onSelect?.();
         }
     };
 
     let tagRef: HTMLButtonElement;
 
     createEffect(() => {
+        if (!props.useContextMenu) {
+            return;
+        }
+
         new VanillaContextMenu({
             scope: tagRef,
             customClass: props.active ? styles.contextMenuWide : styles.contextMenu,
@@ -96,7 +102,7 @@ export const TagButton = (props: TagProps) => {
             onClick={onClick}
             class={`${styles.tag} ${!props.active && styles.tagInactive}`}
         >
-            {icon()}
+            <Show when={props.showIcon}>{icon()}</Show>
             <div>{props.displayText}</div>
         </button>
     );

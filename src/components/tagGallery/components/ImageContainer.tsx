@@ -129,7 +129,13 @@ export const ImageContainer = (props: ImageProps) => {
             },
         }));
         if (tagsMenu.length > 0) {
-            menuItems.push('hr', ...tagsMenu);
+            if (tagsMenu.length > 5) {
+                menuItems.push('hr', ...tagsMenu.slice(0, 5), {
+                    label: '...',
+                });
+            } else {
+                menuItems.push('hr', ...tagsMenu);
+            }
         }
 
         contextMenu.updateOptions({ ...contextMenu.options, menuItems });

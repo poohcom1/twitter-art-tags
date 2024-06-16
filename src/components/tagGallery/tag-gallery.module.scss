@@ -24,6 +24,10 @@ $grey: rgb(59, 58, 66);
     }
 }
 
+.tag {
+    @include mixins.tag-base($grey, rgb(81, 81, 91), 1, 0.75);
+}
+
 // Root type
 .tagsGallery {
     padding: 40px 0;
@@ -205,10 +209,6 @@ $grey: rgb(59, 58, 66);
         align-items: center;
         gap: 6px;
         margin: 10px 0;
-
-        .tag {
-            @include mixins.tag-base($grey, rgb(81, 81, 91), 1, 0.75);
-        }
 
         .clearFilters {
             display: flex;

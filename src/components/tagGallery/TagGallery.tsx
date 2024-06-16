@@ -16,7 +16,7 @@ import { Svg } from '../templates/Svg';
 import tagIcon from '/src/assets/tag.svg';
 import deleteIcon from '/src/assets/delete.svg';
 import { formatTagName } from '../../utils';
-import { TagButton as TagButton } from './components/TagButton';
+import { TagButton } from './components/TagButton';
 import { ImageContainer } from './components/ImageContainer';
 import TagModal from '../tagModal/TagModal';
 import { createStore, reconcile } from 'solid-js/store';
@@ -151,6 +151,8 @@ export const TagGallery = () => {
                 <For each={currentTags()}>
                     {(tagView) => (
                         <TagButton
+                            showIcon
+                            useContextMenu
                             tag={tagView.tag}
                             displayText={tagView.displayText}
                             active={isTagActive(tagView.tag)}
@@ -245,6 +247,7 @@ export const TagGallery = () => {
                 visible={getCurrentModalImage() >= 0}
                 images={currentImages().map((i) => i.src)}
                 index={getCurrentModalImage()}
+                tags={currentImages()[getCurrentModalImage()]?.tags || []}
                 onClose={() => setCurrentModalImage(-1)}
                 onLeft={() => setCurrentModalImage(Math.max(0, getCurrentModalImage() - 1))}
                 onRight={() =>

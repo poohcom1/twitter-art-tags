@@ -63,3 +63,31 @@
         width: 50px;
     }
 }
+
+// tags
+.tagsContainer {
+    top: 0;
+    left: 10vw;
+    width: 80vw;
+
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    overflow-x: auto;
+
+    position: fixed;
+    z-index: mixins.$overlay-index + 1;
+
+    .innerTagsContainer {
+        margin: auto;
+        min-width: min-content;
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        flex-shrink: 0;
+
+        button {
+            flex-shrink: 0;
+        }
+    }
+}

@@ -4,12 +4,15 @@ import styles from './image-modal.module.scss';
 import leftArrow from '/src/assets/arrow-left.svg';
 import rightArrow from '/src/assets/arrow-right.svg';
 import close from '/src/assets/x-close.svg';
-import { createEffect } from 'solid-js';
+import { For, createEffect } from 'solid-js';
+import { TagButton } from '../tagGallery/components/TagButton';
+import { formatTagName } from '../../utils';
 
 interface ImageModalProps {
     visible: boolean;
     images: string[];
     index: number;
+    tags: string[];
     onClose: () => void;
     onLeft?: () => void;
     onRight?: () => void;
@@ -41,6 +44,16 @@ export const ImageModal = (props: ImageModalProps) => {
                 <img class={styles.image} src={props.images[props.index]} />
                 <div class={styles.closeButton} onClick={props.onClose}>
                     <Svg svg={close} />
+                </div>
+
+                <div class={styles.tagsContainer}>
+                    <div class={styles.innerTagsContainer}>
+                        <For each={props.tags}>
+                            {(tag) => (
+                                <TagButton active tag={tag} displayText={formatTagName(tag)} />
+                            )}
+                        </For>
+                    </div>
                 </div>
 
                 <div
