@@ -1,4 +1,4 @@
-import { createEffect, createMemo } from 'solid-js';
+import { createEffect, createMemo, on } from 'solid-js';
 import styles from '../tag-gallery.module.scss';
 import TagModal from '../../tagModal/TagModal';
 import tagIcon from '/src/assets/tag.svg';
@@ -23,6 +23,7 @@ export interface ImageProps {
     onMouseEnter?: () => void;
     onMouseLeave?: () => void;
     onContextMenu?: () => void;
+    onTagSelected: (tags: string[]) => void;
     key?: string;
 }
 
@@ -113,8 +114,7 @@ export const ImageContainer = (props: ImageProps) => {
             iconHTML: createContextMenuIcon(tagIcon),
             callback: async () => {
                 if (!(props.selectedTags.length === 1 && props.selectedTags[0] === tag)) {
-                    // If not already selected
-                    props.selectedTags = [tag];
+                    props.onTagSelected([tag]);
                 }
 
                 contextMenu.close();

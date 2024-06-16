@@ -210,6 +210,7 @@ export const TagGallery = () => {
                                 setOutlineLocked(true);
                                 getTagModal().hide();
                             }}
+                            onTagSelected={setSelectedTags}
                             outlined={isImageOutlined(imageView.tweetId)}
                             setLockHover={setOutlineLocked}
                         />
