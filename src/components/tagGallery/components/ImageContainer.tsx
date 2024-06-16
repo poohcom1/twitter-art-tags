@@ -110,34 +110,6 @@ export const ImageContainer = (props: ImageProps) => {
             }
         );
 
-        const tagsMenu: MenuItem[] = props.tags.map((tag) => ({
-            label: formatTagName(tag),
-            iconHTML: createContextMenuIcon(tagIcon),
-            callback: async () => {
-                if (!(props.selectedTags.length === 1 && props.selectedTags[0] === tag)) {
-                    props.onTagSelected([tag]);
-                }
-
-                contextMenu.close();
-
-                await new Promise((resolve) => setTimeout(resolve, 10));
-
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth',
-                });
-            },
-        }));
-        if (tagsMenu.length > 0) {
-            if (tagsMenu.length > 5) {
-                menuItems.push('hr', ...tagsMenu.slice(0, 5), {
-                    label: '...',
-                });
-            } else {
-                menuItems.push('hr', ...tagsMenu);
-            }
-        }
-
         contextMenu.updateOptions({ ...contextMenu.options, menuItems });
     });
 
