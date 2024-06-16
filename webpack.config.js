@@ -79,6 +79,7 @@ module.exports = {
                 ],
                 require: [
                     'https://github.com/poohcom1/vanilla-context-menu/releases/download/v1.10.0/vanilla-context-menu.js',
+                    'https://raw.githubusercontent.com/gildas-lormeau/zip.js/969f6589f3a979a9ed7eb6c6dfa8e32f8c51a62a/dist/zip-fs.min.js',
                 ],
             },
             pretty: true,

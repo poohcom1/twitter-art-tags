@@ -11,6 +11,7 @@ import {
     importDataFromFile,
     setArchiveConsent,
 } from '../../../services/storage';
+import { createImageArchive } from '../../../services/zipService';
 
 const DotMenuSvg = template(dotMenuIcon);
 
@@ -64,7 +65,7 @@ export const Menu = () => {
         }
 
         setDownloadingImages(true);
-        const success = await createArchive();
+        const success = await createImageArchive();
 
         if (!success) {
             alert('Failed to create archive! Please try again later.');
