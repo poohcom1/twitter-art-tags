@@ -4,7 +4,7 @@ interface SvgProps {
     svg: string;
 }
 
-export const Svg = ({ svg }: SvgProps) => {
-    const SvgTemplate = template(svg);
+export const Svg = (props: SvgProps) => {
+    const SvgTemplate = template(props.svg);
     return <SvgTemplate />;
 };

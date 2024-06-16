@@ -15,13 +15,17 @@ import { removeTag, removeTweet } from '../../../services/storage';
 import { image } from '../../imageModal/image-modal.module.scss';
 import { UserData } from '../../../models';
 
-interface ImageProps {
+export interface ImageProps {
     tweetId: string;
     src: string;
     tagModal: TagModal;
     selectedTags: string[];
     tags: string[];
+    outlined: boolean;
     setLockHover: (lock: boolean) => void;
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
+    key: string;
 }
 
 export const ImageContainer = ({
@@ -30,11 +34,15 @@ export const ImageContainer = ({
     tagModal,
     selectedTags,
     tags,
+    outlined,
     setLockHover,
+    onMouseEnter,
+    onMouseLeave,
 }: ImageProps) => {
     let ref: HTMLElement;
 
     createEffect(() => {
+        console.log('rerender');
         const contextMenu = new VanillaContextMenu({
             scope: ref,
             transitionDuration: 0,
@@ -141,8 +149,10 @@ export const ImageContainer = ({
 
     return (
         <a
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
             ref={(el) => (ref = el)}
-            class={`${styles.imageContainer}`}
+            class={`${styles.imageContainer} ${outlined && styles.imageContainerHover}`}
             // href={`https://x.com/x/status/${tweetId}`}
             target="_blank"
             rel="noreferrer"

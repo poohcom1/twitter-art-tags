@@ -1,4 +1,4 @@
-import { createEffect } from 'solid-js';
+import { createEffect, createMemo, splitProps } from 'solid-js';
 import styles from '../tag-gallery.module.scss';
 import pencilIcon from '/src/assets/pencil.svg';
 import trashIcon from '/src/assets/trash.svg';
@@ -17,19 +17,12 @@ interface TagProps {
     onDeselectAll: () => void;
 }
 
-export const Tag = ({
-    tag,
-    displayText,
-    active,
-    onSelect,
-    onShiftSelect,
-    onDeselectAll,
-}: TagProps) => {
+export const TagButton = (props: TagProps) => {
     const onClick = (e: MouseEvent) => {
         if (e.shiftKey) {
-            onShiftSelect();
+            props.onShiftSelect();
         } else {
-            onSelect();
+            props.onSelect();
         }
     };
 
@@ -38,24 +31,24 @@ export const Tag = ({
     createEffect(() => {
         new VanillaContextMenu({
             scope: tagRef,
-            customClass: active ? styles.contextMenuWide : styles.contextMenu,
+            customClass: props.active ? styles.contextMenuWide : styles.contextMenu,
             normalizePosition: false,
             transitionDuration: 0,
             menuItems: [
                 {
-                    label: active ? 'Deselect' : 'Select',
-                    iconHTML: createContextMenuIcon(active ? squareIcon : checkSquareIcon),
-                    callback: onSelect,
+                    label: props.active ? 'Deselect' : 'Select',
+                    iconHTML: createContextMenuIcon(props.active ? squareIcon : checkSquareIcon),
+                    callback: props.onSelect,
                 },
                 {
-                    label: active ? 'Remove from selection' : 'Add to selection',
+                    label: props.active ? 'Remove from selection' : 'Add to selection',
                     iconHTML: createNoIcon(),
-                    callback: onShiftSelect,
+                    callback: props.onShiftSelect,
                 },
                 {
                     label: 'Deselect all',
                     iconHTML: createNoIcon(),
-                    callback: onDeselectAll,
+                    callback: props.onDeselectAll,
                 },
                 'hr',
                 {
@@ -64,7 +57,7 @@ export const Tag = ({
                     callback: async () => {
                         let newTagName;
                         while (true) {
-                            newTagName = prompt('Enter new tag name:', formatTagName(tag));
+                            newTagName = prompt('Enter new tag name:', formatTagName(props.tag));
                             if (!newTagName) {
                                 return;
                             }
@@ -76,7 +69,7 @@ export const Tag = ({
                                 );
                             }
                         }
-                        await renameTag(tag, newTagName);
+                        await renameTag(props.tag, newTagName);
                     },
                 },
                 {
@@ -86,21 +79,25 @@ export const Tag = ({
                         if (!confirm('Are you sure you want to delete this tag?')) {
                             return;
                         }
-                        await deleteTag(tag);
+                        await deleteTag(props.tag);
                     },
                 },
             ],
         });
     });
 
+    const icon = createMemo(() =>
+        props.active ? <Svg svg={checkSquareIcon} /> : <Svg svg={squareIcon} />
+    );
+
     return (
         <button
             ref={(el) => (tagRef = el)}
             onClick={onClick}
-            class={`${styles.tag} ${!active && styles.tagInactive}`}
+            class={`${styles.tag} ${!props.active && styles.tagInactive}`}
         >
-            <Svg svg={active ? checkSquareIcon : squareIcon} />
-            <div>{displayText}</div>
+            {icon()}
+            <div>{props.displayText}</div>
         </button>
     );
 };
