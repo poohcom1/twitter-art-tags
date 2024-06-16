@@ -4,6 +4,7 @@ import styles from './image-modal.module.scss';
 import leftArrow from '/src/assets/arrow-left.svg';
 import rightArrow from '/src/assets/arrow-right.svg';
 import close from '/src/assets/x-close.svg';
+import { createEffect } from 'solid-js';
 
 interface ImageModalProps {
     visible: boolean;
@@ -15,6 +16,16 @@ interface ImageModalProps {
 }
 
 export const ImageModal = (props: ImageModalProps) => {
+    createEffect(() => {
+        if (props.visible) {
+            document.documentElement.style.overflowY = 'hidden';
+        } else {
+            document.documentElement.style.overflowY = 'scroll';
+        }
+
+        return () => (document.documentElement.style.overflowY = 'scroll');
+    });
+
     return (
         <Portal>
             <div class={`${styles.modalContainer} ${props.visible && styles.modalContainerShow}`}>
