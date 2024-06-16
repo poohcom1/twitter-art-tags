@@ -30,7 +30,6 @@ export const ImageContainer = (props: ImageProps) => {
     let ref: HTMLElement;
 
     createEffect(() => {
-        console.log('image rerender');
         const contextMenu = new VanillaContextMenu({
             scope: ref,
             transitionDuration: 0,

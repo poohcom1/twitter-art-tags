@@ -86,6 +86,10 @@ export const TagGallery = () => {
         tags.includes(tag)
     );
     const isImageOutlined = createSelector(getOutlinedTweet);
+    const isImageSelected = createSelector<string[], ImageView>(
+        getSelectedTags,
+        (image, tags) => tags.length === 0 || tags.every((tag) => image.tags.includes(tag))
+    );
 
     return (
         <div id={ID} class={styles.tagsGallery}>
@@ -131,7 +135,7 @@ export const TagGallery = () => {
                 </For>
             </div>
             <div class={styles.imageGallery}>
-                <For each={viewModel.images}>
+                <For each={viewModel.images.filter(isImageSelected)}>
                     {(imageView, index) => (
                         <ImageContainer
                             src={imageView.src}
