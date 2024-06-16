@@ -25,24 +25,14 @@ export interface ImageProps {
     setLockHover: (lock: boolean) => void;
     onMouseEnter?: () => void;
     onMouseLeave?: () => void;
-    key: string;
+    key?: string;
 }
 
-export const ImageContainer = ({
-    tweetId,
-    src,
-    tagModal,
-    selectedTags,
-    tags,
-    outlined,
-    setLockHover,
-    onMouseEnter,
-    onMouseLeave,
-}: ImageProps) => {
+export const ImageContainer = (props: ImageProps) => {
     let ref: HTMLElement;
 
     createEffect(() => {
-        console.log('rerender');
+        console.log('image rerender');
         const contextMenu = new VanillaContextMenu({
             scope: ref,
             transitionDuration: 0,
@@ -54,8 +44,8 @@ export const ImageContainer = ({
             preventCloseOnClick: true,
             customClass: styles.contextMenu,
             onClose: () => {
-                setLockHover?.(false);
-                tagModal.hide();
+                props.setLockHover?.(false);
+                props.tagModal.hide();
             },
         });
 
@@ -70,7 +60,7 @@ export const ImageContainer = ({
                         currentEvent.currentTarget as HTMLElement
                     ).getBoundingClientRect();
 
-                    tagModal.show(tweetId, [src], {
+                    props.tagModal.show(props.tweetId, [props.src], {
                         top: rect.top, // don't spread
                         right: rect.right,
                         left: rect.left,
@@ -80,12 +70,12 @@ export const ImageContainer = ({
             },
         ];
 
-        if (selectedTags.length === 1) {
+        if (props.selectedTags.length === 1) {
             menuItems.push({
-                label: `Untag ${formatTagName(selectedTags[0])}`,
+                label: `Untag ${formatTagName(props.selectedTags[0])}`,
                 iconHTML: createContextMenuIcon(tagMinusIcon),
                 callback: async () => {
-                    await removeTag(tweetId, selectedTags[0]);
+                    await removeTag(props.tweetId, props.selectedTags[0]);
                     contextMenu.close();
                 },
             });
@@ -97,7 +87,7 @@ export const ImageContainer = ({
                 iconHTML: createContextMenuIcon(trashIcon),
                 callback: async () => {
                     if (confirm('Are you sure you want to delete this tweet from all tags?')) {
-                        await removeTweet(tweetId);
+                        await removeTweet(props.tweetId);
                     }
                     contextMenu.close();
                 },
@@ -107,7 +97,7 @@ export const ImageContainer = ({
                 label: 'Open tweet',
                 iconHTML: createContextMenuIcon(externalLinkIcon),
                 callback: () => {
-                    window.open(`/poohcom1/status/${tweetId}`, '_blank');
+                    window.open(`/poohcom1/status/${props.tweetId}`, '_blank');
                     contextMenu.close();
                 },
             },
@@ -115,19 +105,19 @@ export const ImageContainer = ({
                 label: 'Open image',
                 iconHTML: createContextMenuIcon(eyeIcon),
                 callback: () => {
-                    window.open(src, '_blank');
+                    window.open(props.src, '_blank');
                     contextMenu.close();
                 },
             }
         );
 
-        const tagsMenu: MenuItem[] = tags.map((tag) => ({
+        const tagsMenu: MenuItem[] = props.tags.map((tag) => ({
             label: formatTagName(tag),
             iconHTML: createContextMenuIcon(tagIcon),
             callback: async () => {
-                if (!(selectedTags.length === 1 && selectedTags[0] === tag)) {
+                if (!(props.selectedTags.length === 1 && props.selectedTags[0] === tag)) {
                     // If not already selected
-                    selectedTags = [tag];
+                    props.selectedTags = [tag];
                 }
 
                 contextMenu.close();
@@ -149,15 +139,15 @@ export const ImageContainer = ({
 
     return (
         <a
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
+            onMouseEnter={props.onMouseEnter}
+            onMouseLeave={props.onMouseLeave}
             ref={(el) => (ref = el)}
-            class={`${styles.imageContainer} ${outlined && styles.imageContainerHover}`}
+            class={`${styles.imageContainer} ${props.outlined && styles.imageContainerHover}`}
             // href={`https://x.com/x/status/${tweetId}`}
             target="_blank"
             rel="noreferrer"
         >
-            <img src={src} loading="lazy" />
+            <img src={props.src} loading="lazy" />
         </a>
     );
 };

@@ -52,12 +52,10 @@ const TagGalleryTest = () => {
     const [getSelectedTags, setSelectedTags] = createSignal<string[]>([]);
     const [getOutlinedTweet, setOutlinedTweet] = createSignal<string | null>(null);
 
-    const isOutlined = createSelector(getOutlinedTweet);
-
     createEffect(() => {
         GM.getValue<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA).then((data) => {
             if (data) {
-                setViewModel(mapViewModel(data));
+                setViewModel(reconcile(mapViewModel(data)));
             }
         });
 
@@ -65,7 +63,7 @@ const TagGalleryTest = () => {
             if ((e as CacheUpdateEvent).detail.key === KEY_USER_DATA) {
                 const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
                 if (data) {
-                    setViewModel(mapViewModel(data));
+                    setViewModel(reconcile(mapViewModel(data)));
                 }
             }
         });
@@ -73,41 +71,10 @@ const TagGalleryTest = () => {
 
     const getTagModal = createMemo(() => new TagModal([styles.tagModal]));
 
-    // const imageProps = createMemo((): ImageProps[] =>
-    //     Object.keys(userData.tags)
-    //         .filter((tag) => getSelectedTags().includes(tag))
-    //         .reduce(
-    //             (acc, tag) => acc.filter((tweetId) => userData.tags[tag].tweets.includes(tweetId)),
-    //             Object.keys(userData.tweets)
-    //         )
-    //         .reverse()
-    //         .filter((tweetId) => tweetId in userData.tweets)
-    //         .flatMap((tweetId) =>
-    //             userData.tweets[tweetId].images.map((src, ind) => {
-    //                 const tweetTags = createMemo(() =>
-    //                     Object.keys(userData.tags).filter((tag) =>
-    //                         userData.tags[tag].tweets.includes(tweetId)
-    //                     )
-    //                 );
-    //                 return {
-    //                     key: tweetId + ind,
-    //                     onMouseEnter: () => setOutlinedTweet(tweetId),
-    //                     onMouseLeave: () => setOutlinedTweet(null),
-    //                     outlined: getOutlinedTweet() === tweetId,
-    //                     tags: tweetTags(),
-    //                     tweetId: tweetId,
-    //                     src: src,
-    //                     tagModal: getTagModal(),
-    //                     selectedTags: getSelectedTags(),
-    //                     setLockHover: () => {}, // TODO
-    //                 };
-    //             })
-    //         )
-    // );
-
-    const tagActive = createSelector<string[], string>(getSelectedTags, (tag, tags) =>
+    const isTagActive = createSelector<string[], string>(getSelectedTags, (tag, tags) =>
         tags.includes(tag)
     );
+    const isImageOutlined = createSelector(getOutlinedTweet);
 
     return (
         <div class={styles.tagsGallery}>
@@ -134,14 +101,14 @@ const TagGalleryTest = () => {
                         <TagButton
                             tag={tagView.tag}
                             displayText={tagView.displayText}
-                            active={tagActive(tagView.tag)}
+                            active={isTagActive(tagView.tag)}
                             onSelect={() => {
-                                if (tagActive(tagView.tag) && getSelectedTags().length === 1)
+                                if (isTagActive(tagView.tag) && getSelectedTags().length === 1)
                                     setSelectedTags([]);
                                 else setSelectedTags([tagView.tag]);
                             }}
                             onShiftSelect={() => {
-                                if (tagActive(tagView.tag))
+                                if (isTagActive(tagView.tag))
                                     setSelectedTags(
                                         getSelectedTags().filter((t) => t !== tagView.tag)
                                     );
@@ -153,7 +120,21 @@ const TagGalleryTest = () => {
                 </For>
             </div>
             <div class={styles.imageGallery}>
-                {/* <For each={imageProps()}>{(props) => <ImageContainer {...props} />}</For> */}
+                <For each={viewModel.images}>
+                    {(imageView) => (
+                        <ImageContainer
+                            src={imageView.src}
+                            tweetId={imageView.tweetId}
+                            selectedTags={getSelectedTags()}
+                            tags={imageView.tags}
+                            tagModal={getTagModal()}
+                            onMouseEnter={() => setOutlinedTweet(imageView.tweetId)}
+                            onMouseLeave={() => setOutlinedTweet(null)}
+                            outlined={isImageOutlined(imageView.tweetId)}
+                            setLockHover={() => {}} // TODO
+                        />
+                    )}
+                </For>
             </div>
         </div>
     );
