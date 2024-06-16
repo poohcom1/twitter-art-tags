@@ -86,6 +86,7 @@ export default class TagModal {
 
                     this.callbacks.tagModified?.(tagName, tweetId);
                     this.tagInput.value = '';
+                    this.tagInput.focus();
 
                     renderTags();
                 };
