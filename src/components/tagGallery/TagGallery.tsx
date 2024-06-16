@@ -36,7 +36,9 @@ type GalleryView = {
     images: ImageView[];
 };
 
-const TagGalleryTest = () => {
+const ID = 'tag-gallery';
+
+export const TagGallery = () => {
     const [viewModel, setViewModel] = createStore<GalleryView>({ tags: [], images: [] });
 
     const [getSelectedTags, setSelectedTags] = createSignal<string[]>([]);
@@ -86,7 +88,7 @@ const TagGalleryTest = () => {
     const isImageOutlined = createSelector(getOutlinedTweet);
 
     return (
-        <div class={styles.tagsGallery}>
+        <div id={ID} class={styles.tagsGallery}>
             <Title />
             <div class={styles.optionsPanel}>
                 <Svg svg={tagIcon} />
@@ -169,7 +171,7 @@ const TagGalleryTest = () => {
     );
 };
 
-export default TagGalleryTest;
+export const tagGalleryExists = () => document.getElementById(ID) !== null;
 
 function mapViewModel(rawUserData: RawUserData): GalleryView {
     const userData = dataManager.removeMetadata(rawUserData);

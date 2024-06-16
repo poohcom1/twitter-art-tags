@@ -1,12 +1,10 @@
 import { CUSTOM_PAGE_TITLE } from '../constants';
 import { waitForElement } from '../utils';
-import TagGallery from '../components/tagGallery/TagGallery';
-import { cacheInvalidated } from '../services/storage';
+import { TagGallery, tagGalleryExists } from '../components/tagGallery/TagGallery';
 import { render } from 'solid-js/web';
-import TagGalleryTest from '../components/tagGallery/TagGalleryTest';
 
 export async function renderTagsGallery() {
-    if (TagGallery.exists()) {
+    if (tagGalleryExists()) {
         return;
     }
     // Render page
@@ -33,5 +31,5 @@ export async function renderTagsGallery() {
     // First load
     main.innerHTML = '';
     main.style.maxWidth = '100%';
-    render(TagGalleryTest, main);
+    render(TagGallery, main);
 }
