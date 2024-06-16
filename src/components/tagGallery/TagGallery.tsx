@@ -107,6 +107,9 @@ export const TagGallery = () => {
         (image, tags) => tags.length === 0 || tags.every((tag) => image.tags.includes(tag))
     );
 
+    const currentTags = () => viewModel.tags.filter(isTagFiltered);
+    const currentImages = () => viewModel.images.filter(isImageSelected);
+
     return (
         <div id={ID} class={styles.tagsGallery}>
             <Title />
@@ -144,7 +147,7 @@ export const TagGallery = () => {
             </div>
             <hr />
             <div class={styles.tagsContainer}>
-                <For each={viewModel.tags.filter(isTagFiltered)}>
+                <For each={currentTags()}>
                     {(tagView) => (
                         <TagButton
                             tag={tagView.tag}
@@ -183,7 +186,7 @@ export const TagGallery = () => {
                 </Show>
             </div>
             <div class={styles.imagesContainer}>
-                <For each={viewModel.images.filter(isImageSelected)}>
+                <For each={currentImages()}>
                     {(imageView, index) => (
                         <ImageContainer
                             src={imageView.src}
@@ -226,7 +229,7 @@ export const TagGallery = () => {
                                 <strong>Tag Tweet</strong>
                             </div>
                         </Match>
-                        <Match when={viewModel.images.filter(isImageSelected).length === 0}>
+                        <Match when={currentImages().length === 0}>
                             <h3>Nothing to see here!</h3>
                             <br />
                             <div class={styles.clearButton} onClick={() => setSelectedTags([])}>
@@ -238,13 +241,13 @@ export const TagGallery = () => {
             </div>{' '}
             <ImageModal
                 visible={getCurrentModalImage() >= 0}
-                images={viewModel.images.map((i) => i.src)}
+                images={currentImages().map((i) => i.src)}
                 index={getCurrentModalImage()}
                 onClose={() => setCurrentModalImage(-1)}
                 onLeft={() => setCurrentModalImage(Math.max(0, getCurrentModalImage() - 1))}
                 onRight={() =>
                     setCurrentModalImage(
-                        Math.min(viewModel.images.length - 1, getCurrentModalImage() + 1)
+                        Math.min(currentImages().length - 1, getCurrentModalImage() + 1)
                     )
                 }
             />
