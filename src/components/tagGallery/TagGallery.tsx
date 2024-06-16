@@ -271,9 +271,9 @@ function mapViewModel(rawUserData: RawUserData): GalleryView {
                 .map((src, index) => ({
                     tweetId: tweetId,
                     src,
-                    tags: Object.keys(userData.tags).filter((tag) =>
-                        userData.tags[tag].tweets.includes(tweetId)
-                    ),
+                    tags: Object.keys(userData.tags)
+                        .filter((tag) => userData.tags[tag].tweets.includes(tweetId))
+                        .sort(),
                     index,
                 }))
                 .reverse()
