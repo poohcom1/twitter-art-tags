@@ -12,17 +12,38 @@ type NodeBuffer = Parameters<typeof zip.addFile>[1];
 
 interface ImageData {
     name: string;
+    buffer: NodeBuffer | null;
+}
+
+interface ImageDataSucces {
+    name: string;
     buffer: NodeBuffer;
 }
 
+interface ImageDataFailed {
+    name: string;
+    buffer: null;
+}
+
 // Utility functions
-async function downloadImage(url: string): Promise<NodeBuffer> {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Failed to download image from ${url}`);
+async function downloadImage(url: string, retry: number = 0): Promise<NodeBuffer | null> {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to download image from ${url}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        return Buffer.from(arrayBuffer) as NodeBuffer;
+    } catch (e) {
+        if (retry < 3) {
+            console.warn(
+                `Failed to download image from ${url}. Error ${e}.Retrying... ${retry + 1}`
+            );
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            return downloadImage(url, retry + 1);
+        }
+        return null;
     }
-    const arrayBuffer = await response.arrayBuffer();
-    return Buffer.from(arrayBuffer) as NodeBuffer;
 }
 
 function getImageExt(url: string) {
@@ -53,7 +74,9 @@ Deno.serve(async (req) => {
     }
 
     const images = await Promise.all(imagePromises);
-    for (const { name, buffer } of images) {
+    const validImages = images.filter((image): image is ImageDataSucces => image.buffer !== null);
+    const failedImages = images.filter((image): image is ImageDataFailed => image.buffer === null);
+    for (const { name, buffer } of validImages) {
         zip.addFile(name, buffer);
     }
 
@@ -88,6 +111,7 @@ Deno.serve(async (req) => {
         headers: {
             'Content-Type': 'application/zip',
             'Content-Disposition': 'attachment; filename=tagged_images.zip',
+            'x-failed-images': failedImages.length.toString(),
         },
     });
 });

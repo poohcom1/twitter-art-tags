@@ -107,6 +107,7 @@ export async function asyncXmlHttpRequest(
             ...params,
             onload: resolve,
             onerror: reject,
+            ontimeout: reject,
         });
     });
 }

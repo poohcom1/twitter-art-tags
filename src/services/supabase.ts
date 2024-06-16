@@ -300,6 +300,7 @@ export async function createArchive(): Promise<boolean> {
             data: JSON.stringify(userData),
             binary: true,
             responseType: 'blob',
+            timeout: 30000,
         });
     } catch (e) {
         console.error(`Create archive reject error -- ${JSON.stringify(e)}`);
@@ -312,6 +313,16 @@ export async function createArchive(): Promise<boolean> {
     } else {
         const blob = new Blob([res.response], { type: 'application/octet-stream' });
         saveFile(blob, 'twitter-art-tags_images.zip');
+
+        const headers = res.responseHeaders.split('\r\n');
+        const failedImagesHeader = headers.find((header) => header.startsWith('x-failed-images: '));
+        if (failedImagesHeader) {
+            const count = Number.parseInt(failedImagesHeader.split(': ')[1]);
+            if (count > 0) {
+                alert(`${count} images failed to load. They will not be included in the archive.`);
+            }
+        }
+
         return true;
     }
 }

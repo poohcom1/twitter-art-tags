@@ -27,5 +27,6 @@
         "editor.defaultFormatter": "ducfilan.pug-formatter"
     },
     "deno.enable": true,
-    "deno.enablePaths": ["./supabase"]
+    "deno.unstable": true,
+    "deno.enablePaths": ["supabase/functions"]
 }
