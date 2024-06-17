@@ -111,6 +111,9 @@ export default class TagModal {
                     target.value = '';
                     renderTags();
                     this.callbacks.tagModified?.(tagName, tweetId);
+                } else if (event.key === 'Escape') {
+                    target.value = '';
+                    renderTags();
                 }
             } else {
                 event.preventDefault();

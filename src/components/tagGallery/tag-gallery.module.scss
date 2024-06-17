@@ -276,7 +276,7 @@ $grey: rgb(59, 58, 66);
             }
 
             &__hover {
-                outline: 4px solid #8ca3ff;
+                @include mixins.outline;
                 background-color: transparent;
 
                 img {
@@ -285,7 +285,7 @@ $grey: rgb(59, 58, 66);
             }
 
             &:focus-visible {
-                outline: 4px solid #8ca3ff;
+                @include mixins.outline;
                 background-color: transparent;
             }
 
