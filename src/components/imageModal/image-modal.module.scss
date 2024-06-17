@@ -104,10 +104,12 @@
     z-index: mixins.$overlay-index + 1;
 
     .innerTagsContainer {
+        height: 100%;
         margin: auto;
         min-width: min-content;
         display: flex;
         justify-content: center;
+        align-items: center;
         gap: 6px;
         flex-shrink: 0;
 
