@@ -54,10 +54,10 @@ jobs:
           SCRIPT_SRC: ${{ env.SCRIPT_SRC }}
         with:
           body: |
+            ${{ steps.changelog.outputs.changes }}
             ```javascript
             ${{ env.SCRIPT_SRC }}
             ```
-            ${{ steps.changelog.outputs.changes }}
           files: |
             dist/twitterArtTags.user.js
             dist/twitterArtTags.meta.js
