@@ -144,12 +144,17 @@ export const TagModal = (props: TagModalProps) => {
                     onInput={(e) => setInputValue(e.currentTarget.value)}
                     onKeyDown={async (e) => {
                         if (e.key === 'Enter') {
+                            const visible = props.visible;
+                            if (!visible) {
+                                return;
+                            }
+
                             const tagFilter = sanitizeTagName(getInputValue());
                             if (viewModel.tags.map((t) => t.tag).includes(tagFilter)) {
                                 await handleTagClick(tagFilter);
                                 setInputValue('');
                             } else {
-                                createTag(tagFilter);
+                                await addTag(visible.tweetId, tagFilter, visible.tweetImages ?? []);
                                 setInputValue('');
                             }
                         } else if (e.key === 'Escape') {
