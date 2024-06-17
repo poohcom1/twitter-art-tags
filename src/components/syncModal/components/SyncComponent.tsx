@@ -33,7 +33,7 @@ export const SyncComponent = (props: SyncComponentProps) => {
                         }
                     >
                         <Match when={props.dataSynced}>
-                            <span>Synced</span>
+                            <span>Up to date</span>
                         </Match>
                         <Match when={!props.dataExists}>
                             <span style={{ color: 'red' }}>Never</span>
