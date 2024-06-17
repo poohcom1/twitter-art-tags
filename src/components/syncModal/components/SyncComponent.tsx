@@ -56,7 +56,7 @@ export const SyncComponent = (props: SyncComponentProps) => {
                     {props.syncType === SyncType.Clear ? <LoadingSpinner /> : <Svg svg={clear} />}
                     Clear data
                 </button>
-                <button onClick={props.onLogout}>
+                <button onClick={props.onLogout} disabled={props.syncType !== SyncType.None}>
                     <Svg svg={logout} />
                     Log out
                 </button>
