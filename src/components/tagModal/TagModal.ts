@@ -156,6 +156,10 @@ export default class TagModal {
         this.clearTags();
     }
 
+    public isVisible() {
+        return this.tagModal.style.display === 'block';
+    }
+
     public setStyles(style: Partial<CSSStyleDeclaration>) {
         Object.assign(this.tagModal.style, style);
     }

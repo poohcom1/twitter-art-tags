@@ -59,7 +59,7 @@ export const ImageContainer = (props: ImageProps) => {
                         currentEvent.currentTarget as HTMLElement
                     ).getBoundingClientRect();
 
-                    props.tagModal.show(props.tweetId, [props.src], {
+                    props.tagModal.show(props.tweetId, [], {
                         top: rect.top, // don't spread
                         right: rect.right,
                         left: rect.left,
@@ -118,14 +118,12 @@ export const ImageContainer = (props: ImageProps) => {
     });
 
     return (
-        <a
+        <button
             ref={(el) => (ref = el)}
             onClick={props.onClick}
             onMouseEnter={props.onMouseEnter}
             onMouseLeave={props.onMouseLeave}
             class={`${styles.imageContainer} ${props.outlined && styles.imageContainerHover}`}
-            target="_blank"
-            rel="noreferrer"
         >
             <Show when={props.showTagCount}>
                 <div class={styles.tagCountContainer}>
@@ -134,7 +132,7 @@ export const ImageContainer = (props: ImageProps) => {
                 </div>
             </Show>
             <img src={props.src} loading="lazy" />
-        </a>
+        </button>
     );
 };
 

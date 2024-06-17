@@ -4,6 +4,7 @@ export declare const arrowContainerRight: string;
 export declare const closeButton: string;
 export declare const image: string;
 export declare const innerTagsContainer: string;
+export declare const menuButton: string;
 export declare const modalContainer: string;
 export declare const modalContainerShow: string;
 export declare const overlay: string;

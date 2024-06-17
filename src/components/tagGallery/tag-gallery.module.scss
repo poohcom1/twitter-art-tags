@@ -249,6 +249,7 @@ $grey: rgb(59, 58, 66);
             padding: 0px;
             margin: 0px;
             border-radius: 5px;
+            border: none;
 
             img {
                 position: absolute;
@@ -281,6 +282,11 @@ $grey: rgb(59, 58, 66);
                 img {
                     filter: brightness(0.6);
                 }
+            }
+
+            &:focus-visible {
+                outline: 4px solid #8ca3ff;
+                background-color: transparent;
             }
 
             @keyframes loading {

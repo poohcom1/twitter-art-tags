@@ -19,16 +19,39 @@
     z-index: mixins.$overlay-index + 1;
 }
 
-.closeButton {
+@mixin modal-button {
     position: absolute;
     stroke: rgb(255, 255, 255);
     opacity: 0.6;
     height: 50px;
     width: 50px;
     right: 10vw;
-    top: 5vh;
     z-index: mixins.$overlay-index + 1;
     cursor: pointer;
+    &:hover {
+        opacity: 0.9;
+    }
+}
+
+.menuButton {
+    @include modal-button;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    top: 0vh;
+
+    svg {
+        width: 70%;
+    }
+}
+
+.closeButton {
+    @include modal-button;
+
+    top: 5vh;
+
     &:hover {
         opacity: 0.9;
     }
@@ -67,8 +90,10 @@
 // tags
 .tagsContainer {
     top: 0;
-    left: 10vw;
-    width: 80vw;
+    left: 15vw;
+    width: 70vw;
+
+    height: 5vh;
 
     display: flex;
     justify-content: start;

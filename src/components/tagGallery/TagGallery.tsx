@@ -139,7 +139,11 @@ export const TagGallery = () => {
                         type="text"
                         placeholder="Press enter to create a tag..."
                     />
-                    <button onClick={() => setTagFilter('')} class={styles.addTagClear}>
+                    <button
+                        onClick={() => setTagFilter('')}
+                        class={styles.addTagClear}
+                        tabIndex={-1}
+                    >
                         <Svg svg={deleteIcon} />
                     </button>
                 </div>
@@ -242,11 +246,12 @@ export const TagGallery = () => {
                         </Match>
                     </Switch>
                 </div>
-            </div>{' '}
+            </div>
             <ImageModal
                 visible={getCurrentModalImage() >= 0}
                 images={currentImages().map((i) => i.src)}
                 index={getCurrentModalImage()}
+                tweetId={currentImages()[getCurrentModalImage()]?.tweetId || ''}
                 tags={currentImages()[getCurrentModalImage()]?.tags || []}
                 onClose={() => setCurrentModalImage(-1)}
                 onLeft={() => setCurrentModalImage(Math.max(0, getCurrentModalImage() - 1))}
