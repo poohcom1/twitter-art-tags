@@ -107,6 +107,7 @@ export const TagModal = (props: TagModalProps) => {
             await addTag(visible.tweetId, tagName, visible.tweetImages ?? []);
         }
 
+        setInputValue('');
         inputRef.focus();
     };
 
