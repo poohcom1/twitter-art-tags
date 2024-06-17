@@ -1,8 +1,8 @@
 import { Show, createMemo } from 'solid-js';
-import styles from './tag.module.scss';
+import styles from './tag-button.module.scss';
 import squareIcon from '/src/assets/square.svg';
 import checkSquareIcon from '/src/assets/check-square.svg';
-import { Svg } from './Svg';
+import { Svg } from '../Svg';
 
 export interface TagButtonProps {
     ref?: (el: HTMLButtonElement) => void;

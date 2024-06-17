@@ -1,7 +1,7 @@
 import { createEffect } from 'solid-js';
 import { renameTag, deleteTag } from '../../../services/storage';
 import { formatTagName, verifyTagName, parseHTML } from '../../../utils';
-import { TagButton, TagButtonProps } from '../../common/TagButton';
+import { TagButton, TagButtonProps } from '../../common/tagButton/TagButton';
 import squareIcon from '/src/assets/square.svg';
 import checkSquareIcon from '/src/assets/check-square.svg';
 import pencilIcon from '/src/assets/pencil.svg';

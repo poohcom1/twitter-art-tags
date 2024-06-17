@@ -14,7 +14,7 @@ import {
     sanitizeTagName,
 } from '../../services/storage';
 import { dataManager } from '../../services/dataManager';
-import { TagButton } from '../common/TagButton';
+import { TagButton } from '../common/tagButton/TagButton';
 
 // Props
 export interface TagModalVisible {

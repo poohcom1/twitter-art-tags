@@ -1,15 +1,15 @@
 import { Portal } from 'solid-js/web';
-import { Svg } from '../common/Svg';
+import { Svg } from '../../../common/Svg';
 import styles from './image-modal.module.scss';
-import tagGalleryStyles from '../tagGallery/tag-gallery.module.scss';
+import tagGalleryStyles from '../../tag-gallery.module.scss';
 import leftArrow from '/src/assets/arrow-left.svg';
 import rightArrow from '/src/assets/arrow-right.svg';
 import menu from '/src/assets/dot-menu.svg';
 import close from '/src/assets/x-close.svg';
 import { For, createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
-import { TagButton } from '../common/TagButton';
-import { formatTagName } from '../../utils';
-import { TagModal, TagModalVisible } from '../tagModal/TagModal';
+import { TagButton } from '../../../common/tagButton/TagButton';
+import { formatTagName } from '../../../../utils';
+import { TagModal, TagModalVisible } from '../../../tagModal/TagModal';
 
 interface ImageModalProps {
     visible: boolean;
