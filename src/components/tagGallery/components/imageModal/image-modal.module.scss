@@ -27,34 +27,28 @@
     width: 50px;
     right: 10vw;
     z-index: mixins.$overlay-index + 1;
-    cursor: pointer;
-    &:hover {
-        opacity: 0.9;
-    }
-}
-
-.menuButton {
-    @include modal-button;
 
     display: flex;
     justify-content: center;
     align-items: center;
 
-    top: 0vh;
-
+    cursor: pointer;
+    &:hover {
+        opacity: 0.9;
+    }
     svg {
         width: 70%;
     }
 }
 
+.menuButton {
+    @include modal-button;
+    top: 0vh;
+}
+
 .closeButton {
     @include modal-button;
-
     top: 5vh;
-
-    &:hover {
-        opacity: 0.9;
-    }
 }
 
 // Arrow
