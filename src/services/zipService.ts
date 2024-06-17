@@ -28,9 +28,9 @@ export async function createImageArchive() {
                 const url = new URL(imageSrc);
                 const ext = url.searchParams.get('format') ?? 'png';
 
-                let name = 'twitter-art-tag_images/' + tweetId + '.' + ext;
+                let name = 'Images/' + tweetId + '.' + ext;
                 if (images.length > 1) {
-                    name = 'twitter-art-tag_images/' + tweetId + '_' + i + '.' + ext;
+                    name = 'Images/' + tweetId + '_' + i + '.' + ext;
                 }
 
                 imagePromises.push(imageBlobPromise.then((blob) => ({ blob, filename: name })));
