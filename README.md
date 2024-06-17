@@ -46,4 +46,5 @@ Special thanks to:
 
 -   [vanilla-context-menu](https://github.com/GeorgianStan/vanilla-context-menu) by @GeorgianStan
 -   [valibot](https://github.com/fabian-hiller/valibot) by @fabian-hiller
+-   [zip.js](https://github.com/gildas-lormeau/zip.js) by @gildas-lormeau
 -   [Ui Oval Interface Icons Collection](https://www.svgrepo.com/collection/ui-oval-interface-icons) from [svgrepo.com](https://www.svgrepo.com/)
