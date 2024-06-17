@@ -6,6 +6,7 @@ export declare const modalContainer: string;
 export declare const modalContainerShow: string;
 export declare const overlay: string;
 export declare const privacy: string;
+export declare const spin: string;
 export declare const svg: string;
 export declare const sync: string;
 export declare const syncContainer: string;
