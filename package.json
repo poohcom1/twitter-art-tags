@@ -5,7 +5,8 @@
     "version": "2.8.2",
     "private": true,
     "engines": {
-        "node": ">=18.20.3"
+        "node": ">=18.20.3",
+        "yarn": ">=1.22.22"
     },
     "scripts": {
         "build:prod": "webpack --config webpack.config.js",
@@ -18,9 +19,9 @@
         "test": "jest",
         "scss:types": "typed-scss-modules src",
         "scss:types:watch": "typed-scss-modules src --watch",
-        "bump:patch": "npm version patch",
-        "bump:minor": "npm version minor",
-        "bump:major": "npm version major",
+        "bump:patch": "yarn version --patch",
+        "bump:minor": "yarn version --minor",
+        "bump:major": "yarn version --major",
         "postversion": "git push && git push --tags"
     },
     "devDependencies": {
