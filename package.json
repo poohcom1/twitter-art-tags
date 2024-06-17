@@ -20,7 +20,8 @@
         "scss:types:watch": "typed-scss-modules src --watch",
         "bump:patch": "npm version patch",
         "bump:minor": "npm version minor",
-        "bump:major": "npm version major"
+        "bump:major": "npm version major",
+        "postversion": "git push && git push --tags"
     },
     "devDependencies": {
         "@babel/core": "^7.24.7",
