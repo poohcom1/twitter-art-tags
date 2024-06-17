@@ -14,6 +14,7 @@ interface TagProps {
     active: boolean;
     showIcon?: boolean;
     useContextMenu?: boolean;
+    onClick?: () => void;
     onSelect?: () => void;
     onShiftSelect?: () => void;
     onDeselectAll?: () => void;
@@ -21,6 +22,7 @@ interface TagProps {
 
 export const TagButton = (props: TagProps) => {
     const onClick = (e: MouseEvent) => {
+        props.onClick?.();
         if (e.shiftKey) {
             props.onShiftSelect?.();
         } else {

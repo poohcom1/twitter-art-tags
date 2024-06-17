@@ -253,6 +253,10 @@ export const TagGallery = () => {
                 index={getCurrentModalImage()}
                 tweetId={currentImages()[getCurrentModalImage()]?.tweetId || ''}
                 tags={currentImages()[getCurrentModalImage()]?.tags || []}
+                onTagClick={(tag) => {
+                    setSelectedTags([tag]);
+                    setCurrentModalImage(-1);
+                }}
                 onClose={() => setCurrentModalImage(-1)}
                 onLeft={() => setCurrentModalImage(Math.max(0, getCurrentModalImage() - 1))}
                 onRight={() =>

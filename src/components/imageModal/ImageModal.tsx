@@ -20,6 +20,7 @@ interface ImageModalProps {
     onClose: () => void;
     onLeft?: () => void;
     onRight?: () => void;
+    onTagClick: (tag: string) => void;
 }
 
 export const ImageModal = (props: ImageModalProps) => {
@@ -107,7 +108,12 @@ export const ImageModal = (props: ImageModalProps) => {
                     <div class={styles.innerTagsContainer} onClick={(e) => e.stopPropagation()}>
                         <For each={props.tags}>
                             {(tag) => (
-                                <TagButton active tag={tag} displayText={formatTagName(tag)} />
+                                <TagButton
+                                    active
+                                    tag={tag}
+                                    onClick={() => props.onTagClick(tag)}
+                                    displayText={formatTagName(tag)}
+                                />
                             )}
                         </For>
                     </div>
