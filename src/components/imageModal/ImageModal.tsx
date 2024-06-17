@@ -31,6 +31,7 @@ export const ImageModal = (props: ImageModalProps) => {
             document.documentElement.style.overflowY = 'hidden';
         } else {
             document.documentElement.style.overflowY = 'scroll';
+            getTagModal().hide();
         }
 
         return () => (document.documentElement.style.overflowY = 'scroll');
