@@ -182,7 +182,9 @@ export const TagGallery = () => {
                         <span class={styles.clearFiltersButton} onClick={() => setTagFilter('')}>
                             Clear filters
                         </span>
-                        <span>or Press Enter to create tag:</span>
+                        <span style={{ opacity: 0.7 }}>
+                            <i>or</i> Press Enter to create tag:
+                        </span>
                         <strong>{formatTagName(getTagFilter())}</strong>
                     </div>
                 </Show>

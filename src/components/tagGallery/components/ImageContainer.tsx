@@ -1,6 +1,6 @@
 import { Show, createEffect, createMemo, on } from 'solid-js';
 import styles from '../tag-gallery.module.scss';
-import tagIcon from '/src/assets/tag.svg';
+import tagIconBold from '/src/assets/tag-bold.svg';
 import eyeIcon from '/src/assets/eye.svg';
 import tagCheckIcon from '/src/assets/file-check.svg';
 import tagMinusIcon from '/src/assets/file-minus.svg';
@@ -136,7 +136,7 @@ export const ImageContainer = (props: ImageProps) => {
         >
             <Show when={props.showTagCount}>
                 <div class={styles.tagCountContainer}>
-                    <Svg svg={tagIcon} />
+                    <Svg svg={tagIconBold} />
                     <span class={styles.tagCount}>{props.tags.length}</span>
                 </div>
             </Show>
