@@ -9,7 +9,7 @@ import close from '/src/assets/x-close.svg';
 import { For, createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
 import { TagButton } from '../../../common/tagButton/TagButton';
 import { formatTagName } from '../../../../utils';
-import { TagModal, TagModalVisible } from '../../../tagModal/TagModal';
+import { TagModal, TagModalOptions } from '../../../tagModal/TagModal';
 
 interface ImageModalProps {
     visible: boolean;
@@ -24,7 +24,7 @@ interface ImageModalProps {
 }
 
 export const ImageModal = (props: ImageModalProps) => {
-    const [getTagModalVisible, setTagModalVisible] = createSignal<TagModalVisible | null>(null);
+    const [getTagModalVisible, setTagModalVisible] = createSignal<TagModalOptions | null>(null);
 
     createEffect(() => {
         if (props.visible) {

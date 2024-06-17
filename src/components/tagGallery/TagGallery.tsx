@@ -25,7 +25,7 @@ import { dataManager } from '../../services/dataManager';
 import { DEFAULT_USER_DATA, createTag, sanitizeTagName, tagExists } from '../../services/storage';
 import { ImageModal } from './components/imageModal/ImageModal';
 import { TagEdit } from './components/TagEdit';
-import { TagModal, TagModalVisible } from '../tagModal/TagModal';
+import { TagModal, TagModalOptions } from '../tagModal/TagModal';
 
 type TagView = {
     tag: string;
@@ -53,7 +53,7 @@ export const TagGallery = () => {
     const [getTagFilter, setTagFilter] = createSignal<string>('');
     const [getCurrentModalImage, setCurrentModalImage] = createSignal<number>(-1);
 
-    const [getTagModalVisible, setTagModalVisible] = createSignal<TagModalVisible | null>(null);
+    const [getTagModalVisible, setTagModalVisible] = createSignal<TagModalOptions | null>(null);
 
     let actualHoverElement: ImageView | null = null;
 

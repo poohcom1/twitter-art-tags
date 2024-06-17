@@ -1,5 +1,5 @@
 import { For, JSX, Show, createEffect, createSelector, createSignal } from 'solid-js';
-import { Portal } from 'solid-js/web';
+import { Portal, render } from 'solid-js/web';
 import styles from './tag-modal.module.scss';
 import { SANITIZE_INFO, formatTagName } from '../../utils';
 import { createStore, reconcile } from 'solid-js/store';
@@ -17,14 +17,14 @@ import { dataManager } from '../../services/dataManager';
 import { TagButton } from '../common/tagButton/TagButton';
 
 // Props
-export interface TagModalVisible {
+export interface TagModalOptions {
     tweetId: string;
     tweetImages?: string[];
     position: { top: number; left: number; right: number; space: number };
 }
 
 interface TagModalProps {
-    visible: TagModalVisible | null;
+    visible: TagModalOptions | null;
     class?: string;
     style?: Partial<JSX.CSSProperties>;
 }
@@ -39,6 +39,7 @@ interface TagModalViewModel {
     tags: TagViewModel[];
 }
 
+// Component
 export const TagModal = (props: TagModalProps) => {
     const [viewModel, setViewModel] = createStore<TagModalViewModel>({ tags: [] });
 
@@ -174,6 +175,26 @@ export const TagModal = (props: TagModalProps) => {
         </Portal>
     );
 };
+
+// Adapter
+interface TagModalAdapter {
+    show: (visible: TagModalOptions) => void;
+    hide: () => void;
+    setStyles: (styles: Partial<JSX.CSSProperties>) => void;
+}
+
+export function createTagModal(): TagModalAdapter {
+    const [visible, setVisible] = createSignal<TagModalOptions | null>(null);
+    const [styles, setStyles] = createSignal<Partial<JSX.CSSProperties>>({});
+
+    render(() => <TagModal visible={visible()} style={styles()} />, document.body);
+
+    return {
+        show: (visible: TagModalOptions) => setVisible(visible),
+        hide: () => setVisible(null),
+        setStyles: (styles: Partial<JSX.CSSProperties>) => setStyles(styles),
+    };
+}
 
 function mapViewModel(rawUserData: RawUserData, tweetId: string): TagModalViewModel {
     const userData = dataManager.removeMetadata(rawUserData);

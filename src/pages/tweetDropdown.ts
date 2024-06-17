@@ -2,7 +2,7 @@ import { assertUi, waitForElement } from '../utils';
 import tagIcon from '../assets/tag.svg';
 import tagGalleryIcon from '../assets/tags.svg';
 import { CUSTOM_PAGE_PATH, HOVER_COLOR_MAP } from '../constants';
-import TagModalOld from '../components/tagModal/TagModalOld';
+import { createTagModal } from '../components/tagModal/TagModal';
 
 function getTweetImages(tweetId: string): string[] {
     return Array.from(document.querySelectorAll('a'))
@@ -12,7 +12,7 @@ function getTweetImages(tweetId: string): string[] {
 }
 
 export async function renderTweetDropdown() {
-    const tagModal = new TagModalOld();
+    const tagModal = createTagModal();
 
     let tagButton: HTMLElement | null = null;
     let viewTagsButton: HTMLElement | null = null;
@@ -61,11 +61,15 @@ export async function renderTweetDropdown() {
         tagButton.id = tagId;
         tagButton.addEventListener('click', () => {
             const rect = tagButton!.getBoundingClientRect();
-            tagModal.show(tagId, images, {
-                top: rect.top,
-                right: rect.right,
-                left: rect.left,
-                space: 10,
+            tagModal.show({
+                tweetId: tagId,
+                tweetImages: images,
+                position: {
+                    top: rect.top,
+                    right: rect.right,
+                    left: rect.left,
+                    space: 10,
+                },
             });
         });
 
@@ -86,10 +90,10 @@ export async function renderTweetDropdown() {
                         const menuStyles = window.getComputedStyle(menu);
                         tagModal.setStyles({
                             border: menuStyles.border,
-                            borderRadius: menuStyles.borderRadius,
-                            backgroundColor: menuStyles.backgroundColor,
+                            'border-radius': menuStyles.borderRadius,
+                            'background-color': menuStyles.backgroundColor,
                             color: menuStyles.color,
-                            boxShadow: menuStyles.boxShadow,
+                            'box-shadow': menuStyles.boxShadow,
                         });
                     }
                 );

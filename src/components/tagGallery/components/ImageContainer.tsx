@@ -9,7 +9,7 @@ import trashIcon from '/src/assets/trash.svg';
 import { formatTagName, parseHTML } from '../../../utils';
 import { removeTag, removeTweet } from '../../../services/storage';
 import { Svg } from '../../common/Svg';
-import { TagModalVisible } from '../../tagModal/TagModal';
+import { TagModalOptions } from '../../tagModal/TagModal';
 
 export interface ImageProps {
     tweetId: string;
@@ -26,7 +26,7 @@ export interface ImageProps {
     onMouseLeave?: () => void;
 
     onContextMenu?: () => void;
-    onTagModalShow?: (visibility: TagModalVisible) => void;
+    onTagModalShow?: (visibility: TagModalOptions) => void;
     onTagModalHide?: () => void;
 
     onTagSelected: (tags: string[]) => void;
