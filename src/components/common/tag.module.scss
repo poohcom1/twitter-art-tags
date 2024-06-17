@@ -1,0 +1,8 @@
+@use '../../scss/_mixins' as mixins;
+@use '../../scss/colors' as colors;
+
+.tag {
+    @include mixins.tag-base(rgb(86, 84, 96), rgb(111, 111, 122), 1, 0.85);
+    opacity: 1;
+    background-color: rgb(86, 84, 96);
+}

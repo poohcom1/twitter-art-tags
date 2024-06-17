@@ -12,25 +12,20 @@ import styles from './tag-gallery.module.scss';
 import { Title } from './components/Title';
 
 import { Menu } from './components/Menu';
-import { Svg } from '../templates/Svg';
+import { Svg } from '../common/Svg';
 import tagIcon from '/src/assets/tag.svg';
 import deleteIcon from '/src/assets/delete.svg';
 import { formatTagName } from '../../utils';
-import { TagButton } from './components/TagButton';
 import { ImageContainer } from './components/ImageContainer';
-import TagModal from '../tagModal/TagModal';
 import { createStore, reconcile } from 'solid-js/store';
 import { KEY_USER_DATA } from '../../constants';
 import { RawUserData } from '../../models';
 import { CACHE_UPDATE_EVENT, CacheUpdateEvent, gmGetWithCache } from '../../services/cache';
 import { dataManager } from '../../services/dataManager';
-import { createTag, sanitizeTagName, tagExists } from '../../services/storage';
+import { DEFAULT_USER_DATA, createTag, sanitizeTagName, tagExists } from '../../services/storage';
 import { ImageModal } from '../imageModal/ImageModal';
-
-const DEFAULT_USER_DATA: RawUserData = {
-    tags: {},
-    tweets: {},
-};
+import { TagEdit } from './components/TagEdit';
+import { TagModal, TagModalVisible } from '../tagModal/TagModal';
 
 type TagView = {
     tag: string;
@@ -58,7 +53,7 @@ export const TagGallery = () => {
     const [getTagFilter, setTagFilter] = createSignal<string>('');
     const [getCurrentModalImage, setCurrentModalImage] = createSignal<number>(-1);
 
-    const getTagModal = createMemo(() => new TagModal([styles.tagModal]));
+    const [getTagModalVisible, setTagModalVisible] = createSignal<TagModalVisible | null>(null);
 
     let actualHoverElement: ImageView | null = null;
 
@@ -154,9 +149,8 @@ export const TagGallery = () => {
             <div class={styles.tagsContainer}>
                 <For each={currentTags()}>
                     {(tagView) => (
-                        <TagButton
+                        <TagEdit
                             showIcon
-                            useContextMenu
                             tag={tagView.tag}
                             displayText={tagView.displayText}
                             active={isTagActive(tagView.tag)}
@@ -173,6 +167,7 @@ export const TagGallery = () => {
                                 else setSelectedTags([...getSelectedTags(), tagView.tag]);
                             }}
                             onDeselectAll={() => setSelectedTags([])}
+                            onContextMenu={() => setTagModalVisible(null)}
                         />
                     )}
                 </For>
@@ -201,7 +196,6 @@ export const TagGallery = () => {
                             selectedTags={getSelectedTags()}
                             tags={imageView.tags}
                             showTagCount={imageView.index === 0}
-                            tagModal={getTagModal()}
                             onClick={() => {
                                 if (getOutlineLocked()) return;
                                 setCurrentModalImage(index);
@@ -219,9 +213,11 @@ export const TagGallery = () => {
                             onContextMenu={() => {
                                 setOutlinedTweet(imageView.tweetId);
                                 setOutlineLocked(true);
-                                getTagModal().hide();
+                                setTagModalVisible(null);
                             }}
                             onTagSelected={setSelectedTags}
+                            onTagModalShow={setTagModalVisible}
+                            onTagModalHide={() => setTagModalVisible(null)}
                             outlined={isImageOutlined(imageView.tweetId)}
                             setLockHover={setOutlineLocked}
                         />
@@ -265,6 +261,7 @@ export const TagGallery = () => {
                     )
                 }
             />
+            <TagModal visible={getTagModalVisible()} class={styles.tagModal} />
         </div>
     );
 };

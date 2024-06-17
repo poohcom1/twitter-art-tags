@@ -1,7 +1,7 @@
 import { Match, Switch, createComputed, createSignal } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import styles from './sync-modal.module.scss';
-import { Svg } from '../templates/Svg';
+import { Svg } from '../common/Svg';
 import close from '/src/assets/x-close.svg';
 
 import {

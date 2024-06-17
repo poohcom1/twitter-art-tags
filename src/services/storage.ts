@@ -11,7 +11,7 @@ import { safeParse } from 'valibot';
 import { dataManager } from './dataManager';
 import { saveFile } from '../utils';
 
-const DEFAULT_USER_DATA: RawUserData = {
+export const DEFAULT_USER_DATA: RawUserData = {
     tags: {},
     tweets: {},
 };

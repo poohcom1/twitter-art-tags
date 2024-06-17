@@ -1,6 +1,5 @@
 @use '../../scss/_mixins' as mixins;
-
-$grey: rgb(59, 58, 66);
+@use '../../scss/colors' as colors;
 
 @mixin menu-style-base {
     background-color: #0b0b0ce0;
@@ -22,10 +21,6 @@ $grey: rgb(59, 58, 66);
     &:hover {
         text-decoration: underline;
     }
-}
-
-.tag {
-    @include mixins.tag-base($grey, rgb(81, 81, 91), 1, 0.75);
 }
 
 // Root type
@@ -322,7 +317,7 @@ $grey: rgb(59, 58, 66);
                 justify-content: center;
 
                 color: white;
-                background-color: $grey;
+                background-color: colors.$grey;
                 border-radius: 10px;
 
                 z-index: 10;

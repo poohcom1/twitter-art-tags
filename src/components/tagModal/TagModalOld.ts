@@ -1,6 +1,6 @@
 import template from './tag-modal.pug';
 import styles from './tag-modal.module.scss';
-import tagButtonTemplate from '../templates/tag-button.pug';
+import tagButtonTemplate from '../common/tag-button.pug';
 import { addTag, getTags, removeTag } from '../../services/storage';
 import { SANITIZE_INFO, formatTagName, parseHTML, verifyEvent } from '../../utils';
 import squareIcon from '../../assets/square.svg';
@@ -10,7 +10,7 @@ interface TagModalCallbacks {
     tagModified?: (tag: string, tweetId: string) => void;
 }
 
-export default class TagModal {
+export default class TagModalOld {
     private tagModal: HTMLElement;
     private tagInput: HTMLInputElement;
     private tagsContainer: HTMLElement;

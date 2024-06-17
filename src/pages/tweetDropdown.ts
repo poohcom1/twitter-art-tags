@@ -2,7 +2,7 @@ import { assertUi, waitForElement } from '../utils';
 import tagIcon from '../assets/tag.svg';
 import tagGalleryIcon from '../assets/tags.svg';
 import { CUSTOM_PAGE_PATH, HOVER_COLOR_MAP } from '../constants';
-import TagModal from '../components/tagModal/TagModal';
+import TagModalOld from '../components/tagModal/TagModalOld';
 
 function getTweetImages(tweetId: string): string[] {
     return Array.from(document.querySelectorAll('a'))
@@ -12,7 +12,7 @@ function getTweetImages(tweetId: string): string[] {
 }
 
 export async function renderTweetDropdown() {
-    const tagModal = new TagModal();
+    const tagModal = new TagModalOld();
 
     let tagButton: HTMLElement | null = null;
     let viewTagsButton: HTMLElement | null = null;

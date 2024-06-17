@@ -1,5 +1,5 @@
 import { Switch, Match, createSignal } from 'solid-js';
-import { Svg } from '../../templates/Svg';
+import { Svg } from '../../common/Svg';
 import styles from '../sync-modal.module.scss';
 import { SyncType } from '../SyncModal';
 import upload from '/src/assets/cloud-upload.svg';

@@ -1,6 +1,5 @@
 import { Show, createEffect, createMemo, on } from 'solid-js';
 import styles from '../tag-gallery.module.scss';
-import TagModal from '../../tagModal/TagModal';
 import tagIcon from '/src/assets/tag.svg';
 import eyeIcon from '/src/assets/eye.svg';
 import tagCheckIcon from '/src/assets/file-check.svg';
@@ -9,22 +8,29 @@ import externalLinkIcon from '/src/assets/link-external.svg';
 import trashIcon from '/src/assets/trash.svg';
 import { formatTagName, parseHTML } from '../../../utils';
 import { removeTag, removeTweet } from '../../../services/storage';
-import { Svg } from '../../templates/Svg';
+import { Svg } from '../../common/Svg';
+import { TagModalVisible } from '../../tagModal/TagModal';
 
 export interface ImageProps {
     tweetId: string;
     src: string;
-    tagModal: TagModal;
+
     selectedTags: string[];
     tags: string[];
     showTagCount: boolean;
     outlined: boolean;
     onClick?: () => void;
     setLockHover: (lock: boolean) => void;
+
     onMouseEnter?: () => void;
     onMouseLeave?: () => void;
+
     onContextMenu?: () => void;
+    onTagModalShow?: (visibility: TagModalVisible) => void;
+    onTagModalHide?: () => void;
+
     onTagSelected: (tags: string[]) => void;
+
     key?: string;
 }
 
@@ -44,7 +50,7 @@ export const ImageContainer = (props: ImageProps) => {
             customClass: styles.contextMenu,
             onClose: () => {
                 props.setLockHover?.(false);
-                props.tagModal.hide();
+                props.onTagModalHide?.();
             },
         });
 
@@ -59,11 +65,14 @@ export const ImageContainer = (props: ImageProps) => {
                         currentEvent.currentTarget as HTMLElement
                     ).getBoundingClientRect();
 
-                    props.tagModal.show(props.tweetId, [], {
-                        top: rect.top, // don't spread
-                        right: rect.right,
-                        left: rect.left,
-                        space: 1,
+                    props.onTagModalShow?.({
+                        position: {
+                            top: rect.top,
+                            right: rect.right,
+                            left: rect.left,
+                            space: 1,
+                        },
+                        tweetId: props.tweetId,
                     });
                 },
             },
