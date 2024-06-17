@@ -1,5 +1,4 @@
 export const KEY_USER_DATA = 'user_data';
-export const KEY_CREATE_ARCHIVE_CONSENT = 'create_archive';
 export const KEY_USER_TOKEN = 'user_token';
 
 export const CUSTOM_PAGE_PATH = '/twitter-art-tags/gallery';

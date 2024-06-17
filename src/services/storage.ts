@@ -9,7 +9,6 @@ import { KEY_USER_DATA } from '../constants';
 import { RawUserData, Tags, Tweets, UserData, UserDataSchema } from '../models';
 import { safeParse } from 'valibot';
 import { dataManager } from './dataManager';
-import { KEY_CREATE_ARCHIVE_CONSENT } from '../constants';
 import { saveFile } from '../utils';
 
 const DEFAULT_USER_DATA: RawUserData = {
@@ -256,13 +255,4 @@ export async function clearAllTags() {
     clearCache(KEY_USER_DATA, DEFAULT_USER_DATA);
     await GM.deleteValue(KEY_USER_DATA);
     gmSetWithCache(KEY_USER_DATA, DEFAULT_USER_DATA);
-}
-
-// Archive consent
-export async function getArchiveConsent(): Promise<boolean> {
-    return await GM.getValue(KEY_CREATE_ARCHIVE_CONSENT, false);
-}
-
-export async function setArchiveConsent(consent: boolean) {
-    await GM.setValue(KEY_CREATE_ARCHIVE_CONSENT, consent);
 }
