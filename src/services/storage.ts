@@ -9,7 +9,7 @@ import { KEY_USER_DATA } from '../constants';
 import { RawUserData, Tags, Tweets, UserData, UserDataSchema } from '../models';
 import { safeParse } from 'valibot';
 import { dataManager } from './dataManager';
-import { saveFile } from '../utils';
+import { sanitizeTagName, saveFile } from '../utils';
 
 export const DEFAULT_USER_DATA: RawUserData = {
     tags: {},
@@ -31,11 +31,6 @@ if (process.env.NODE_ENV !== 'test') {
             );
         }
     });
-}
-
-// Sanitize
-export function sanitizeTagName(tagName: string) {
-    return tagName.trim().toLowerCase();
 }
 
 // Management

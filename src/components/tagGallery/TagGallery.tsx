@@ -1,13 +1,4 @@
-import {
-    For,
-    Match,
-    Show,
-    Switch,
-    createEffect,
-    createMemo,
-    createSelector,
-    createSignal,
-} from 'solid-js';
+import { For, Match, Show, Switch, createEffect, createSelector, createSignal } from 'solid-js';
 import styles from './tag-gallery.module.scss';
 import { Title } from './components/Title';
 
@@ -15,14 +6,14 @@ import { Menu } from './components/Menu';
 import { Svg } from '../common/Svg';
 import tagIcon from '/src/assets/tag.svg';
 import deleteIcon from '/src/assets/delete.svg';
-import { formatTagName } from '../../utils';
+import { formatTagName, sanitizeTagName, verifyEvent } from '../../utils';
 import { ImageContainer } from './components/ImageContainer';
 import { createStore, reconcile } from 'solid-js/store';
 import { KEY_USER_DATA } from '../../constants';
 import { RawUserData } from '../../models';
 import { CACHE_UPDATE_EVENT, CacheUpdateEvent, gmGetWithCache } from '../../services/cache';
 import { dataManager } from '../../services/dataManager';
-import { DEFAULT_USER_DATA, createTag, sanitizeTagName, tagExists } from '../../services/storage';
+import { DEFAULT_USER_DATA, createTag } from '../../services/storage';
 import { ImageModal } from './components/imageModal/ImageModal';
 import { TagEdit } from './components/TagEdit';
 import { TagModal, TagModalOptions } from '../tagModal/TagModal';
@@ -128,6 +119,8 @@ export const TagGallery = () => {
                                 }
                             } else if (e.key === 'Escape') {
                                 setTagFilter('');
+                            } else if (!verifyEvent(e)) {
+                                e.preventDefault();
                             }
                         }}
                         class={styles.addTag}

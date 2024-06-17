@@ -1,27 +1,12 @@
-import {
-    For,
-    JSX,
-    Match,
-    Show,
-    Switch,
-    createEffect,
-    createSelector,
-    createSignal,
-} from 'solid-js';
+import { For, JSX, Match, Switch, createEffect, createSelector, createSignal } from 'solid-js';
 import { Portal, render } from 'solid-js/web';
 import styles from './tag-modal.module.scss';
-import { SANITIZE_INFO, formatTagName } from '../../utils';
+import { SANITIZE_INFO, formatTagName, sanitizeTagName, verifyEvent } from '../../utils';
 import { createStore, reconcile } from 'solid-js/store';
 import { KEY_USER_DATA } from '../../constants';
 import { RawUserData } from '../../models';
 import { CACHE_UPDATE_EVENT, CacheUpdateEvent, gmGetWithCache } from '../../services/cache';
-import {
-    DEFAULT_USER_DATA,
-    addTag,
-    createTag,
-    removeTag,
-    sanitizeTagName,
-} from '../../services/storage';
+import { DEFAULT_USER_DATA, addTag, removeTag } from '../../services/storage';
 import { dataManager } from '../../services/dataManager';
 import { TagButton } from '../common/tagButton/TagButton';
 
@@ -159,6 +144,8 @@ export const TagModal = (props: TagModalProps) => {
                             }
                         } else if (e.key === 'Escape') {
                             setInputValue('');
+                        } else if (!verifyEvent(e)) {
+                            e.preventDefault();
                         }
                     }}
                     class={styles.tagInput}

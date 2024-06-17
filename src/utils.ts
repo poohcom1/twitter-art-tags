@@ -17,8 +17,12 @@ export function verifyTagName(tagName: string) {
     return SANITIZE_INFO.allowedChars.test(tagName);
 }
 
+export function sanitizeTagName(tagName: string) {
+    return tagName.trim().toLowerCase();
+}
+
 export function formatTagName(tagName: string) {
-    return tagName
+    return sanitizeTagName(tagName)
         .split(' ')
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
