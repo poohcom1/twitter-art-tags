@@ -41,6 +41,7 @@ export const TagModal = (props: TagModalProps) => {
 
     let tagModalRef!: HTMLDivElement;
     let inputRef!: HTMLInputElement;
+    let tagContainerRef!: HTMLDivElement;
 
     createEffect(() => {
         const visible = props.visible;
@@ -89,6 +90,7 @@ export const TagModal = (props: TagModalProps) => {
         }
 
         inputRef.focus();
+        tagContainerRef.scrollTop = 0;
     });
 
     const handleTagClick = async (tagName: string) => {
@@ -154,7 +156,7 @@ export const TagModal = (props: TagModalProps) => {
                     placeholder="Add a tag"
                     maxlength={SANITIZE_INFO.maxLength}
                 />
-                <div class={styles.tagsContainer}>
+                <div ref={tagContainerRef} class={styles.tagsContainer}>
                     <For each={viewModel.tags.filter(isFiltered)}>
                         {(tagView) => (
                             <TagButton
