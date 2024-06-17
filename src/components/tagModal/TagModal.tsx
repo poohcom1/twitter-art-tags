@@ -1,4 +1,13 @@
-import { For, JSX, Show, createEffect, createSelector, createSignal } from 'solid-js';
+import {
+    For,
+    JSX,
+    Match,
+    Show,
+    Switch,
+    createEffect,
+    createSelector,
+    createSignal,
+} from 'solid-js';
 import { Portal, render } from 'solid-js/web';
 import styles from './tag-modal.module.scss';
 import { SANITIZE_INFO, formatTagName } from '../../utils';
@@ -164,12 +173,16 @@ export const TagModal = (props: TagModalProps) => {
                             />
                         )}
                     </For>
-                    <Show when={viewModel.tags.length === 0}>No tags yet!</Show>
-                    <Show when={viewModel.tags.filter(isFiltered).length === 0}>
-                        <div style="overflow: hidden; text-overflow: ellipsis; max-width: 200px">
-                            Create a new tag: {formatTagName(getInputValue())}
-                        </div>
-                    </Show>
+                    <Switch>
+                        <Match
+                            when={getInputValue() && viewModel.tags.filter(isFiltered).length === 0}
+                        >
+                            <div style="overflow: hidden; text-overflow: ellipsis; max-width: 200px">
+                                Create a new tag: {formatTagName(getInputValue())}
+                            </div>
+                        </Match>
+                        <Match when={viewModel.tags.length === 0}>No tags yet!</Match>
+                    </Switch>
                 </div>
             </div>
         </Portal>
