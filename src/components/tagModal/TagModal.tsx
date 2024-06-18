@@ -2,9 +2,8 @@ import { For, JSX, Match, Switch, createEffect, createSelector, createSignal } f
 import { Portal, render } from 'solid-js/web';
 import styles from './tag-modal.module.scss';
 import { SANITIZE_INFO, formatTagName, sanitizeTagName, verifyEvent } from '../../utils';
-import { RawUserData } from '../../models';
+import { UserData } from '../../models';
 import { addTag, createUserDataStore, removeTag } from '../../services/storage';
-import { dataManager } from '../../services/dataManager';
 import { TagButton } from '../common/tagButton/TagButton';
 
 // Props
@@ -190,12 +189,11 @@ export function createTagModal(): TagModalAdapter {
 
 const mapViewModel =
     (tweetId?: string) =>
-    (rawUserData: RawUserData): TagModalViewModel => {
+    (userData: UserData): TagModalViewModel => {
         if (!tweetId) {
             return { tags: [] };
         }
 
-        const userData = dataManager.removeMetadata(rawUserData);
         const { tags } = userData;
         const tagViewModels = Object.keys(tags)
             .sort()

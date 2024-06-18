@@ -40,20 +40,20 @@ if (process.env.NODE_ENV !== 'test') {
 
 export function createUserDataStore<T extends object>(
     defVal: T,
-    mapperSignal: () => (u: RawUserData) => T
+    mapperSignal: () => (u: UserData) => T
 ) {
     const [viewModel, setViewModel] = createStore<T>(defVal);
 
     createEffect(() => {
         const mapper = mapperSignal();
         GM.getValue<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA).then((data) => {
-            setViewModel(reconcile(mapper(data)));
+            setViewModel(reconcile(mapper(dataManager.toUserData(data))));
         });
 
         const onCacheEvent = async (e: Event) => {
             if ((e as CacheUpdateEvent).detail.key === KEY_USER_DATA) {
                 const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
-                setViewModel(reconcile(mapper(data)));
+                setViewModel(reconcile(mapper(dataManager.toUserData(data))));
             }
         };
 
@@ -190,7 +190,7 @@ export async function getRawUserData(): Promise<RawUserData> {
 }
 
 export async function getUserData(): Promise<UserData> {
-    return dataManager.removeMetadata(await getRawUserData());
+    return dataManager.toUserData(await getRawUserData());
 }
 
 export function isDataEmpty(data: RawUserData): boolean {

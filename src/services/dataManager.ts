@@ -254,8 +254,8 @@ function mergeData(data1: RawUserData, data2: RawUserData): RawUserData {
     return merged;
 }
 
-function removeMetadata(userData: RawUserData): UserData {
-    const { tags, tweets } = userData;
+function toUserData(rawUserData: RawUserData): UserData {
+    const { tags, tweets } = rawUserData;
 
     const pureData: UserData = {
         tags: {},
@@ -353,6 +353,6 @@ export const dataManager = {
     removeTweet,
     updateTimeStamps,
     mergeData,
-    removeMetadata,
+    toUserData,
     equals,
 };

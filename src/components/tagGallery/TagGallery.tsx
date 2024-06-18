@@ -7,8 +7,7 @@ import tagIcon from '/src/assets/tag.svg';
 import deleteIcon from '/src/assets/delete.svg';
 import { formatTagName, sanitizeTagName, verifyEvent } from '../../utils';
 import { ImageContainer } from './components/ImageContainer';
-import { RawUserData } from '../../models';
-import { dataManager } from '../../services/dataManager';
+import { UserData } from '../../models';
 import { createUserDataStore, createTag } from '../../services/storage';
 import { ImageModal } from './components/imageModal/ImageModal';
 import { TagEdit } from './components/TagEdit';
@@ -241,8 +240,7 @@ export const TagGallery = () => {
 
 export const tagGalleryExists = () => document.getElementById(ID) !== null;
 
-function mapViewModel(rawUserData: RawUserData): GalleryView {
-    const userData = dataManager.removeMetadata(rawUserData);
+function mapViewModel(userData: UserData): GalleryView {
     const tags = Object.keys(userData.tags).map((tag) => ({
         tag,
         displayText: `${formatTagName(tag)} (${userData.tags[tag].tweets.length})`,
