@@ -73,6 +73,7 @@ export const TagModal = (props: TagModalProps) => {
         }
 
         inputRef.focus();
+        setInputValue('');
         tagContainerRef.scrollTop = 0;
     });
 
