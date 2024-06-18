@@ -32,10 +32,7 @@ type GalleryView = {
 const ID = 'tag-gallery';
 
 export const TagGallery = () => {
-    const viewModel = createUserDataStore<GalleryView>(
-        { tags: [], images: [] },
-        () => mapViewModel
-    );
+    const viewModel = createUserDataStore({ tags: [], images: [] }, () => mapViewModel);
 
     const [getSelectedTags, setSelectedTags] = createSignal<string[]>([]);
     const [getOutlinedTweet, setOutlinedTweet] = createSignal<string | null>(null);

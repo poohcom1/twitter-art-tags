@@ -6,7 +6,7 @@ import leftArrow from '/src/assets/arrow-left.svg';
 import rightArrow from '/src/assets/arrow-right.svg';
 import menu from '/src/assets/dot-menu.svg';
 import close from '/src/assets/x-close.svg';
-import { For, createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
+import { For, createEffect, createSignal, onCleanup, onMount } from 'solid-js';
 import { TagButton } from '../../../common/tagButton/TagButton';
 import { formatTagName } from '../../../../utils';
 import { TagModal, TagModalOptions } from '../../../tagModal/TagModal';
@@ -70,7 +70,7 @@ export const ImageModal = (props: ImageModalProps) => {
                     <div
                         class={styles.overlay}
                         onClick={() => {
-                            if (!!getTagModalVisible()) return;
+                            if (getTagModalVisible()) return;
                             props.onClose();
                         }}
                     />
@@ -109,7 +109,7 @@ export const ImageModal = (props: ImageModalProps) => {
                     <div
                         class={styles.tagsContainer}
                         onClick={() => {
-                            if (!!getTagModalVisible()) return;
+                            if (getTagModalVisible()) return;
                             props.onClose();
                         }}
                     >

@@ -1,4 +1,4 @@
-import { Show, createEffect, createMemo, on } from 'solid-js';
+import { Show, createEffect } from 'solid-js';
 import styles from '../tag-gallery.module.scss';
 import tagIconBold from '/src/assets/tag-bold.svg';
 import eyeIcon from '/src/assets/eye.svg';
@@ -145,15 +145,8 @@ export const ImageContainer = (props: ImageProps) => {
     );
 };
 
-// TODO: Refactor to use jsx
 function createContextMenuIcon(iconSvg: string): string {
     const icon = parseHTML(iconSvg);
-    icon.classList.add(styles.contextMenuIcon);
-    return icon.outerHTML;
-}
-
-function createNoIcon(): string {
-    const icon = parseHTML('<div />');
     icon.classList.add(styles.contextMenuIcon);
     return icon.outerHTML;
 }

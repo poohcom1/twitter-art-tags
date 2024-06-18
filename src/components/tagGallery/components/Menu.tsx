@@ -1,7 +1,7 @@
 import { template } from 'solid-js/web';
 import styles from '../tag-gallery.module.scss';
 import dotMenuIcon from '/src/assets/dot-menu.svg';
-import { createMemo, createSignal, on, onCleanup, onMount } from 'solid-js';
+import { createSignal, onCleanup, onMount } from 'solid-js';
 import { loginRedirected } from '../../../services/supabase';
 import { clearAllTags, exportDataToFile, importDataFromFile } from '../../../services/storage';
 import { createImageArchive } from '../../../services/zipService';

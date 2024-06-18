@@ -1,4 +1,4 @@
-import { Switch, Match, createSignal } from 'solid-js';
+import { Switch, Match } from 'solid-js';
 import { Svg } from '../../common/Svg';
 import styles from '../sync-modal.module.scss';
 import { SyncType } from '../SyncModal';
@@ -71,18 +71,6 @@ const LoadingSpinner = () => {
             <Svg svg={loading} />
         </div>
     );
-};
-
-const SyncText = () => {
-    const ellipses = ['...', '.', '..'];
-
-    const [index, setIndex] = createSignal(0);
-
-    setInterval(() => {
-        setIndex((index) => (index + 1) % 3);
-    }, 500);
-
-    return <span>Syncing{ellipses[index()]}</span>;
 };
 
 function getLastSyncText(syncedAt: string) {

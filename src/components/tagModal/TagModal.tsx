@@ -1,13 +1,4 @@
-import {
-    For,
-    JSX,
-    Match,
-    Switch,
-    createEffect,
-    createMemo,
-    createSelector,
-    createSignal,
-} from 'solid-js';
+import { For, JSX, Match, Switch, createEffect, createSelector, createSignal } from 'solid-js';
 import { Portal, render } from 'solid-js/web';
 import styles from './tag-modal.module.scss';
 import { SANITIZE_INFO, formatTagName, sanitizeTagName, verifyEvent } from '../../utils';
@@ -186,14 +177,14 @@ interface TagModalAdapter {
 
 export function createTagModal(): TagModalAdapter {
     const [visible, setVisible] = createSignal<TagModalOptions | null>(null);
-    const [styles, setStyles] = createSignal<Partial<JSX.CSSProperties>>({});
+    const [getStyles, setStyles] = createSignal<Partial<JSX.CSSProperties>>({});
 
-    render(() => <TagModal visible={visible()} style={styles()} />, document.body);
+    render(() => <TagModal visible={visible()} style={getStyles()} />, document.body);
 
     return {
-        show: (visible: TagModalOptions) => setVisible(visible),
+        show: (options: TagModalOptions) => setVisible(options),
         hide: () => setVisible(null),
-        setStyles: (styles: Partial<JSX.CSSProperties>) => setStyles(styles),
+        setStyles: (style: Partial<JSX.CSSProperties>) => setStyles(style),
     };
 }
 

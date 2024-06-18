@@ -86,7 +86,6 @@ export const TagEdit = (props: TagEditProps) => {
     return <TagButton {...props} ref={(el) => (tagRef = el)} onClick={handleClick} />;
 };
 
-// TODO: Refactor to use jsx
 function createContextMenuIcon(iconSvg: string): string {
     const icon = parseHTML(iconSvg);
     icon.classList.add(styles.contextMenuIcon);
