@@ -66,6 +66,16 @@ export const TagGallery = () => {
         document.addEventListener('click', onDocumentClick);
         return () => document.removeEventListener('click', onDocumentClick);
     });
+    createEffect(() => {
+        // Fix edge case where one of the selected tags is removed
+        const tags = viewModel.tags;
+        const tagList = tags.map((t) => t.tag);
+        const selectedTags = getSelectedTags();
+        const existingSelectedTags = selectedTags.filter((tag) => tagList.includes(tag));
+        if (selectedTags.length !== existingSelectedTags.length) {
+            setSelectedTags(existingSelectedTags);
+        }
+    });
 
     const isTagActive = createSelector<string[], string>(getSelectedTags, (tag, tags) =>
         tags.includes(tag)
