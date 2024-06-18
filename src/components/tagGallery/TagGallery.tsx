@@ -1,4 +1,14 @@
-import { For, Match, Show, Switch, createEffect, createSelector, createSignal } from 'solid-js';
+import {
+    For,
+    Match,
+    Show,
+    Switch,
+    createEffect,
+    createSelector,
+    createSignal,
+    on,
+    onCleanup,
+} from 'solid-js';
 import styles from './tag-gallery.module.scss';
 import { Title } from './components/Title';
 import { Menu } from './components/Menu';
@@ -61,18 +71,54 @@ export const TagGallery = () => {
         tags.includes(tag)
     );
     const isImageOutlined = createSelector(getOutlinedTweet);
-
-    const isTagFiltered = createSelector<string, TagView>(
-        getTagFilter,
-        (tag, filter) => tag.tag === '' || tag.tag.toLowerCase().includes(filter.toLowerCase())
-    );
+    const isTagFiltered = createSelector<string, TagView>(getTagFilter, (tag, filter) => {
+        return tag.tag === '' || tag.tag.toLowerCase().includes(filter.toLowerCase());
+    });
     const isImageSelected = createSelector<string[], ImageView>(
         getSelectedTags,
         (image, tags) => tags.length === 0 || tags.every((tag) => image.tags.includes(tag))
     );
+    const isImageShown = createSelector<string[], number>(
+        getSelectedTags,
+        (ind) => ind < getDisplayedImages()
+    );
 
     const currentTags = () => viewModel.tags.filter(isTagFiltered);
-    const currentImages = () => viewModel.images.filter(isImageSelected);
+    const currentImages = () =>
+        viewModel.images.filter(isImageSelected).filter((_, ind) => isImageShown(ind));
+
+    // Very basic virtualization
+    const IMAGE_LOAD_COUNT = 30;
+    const [getDisplayedImages, setDisplayedImages] = createSignal<number>(Infinity);
+    let loadMoreRef!: HTMLDivElement;
+    createEffect(
+        on(
+            getSelectedTags,
+            () => {
+                setDisplayedImages(IMAGE_LOAD_COUNT);
+            },
+            { defer: true }
+        )
+    );
+    createEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (
+                        entry.isIntersecting &&
+                        getDisplayedImages() < viewModel.images.filter(isImageSelected).length
+                    ) {
+                        setDisplayedImages((prev) => prev + IMAGE_LOAD_COUNT);
+                    }
+                });
+            },
+            {
+                rootMargin: '100px 0px 100px 0px',
+            }
+        );
+        observer.observe(loadMoreRef);
+        onCleanup(() => observer.disconnect());
+    });
 
     return (
         <div id={ID} class={styles.tagsGallery}>
@@ -195,6 +241,7 @@ export const TagGallery = () => {
                         />
                     )}
                 </For>
+                <div ref={loadMoreRef} />
                 <div class={styles.noImages}>
                     <Switch>
                         <Match when={viewModel.tags.length === 0}>
