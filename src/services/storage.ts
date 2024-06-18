@@ -9,7 +9,7 @@ import {
 import { KEY_USER_DATA } from '../constants';
 import { RawUserData, UserData, UserDataSchema } from '../models';
 import { safeParse } from 'valibot';
-import { dataManager } from './dataManager';
+import { dataMapper } from './dataMapper';
 import { sanitizeTagName, saveFile } from '../utils';
 import { createStore, reconcile } from 'solid-js/store';
 import { createEffect, onCleanup } from 'solid-js';
@@ -28,7 +28,7 @@ if (process.env.NODE_ENV !== 'test') {
 
         const reloadedData = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
-        if (!dataManager.equals(userData, reloadedData)) {
+        if (!dataMapper.equals(userData, reloadedData)) {
             document.dispatchEvent(
                 new CustomEvent(CACHE_UPDATE_EVENT, { detail: { key: KEY_USER_DATA } })
             );
@@ -47,13 +47,13 @@ export function createUserDataStore<T extends object>(
     createEffect(() => {
         const mapper = mapperSignal();
         GM.getValue<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA).then((data) => {
-            setViewModel(reconcile(mapper(dataManager.toUserData(data))));
+            setViewModel(reconcile(mapper(dataMapper.toUserData(data))));
         });
 
         const onCacheEvent = async (e: Event) => {
             if ((e as CacheUpdateEvent).detail.key === KEY_USER_DATA) {
                 const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
-                setViewModel(reconcile(mapper(dataManager.toUserData(data))));
+                setViewModel(reconcile(mapper(dataMapper.toUserData(data))));
             }
         };
 
@@ -67,7 +67,7 @@ export function createUserDataStore<T extends object>(
 // Setters - Tag
 export async function tagExists(tagName: string): Promise<boolean> {
     const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
-    return dataManager.filterExists(data.tags[sanitizeTagName(tagName)]);
+    return dataMapper.filterExists(data.tags[sanitizeTagName(tagName)]);
 }
 
 export async function createTag(tagName: string) {
@@ -79,12 +79,12 @@ export async function createTag(tagName: string) {
 
     const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
 
-    if (dataManager.filterExists(data.tags[tagName])) {
+    if (dataMapper.filterExists(data.tags[tagName])) {
         alert('Tag already exists');
         return;
     }
 
-    await gmSetWithCache<RawUserData>(KEY_USER_DATA, dataManager.createTag(data, tagName));
+    await gmSetWithCache<RawUserData>(KEY_USER_DATA, dataMapper.createTag(data, tagName));
 }
 
 export async function deleteTag(tagName: string) {
@@ -94,7 +94,7 @@ export async function deleteTag(tagName: string) {
         return;
     }
 
-    await gmSetWithCache<RawUserData>(KEY_USER_DATA, dataManager.deleteTag(data, tagName));
+    await gmSetWithCache<RawUserData>(KEY_USER_DATA, dataMapper.deleteTag(data, tagName));
 }
 
 export async function renameTag(oldTagName: string, newTagName: string) {
@@ -114,14 +114,14 @@ export async function renameTag(oldTagName: string, newTagName: string) {
         return;
     }
 
-    if (dataManager.filterExists(data.tags[newTagName])) {
+    if (dataMapper.filterExists(data.tags[newTagName])) {
         alert('Tag already exists');
         return;
     }
 
     await gmSetWithCache<RawUserData>(
         KEY_USER_DATA,
-        dataManager.renameTag(data, oldTagName, newTagName)
+        dataMapper.renameTag(data, oldTagName, newTagName)
     );
 }
 
@@ -146,7 +146,7 @@ export async function addTag(tweetId: string, tagName: string, imagesCache: stri
 
     await gmSetWithCache<RawUserData>(
         KEY_USER_DATA,
-        dataManager.tagTweet(data, tweetId, tagName, imagesCache)
+        dataMapper.tagTweet(data, tweetId, tagName, imagesCache)
     );
 }
 
@@ -169,13 +169,13 @@ export async function removeTag(tweetId: string, tagName: string) {
     }
     await gmSetWithCache<RawUserData>(
         KEY_USER_DATA,
-        dataManager.removeTag({ tags, tweets }, tweetId, tagName)
+        dataMapper.removeTag({ tags, tweets }, tweetId, tagName)
     );
 }
 
 export async function removeTweet(tweetId: string) {
     const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
-    await gmSetWithCache<RawUserData>(KEY_USER_DATA, dataManager.removeTweet(data, tweetId));
+    await gmSetWithCache<RawUserData>(KEY_USER_DATA, dataMapper.removeTweet(data, tweetId));
 }
 
 export async function clearAllTags() {
@@ -190,7 +190,7 @@ export async function getRawUserData(): Promise<RawUserData> {
 }
 
 export async function getUserData(): Promise<UserData> {
-    return dataManager.toUserData(await getRawUserData());
+    return dataMapper.toUserData(await getRawUserData());
 }
 
 export function isDataEmpty(data: RawUserData): boolean {
@@ -209,9 +209,9 @@ export async function setImportData(jsonString: string, merge: boolean = false) 
                 KEY_USER_DATA,
                 DEFAULT_USER_DATA
             );
-            importedData = dataManager.mergeData(currentData, result.output);
+            importedData = dataMapper.mergeData(currentData, result.output);
         } else {
-            importedData = dataManager.updateTimeStamps(importedData);
+            importedData = dataMapper.updateTimeStamps(importedData);
         }
 
         await gmSetWithCache(KEY_USER_DATA, importedData);

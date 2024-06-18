@@ -2,7 +2,7 @@ import { gmSetWithCache } from './cache';
 import { KEY_USER_DATA, KEY_USER_TOKEN } from '../constants';
 import { RawUserData } from '../models';
 import { getRawUserData } from './storage';
-import { dataManager } from './dataManager';
+import { dataMapper } from './dataMapper';
 import { asyncXmlHttpRequest } from '../utils';
 
 export interface UserInfo {
@@ -93,7 +93,7 @@ export async function getUserInfo(): Promise<UserInfoData | null> {
                 userDataExists: !!onlineUserData?.data,
                 userDataSynced:
                     onlineUserData !== null
-                        ? dataManager.equals(localUserData, onlineUserData.data)
+                        ? dataMapper.equals(localUserData, onlineUserData.data)
                         : false,
                 syncedAt: onlineUserData?.synced_at ?? '',
             };
@@ -113,7 +113,7 @@ export async function syncData(userInfo: UserInfo): Promise<boolean> {
     let data = await getRawUserData();
 
     if (onlineData) {
-        data = dataManager.mergeData(data, onlineData.data);
+        data = dataMapper.mergeData(data, onlineData.data);
     }
 
     console.log('Uploading data...');

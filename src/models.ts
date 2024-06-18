@@ -30,7 +30,7 @@ export type RawTags = InferOutput<typeof TagsSchema>;
 /**
  * Schema for representing tags and tweets data.
  * Existences of tags and image depends on metadata, so tags that are present in the tags object may have already been deleted.
- * Use the dataManager.ts module to interact with this data.
+ * Use the dataMapper.ts module to interact with this data.
  */
 export type RawUserData = InferOutput<typeof UserDataSchema>;
 

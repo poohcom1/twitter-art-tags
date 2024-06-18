@@ -1,6 +1,6 @@
 import { KEY_USER_DATA } from '../src/constants';
 import { Tag, Tweet, UserData } from '../src/models';
-import { createTag, getTags } from '../src/services/storage';
+import { createTag } from '../src/services/storage';
 import { tagsData } from './utils';
 
 global.alert = jest.fn();
@@ -57,26 +57,6 @@ describe('storage', () => {
 
             expect(alert).toHaveBeenCalled();
             expect(mockSetValue).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('getTags', () => {
-        it('should not return deleted tags', async () => {
-            mockGetValue.mockResolvedValueOnce(
-                tagsData({
-                    tag1: { deletedAt: 2, modifiedAt: 1 },
-                    tag2: { deletedAt: 1, modifiedAt: 2 },
-                    tag3: {},
-                })
-            );
-
-            const tags = await getTags();
-            expect(tags).toEqual(
-                tagsData({
-                    tag2: { deletedAt: 1, modifiedAt: 2 },
-                    tag3: {},
-                }).tags
-            );
         });
     });
 });

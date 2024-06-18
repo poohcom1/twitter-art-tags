@@ -341,7 +341,7 @@ function eqSet<T>(xs: Set<T>, ys: Set<T>) {
     return xs.size === ys.size && [...xs].every((x) => ys.has(x));
 }
 
-export const dataManager = {
+export const dataMapper = {
     filterExists,
     getExistingTags,
     getExistingTweets,

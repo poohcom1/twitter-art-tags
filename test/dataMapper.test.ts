@@ -1,18 +1,18 @@
-import { dataManager } from '../src/services/dataManager';
+import { dataMapper } from '../src/services/dataMapper';
 import { userData } from './utils';
 
 jest.useFakeTimers();
 
-describe('dataManager', () => {
+describe('dataMapper', () => {
     describe('e2e', () => {
         it('tweet deletion flow', () => {
             let data = userData({});
-            data = dataManager.tagTweet(data, 'tweet1', 'tag1', ['https://www.image1.com/']);
+            data = dataMapper.tagTweet(data, 'tweet1', 'tag1', ['https://www.image1.com/']);
 
             const initialTime = Date.now();
 
-            expect(Object.keys(dataManager.getExistingTags(data))).toHaveLength(1);
-            expect(Object.keys(dataManager.getExistingTweets(data))).toHaveLength(1);
+            expect(Object.keys(dataMapper.getExistingTags(data))).toHaveLength(1);
+            expect(Object.keys(dataMapper.getExistingTweets(data))).toHaveLength(1);
 
             expect(Object.keys(data.tags)).toHaveLength(1);
             expect(data.tags.tag1.tweets).toStrictEqual(['tweet1']);
@@ -24,7 +24,7 @@ describe('dataManager', () => {
 
             jest.advanceTimersByTime(1000);
 
-            data = dataManager.removeTweet(data, 'tweet1');
+            data = dataMapper.removeTweet(data, 'tweet1');
             expect(Object.keys(data.tags)).toHaveLength(1);
             expect(data.tags.tag1.tweets).toStrictEqual([]);
             expect(data.tags.tag1.tweetsModifiedAt.tweet1).toStrictEqual(initialTime + 1000);
@@ -32,8 +32,8 @@ describe('dataManager', () => {
             expect(data.tweets.tweet1.modifiedAt).toStrictEqual(initialTime);
             expect(data.tweets.tweet1.deletedAt).toStrictEqual(initialTime + 1000);
 
-            expect(Object.keys(dataManager.getExistingTags(data))).toHaveLength(1);
-            expect(Object.keys(dataManager.getExistingTweets(data))).toHaveLength(0);
+            expect(Object.keys(dataMapper.getExistingTags(data))).toHaveLength(1);
+            expect(Object.keys(dataMapper.getExistingTweets(data))).toHaveLength(0);
         });
     });
 
@@ -48,7 +48,7 @@ describe('dataManager', () => {
                 },
             });
 
-            const result = dataManager.removeTweet(data, 'tweet1');
+            const result = dataMapper.removeTweet(data, 'tweet1');
             expect(result).toEqual(
                 userData({
                     tags: {
@@ -94,7 +94,7 @@ describe('dataManager', () => {
 
             jest.advanceTimersByTime(1000);
 
-            const result = dataManager.updateTimeStamps(oldData);
+            const result = dataMapper.updateTimeStamps(oldData);
             const updatedTime = Date.now();
             expect(result).toEqual(
                 userData({
@@ -141,7 +141,7 @@ describe('dataManager', () => {
                 },
             });
 
-            const result = dataManager.mergeData(data1, data2);
+            const result = dataMapper.mergeData(data1, data2);
             expect(result).toEqual(
                 userData({
                     tags: {
@@ -174,7 +174,7 @@ describe('dataManager', () => {
                 },
             });
 
-            const result = dataManager.mergeData(data1, data2);
+            const result = dataMapper.mergeData(data1, data2);
             expect(result).toEqual(
                 userData({
                     tags: {
@@ -207,7 +207,7 @@ describe('dataManager', () => {
                 },
             });
 
-            const result = dataManager.mergeData(data1, data2);
+            const result = dataMapper.mergeData(data1, data2);
             expect(result).toEqual(
                 userData({
                     tags: {
