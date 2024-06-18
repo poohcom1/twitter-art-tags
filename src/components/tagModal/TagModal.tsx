@@ -1,12 +1,18 @@
-import { For, JSX, Match, Switch, createEffect, createSelector, createSignal } from 'solid-js';
+import {
+    For,
+    JSX,
+    Match,
+    Switch,
+    createEffect,
+    createMemo,
+    createSelector,
+    createSignal,
+} from 'solid-js';
 import { Portal, render } from 'solid-js/web';
 import styles from './tag-modal.module.scss';
 import { SANITIZE_INFO, formatTagName, sanitizeTagName, verifyEvent } from '../../utils';
-import { createStore, reconcile } from 'solid-js/store';
-import { KEY_USER_DATA } from '../../constants';
 import { RawUserData } from '../../models';
-import { CACHE_UPDATE_EVENT, CacheUpdateEvent, gmGetWithCache } from '../../services/cache';
-import { DEFAULT_USER_DATA, addTag, removeTag } from '../../services/storage';
+import { addTag, createUserDataStore, removeTag } from '../../services/storage';
 import { dataManager } from '../../services/dataManager';
 import { TagButton } from '../common/tagButton/TagButton';
 
@@ -35,7 +41,9 @@ interface TagModalViewModel {
 
 // Component
 export const TagModal = (props: TagModalProps) => {
-    const [viewModel, setViewModel] = createStore<TagModalViewModel>({ tags: [] });
+    const viewModel = createUserDataStore<TagModalViewModel>({ tags: [] }, () =>
+        mapViewModel(props.visible?.tweetId)
+    );
 
     const [getInputValue, setInputValue] = createSignal('');
 
@@ -48,21 +56,6 @@ export const TagModal = (props: TagModalProps) => {
         if (!visible) {
             return;
         }
-
-        // Store
-        GM.getValue<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA).then((data) => {
-            if (data) {
-                setViewModel(reconcile(mapViewModel(data, visible.tweetId)));
-            }
-        });
-        document.addEventListener(CACHE_UPDATE_EVENT, async (e) => {
-            if ((e as CacheUpdateEvent).detail.key === KEY_USER_DATA) {
-                const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
-                if (data) {
-                    setViewModel(reconcile(mapViewModel(data, visible.tweetId)));
-                }
-            }
-        });
 
         // Positioning
         const position = visible.position;
@@ -204,15 +197,21 @@ export function createTagModal(): TagModalAdapter {
     };
 }
 
-function mapViewModel(rawUserData: RawUserData, tweetId: string): TagModalViewModel {
-    const userData = dataManager.removeMetadata(rawUserData);
-    const { tags } = userData;
-    const tagViewModels = Object.keys(tags)
-        .sort()
-        .map((tag) => ({
-            tag,
-            tagged: tags[tag].tweets.includes(tweetId),
-        }));
+const mapViewModel =
+    (tweetId?: string) =>
+    (rawUserData: RawUserData): TagModalViewModel => {
+        if (!tweetId) {
+            return { tags: [] };
+        }
 
-    return { tags: tagViewModels };
-}
+        const userData = dataManager.removeMetadata(rawUserData);
+        const { tags } = userData;
+        const tagViewModels = Object.keys(tags)
+            .sort()
+            .map((tag) => ({
+                tag,
+                tagged: tags[tag].tweets.includes(tweetId),
+            }));
+
+        return { tags: tagViewModels };
+    };

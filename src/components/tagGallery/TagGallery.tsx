@@ -1,19 +1,15 @@
 import { For, Match, Show, Switch, createEffect, createSelector, createSignal } from 'solid-js';
 import styles from './tag-gallery.module.scss';
 import { Title } from './components/Title';
-
 import { Menu } from './components/Menu';
 import { Svg } from '../common/Svg';
 import tagIcon from '/src/assets/tag.svg';
 import deleteIcon from '/src/assets/delete.svg';
 import { formatTagName, sanitizeTagName, verifyEvent } from '../../utils';
 import { ImageContainer } from './components/ImageContainer';
-import { createStore, reconcile } from 'solid-js/store';
-import { KEY_USER_DATA } from '../../constants';
 import { RawUserData } from '../../models';
-import { CACHE_UPDATE_EVENT, CacheUpdateEvent, gmGetWithCache } from '../../services/cache';
 import { dataManager } from '../../services/dataManager';
-import { DEFAULT_USER_DATA, createTag } from '../../services/storage';
+import { createUserDataStore, createTag } from '../../services/storage';
 import { ImageModal } from './components/imageModal/ImageModal';
 import { TagEdit } from './components/TagEdit';
 import { TagModal, TagModalOptions } from '../tagModal/TagModal';
@@ -36,7 +32,10 @@ type GalleryView = {
 const ID = 'tag-gallery';
 
 export const TagGallery = () => {
-    const [viewModel, setViewModel] = createStore<GalleryView>({ tags: [], images: [] });
+    const viewModel = createUserDataStore<GalleryView>(
+        { tags: [], images: [] },
+        () => mapViewModel
+    );
 
     const [getSelectedTags, setSelectedTags] = createSignal<string[]>([]);
     const [getOutlinedTweet, setOutlinedTweet] = createSignal<string | null>(null);
@@ -47,24 +46,6 @@ export const TagGallery = () => {
     const [getTagModalVisible, setTagModalVisible] = createSignal<TagModalOptions | null>(null);
 
     let actualHoverElement: ImageView | null = null;
-
-    // Store update
-    createEffect(() => {
-        GM.getValue<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA).then((data) => {
-            if (data) {
-                setViewModel(reconcile(mapViewModel(data)));
-            }
-        });
-
-        document.addEventListener(CACHE_UPDATE_EVENT, async (e) => {
-            if ((e as CacheUpdateEvent).detail.key === KEY_USER_DATA) {
-                const data = await gmGetWithCache<RawUserData>(KEY_USER_DATA, DEFAULT_USER_DATA);
-                if (data) {
-                    setViewModel(reconcile(mapViewModel(data)));
-                }
-            }
-        });
-    });
 
     // Outline/Hover lock
     createEffect(() => {
