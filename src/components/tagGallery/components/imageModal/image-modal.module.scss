@@ -13,7 +13,7 @@
 .image {
     @include mixins.modal;
 
-    height: 90vh;
+    max-height: 90vh;
     max-width: 60vw;
     object-fit: contain;
     z-index: mixins.$overlay-index + 1;
