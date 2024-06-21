@@ -41,18 +41,21 @@ export const TagModal = (props: TagModalProps) => {
     let inputRef!: HTMLInputElement;
     let tagContainerRef!: HTMLDivElement;
 
-    createEffect(() => {
+    createEffect(async () => {
         const visible = props.visible;
         if (!visible) {
+            tagModalRef.style.display = 'none';
             return;
         }
+        tagModalRef.style.display = 'block';
 
-        // Positioning
+        await Promise.resolve(); // Wait for modal to appear so position calculations work
+
+        // Positioning within screen bounds
         const position = visible.position;
         const modalRightEdge = position.right + tagModalRef.offsetWidth + position.space + 10;
         const modalBottomEdge = position.top + tagModalRef.offsetHeight;
 
-        // Get the current scroll positions
         const scrollLeft = document.documentElement.scrollLeft;
         const scrollTop = document.documentElement.scrollTop;
 
@@ -107,7 +110,7 @@ export const TagModal = (props: TagModalProps) => {
             <div
                 ref={tagModalRef}
                 class={`${styles.tagModal} ${props.class}`}
-                style={{ ...props.style, display: props.visible ? 'block' : 'none' }}
+                style={props.style}
                 on:click={(e) => e.stopPropagation()}
             >
                 <input
