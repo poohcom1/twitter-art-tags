@@ -21,6 +21,8 @@ This is a rework of [Twitter Art Collections](https://github.com/poohcom1/twitte
 
 ## Development
 
+This project is mostly basic Typescript compiled to a userscript via [webpack-userscript](https://github.com/momocow/webpack-userscript). Solidjs is used for injected HTML elements.
+
 1. Install dependencies:
 
 ```sh
@@ -44,7 +46,9 @@ yarn dev
 
 Special thanks to:
 
--   [vanilla-context-menu](https://github.com/GeorgianStan/vanilla-context-menu) by @GeorgianStan
--   [valibot](https://github.com/fabian-hiller/valibot) by @fabian-hiller
--   [zip.js](https://github.com/gildas-lormeau/zip.js) by @gildas-lormeau
+-   [webpack-userscript](https://github.com/momocow/webpack-userscript) by [@momocow](https://github.com/momocow)
+-   [vanilla-context-menu](https://github.com/GeorgianStan/vanilla-context-menu) by [@GeorgianStan](https://github.com/GeorgianStan)
+-   [valibot](https://github.com/fabian-hiller/valibot) by [@fabian-hiller](https://github.com/fabian-hiller)
+-   [zip.js](https://github.com/gildas-lormeau/zip.js) by [@gildas-lormeau](https://github.com/gildas-lormeau)
+-   [solid.js](https://github.com/solidjs/solid) by [@ryansolid](https://github.com/ryansolid)
 -   [Ui Oval Interface Icons Collection](https://www.svgrepo.com/collection/ui-oval-interface-icons) from [svgrepo.com](https://www.svgrepo.com/)
