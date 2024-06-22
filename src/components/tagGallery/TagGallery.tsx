@@ -187,6 +187,7 @@ export const TagGallery = () => {
                                 if (isTagActive(tagView.tag) && getSelectedTags().length === 1)
                                     setSelectedTags([]);
                                 else setSelectedTags([tagView.tag]);
+                                setTagFilter(''); // Clear on click
                             }}
                             onShiftSelect={() => {
                                 if (isTagActive(tagView.tag))
@@ -194,6 +195,7 @@ export const TagGallery = () => {
                                         getSelectedTags().filter((t) => t !== tagView.tag)
                                     );
                                 else setSelectedTags([...getSelectedTags(), tagView.tag]);
+                                setTagFilter(''); // Clear on click
                             }}
                             onDeselectAll={() => setSelectedTags([])}
                             onContextMenu={() => setTagModalVisible(null)}
