@@ -256,7 +256,7 @@ export const TagGallery = () => {
                         />
                     )}
                 </For>
-                <div ref={loadMoreRef} />
+                <div ref={loadMoreRef} style={{ height: '1px', width: '100%' }} />
                 <div class={styles.noImages}>
                     <Switch>
                         <Match when={viewModel.tags.length === 0}>
