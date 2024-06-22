@@ -15,7 +15,7 @@ import { Menu } from './components/Menu';
 import { Svg } from '../common/Svg';
 import tagIcon from '/src/assets/tag.svg';
 import deleteIcon from '/src/assets/delete.svg';
-import { formatTagName, sanitizeTagName, verifyEvent } from '../../utils';
+import { formatTagName, sanitizeTagName, sortFilter, verifyEvent } from '../../utils';
 import { ImageContainer } from './components/ImageContainer';
 import { UserData } from '../../models';
 import { createUserDataStore, createTag } from '../../services/storage';
@@ -93,7 +93,10 @@ export const TagGallery = () => {
         (ind) => ind < getDisplayedImages()
     );
 
-    const currentTags = () => viewModel.tags.filter(isTagFiltered);
+    const currentTags = () =>
+        viewModel.tags
+            .filter(isTagFiltered)
+            .sort((a, b) => sortFilter(getTagFilter())(a.tag, b.tag));
     const currentImages = () =>
         viewModel.images.filter(isImageSelected).filter((_, ind) => isImageShown(ind));
 

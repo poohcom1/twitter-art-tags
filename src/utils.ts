@@ -136,3 +136,20 @@ export function saveFile(blob: Blob, filename: string) {
     a.remove();
     window.URL.revokeObjectURL(url);
 }
+
+export const sortFilter = (filter: string) => (a: string, b: string) => {
+    if (!filter) return a.localeCompare(b);
+
+    // Prioritize start with
+    const aStartsWith = a.startsWith(filter);
+    const bStartsWith = b.startsWith(filter);
+    if (aStartsWith && !bStartsWith) return -1;
+    if (!aStartsWith && bStartsWith) return 1;
+
+    // Prioritize shorter
+    if (a.length < b.length) return -1;
+    if (a.length > b.length) return 1;
+
+    // Prioritize alphabetically
+    return a.localeCompare(b);
+};

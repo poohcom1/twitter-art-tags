@@ -1,7 +1,13 @@
 import { For, JSX, Match, Switch, createEffect, createSelector, createSignal } from 'solid-js';
 import { Portal, render } from 'solid-js/web';
 import styles from './tag-modal.module.scss';
-import { SANITIZE_INFO, formatTagName, sanitizeTagName, verifyEvent } from '../../utils';
+import {
+    SANITIZE_INFO,
+    formatTagName,
+    sanitizeTagName,
+    sortFilter,
+    verifyEvent,
+} from '../../utils';
 import { UserData } from '../../models';
 import { addTag, createUserDataStore, removeTag } from '../../services/storage';
 import { TagButton } from '../common/tagButton/TagButton';
@@ -144,7 +150,11 @@ export const TagModal = (props: TagModalProps) => {
                     maxlength={SANITIZE_INFO.maxLength}
                 />
                 <div ref={tagContainerRef} class={styles.tagsContainer}>
-                    <For each={viewModel.tags.filter(isFiltered)}>
+                    <For
+                        each={viewModel.tags
+                            .filter(isFiltered)
+                            .sort((a, b) => sortFilter(getInputValue())(a.tag, b.tag))}
+                    >
                         {(tagView) => (
                             <TagButton
                                 showIcon
