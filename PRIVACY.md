@@ -44,4 +44,4 @@ We may update this privacy policy from time to time. Any changes will be posted 
 
 If you have any questions or concerns about this privacy policy, please create an issue on the [GitHub Issues page](https://github.com/poohcom1/twitter-art-tags/issues).
 
-Last updated: 6/13/24
+Last updated: 6/23/24
