@@ -1,10 +1,10 @@
 # Twitter Art Tags - Terms of Service
 
-_Last updated: 6/14/24_
+_Last updated: 6/23/24_
 
 **Welcome to Twitter Art Tags!**
 
-By using this userscript, you agree to the following terms and conditions. Please read them carefully.
+By using the sync feature of this userscript, you agree to the following terms and conditions. Please read them carefully.
 
 #### 1. Acceptance of Terms
 
