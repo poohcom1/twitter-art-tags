@@ -6,11 +6,13 @@ This privacy policy outlines how your data is collected, used, and protected whe
 
 ## Data Collection
 
+By default, the data is stored on your local userscript storage. See [GM.setValue](https://wiki.greasespot.net/GM.setValue).
+
 When you opt-in to use the sync feature, the following data is collected:
 
 -   **Email**: Used for login and account identification.
--   **Tags and Images**: The tags you create and the images they are associated with.
--   **Image Links**: The URLs of the images you tag.
+-   **Tags and tweets**: The tags you create and the id of tweets they are associated with.
+-   **Image Links**: The URLs of the images from tweets you tag.
 
 ## Data Usage
 
