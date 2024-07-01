@@ -54,7 +54,7 @@ export async function renderTweetDropdown() {
                 viewTagsButton!.style.backgroundColor = 'transparent';
             });
             viewTagsButton.addEventListener('click', async () => {
-                window.open(CUSTOM_PAGE_PATH, '_self');
+                window.open(CUSTOM_PAGE_PATH, '_blank');
             });
         }
 
